@@ -13,10 +13,10 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.util.List;
-import java.util.Map;
 
 public class Lookup implements CommandExecutor {
 
@@ -24,7 +24,7 @@ public class Lookup implements CommandExecutor {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         String flags = args.<String>getOne("flags").isPresent() ? args.<String>getOne("flags").get() + " " : null;
 
-        List<CrateLocation> crateLookup = Util.getRegisteredCrates();
+        List<CrateLocation> crateLookup = Lists.newArrayList(Util.getCrateRegistry().keySet());
         if (flags != null) {
             if (flags.contains("-c:")) {
                 String name = flags.substring(flags.indexOf("-c:") + 3, flags.indexOf(" ", flags.indexOf("-c:")));
@@ -80,12 +80,10 @@ public class Lookup implements CommandExecutor {
         } else {
             int c = 1;
             for (CrateLocation crateLoc : crateLookup) {
-                crateTexts.add(Text.builder(c++ + ": ")
-                        .color(TextColors.GOLD)
-                        .append(Text.builder(Util.getRegisteredCrate(crateLoc).Name + "- ")
-                                .color(TextColors.YELLOW)
-                                .append(Text.of(TextColors.GRAY, crateLoc.print()))
-                                .build())
+                crateTexts.add(Text.builder("")
+                        .append(Util.toText("&6" + c++ + ": &e" + Util.getRegisteredCrate(crateLoc).Name + "&6 - &7" + crateLoc.print()))
+                        .onHover(TextActions.showText(Util.toText("&7Click to suggest a teleport to this location.")))
+                        .onClick(TextActions.suggestCommand("/tppos " + crateLoc.Vec3i.getX() + " " + crateLoc.Vec3i.getY() + " " + crateLoc.Vec3i.getZ()))
                         .build());
             }
         }

@@ -16,6 +16,7 @@ import java.util.Map;
 public class Util {
 
     public static Text prefix = Util.toText("&8&l[&eTesla&6Crate&8&l]&r ");
+    public static Text displayPrefix = Util.toText("&8&l[&eTesla&6Crate&8&l]&r ");
 
     private static Map<String, Crate> crateDirectory = Maps.newHashMap();
     private static Map<CrateLocation, Crate> crateRegistry = Maps.newHashMap();
@@ -61,16 +62,20 @@ public class Util {
         return crateDirectory.get(crateName);
     }
 
+    public static Map<String, Crate> getCrateDirectory() {
+        return crateDirectory;
+    }
+
     public static Crate getRegisteredCrate(CrateLocation crateLoc) {
         return crateRegistry.get(crateLoc);
     }
 
-    public static CrateReward getGlobalReward(String name) {
-        return globalRewards.get(name);
+    public static Map<CrateLocation, Crate> getCrateRegistry() {
+        return crateRegistry;
     }
 
-    public static List<CrateLocation> getRegisteredCrates() {
-        return Lists.newArrayList(crateRegistry.keySet());
+    public static CrateReward getGlobalReward(String name) {
+        return globalRewards.get(name);
     }
 
     /**

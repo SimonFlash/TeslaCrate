@@ -26,34 +26,36 @@ public class GiveKey implements CommandExecutor {
 
         Crate crate = Util.getStoredCrate(crateName);
         if (crate != null) {
-            if (quantity > 0) {
-                if (user.hasPermission("teslacrate.crates." + crate.Name + ".base")) {
+            if (user.hasPermission("teslacrate.crates." + crate.Name + ".base")) {
+                if (quantity > 0) {
                     if (crate.Keydata.Physical) {
                         if (user.isOnline()) {
                             Player player = user.getPlayer().get();
                             InventoryTransactionResult result = player.getInventory().query(Hotbar.class, GridInventory.class).offer(ItemStack.builder().fromItemStack(crate.Keydata.Item).quantity(quantity).build());
                             if (result.equals(InventoryTransactionResult.failNoTransactions())) {
-                                src.sendMessage(Util.toText("Unable to give player " + player.getName() + " a physical key!"));
+                                src.sendMessage(Util.prefix.concat(Util.toText("&7Failed to give player " + player.getName() + " a physical key!")));
                                 return CommandResult.empty();
                             }
                         } else {
-                            src.sendMessage(Util.toText("User " + user.getName() + " is currently offline and is unable to receive a physical key!"));
+                            src.sendMessage(Util.prefix.concat(Util.toText("&7User " + user.getName() + " is currently offline and is unable to receive a physical key!")));
                             return CommandResult.empty();
                         }
                     } else {
                         Config.setKeys(user, crate, Config.getKeys(user, crate) + quantity);
                     }
-                    src.sendMessage(Util.prefix.concat(Util.toText("&7Successfully gave &f" + user.getName() + " " + quantity + "x " + crate.Name + " &7crate keys!")));
+                    if (!src.equals(user)) {
+                        src.sendMessage(Util.prefix.concat(Util.toText("&7Successfully gave &f" + user.getName() + " " + quantity + "x " + crate.Name + " &7crate keys!")));
+                    }
                     if (user.isOnline()) {
                         ((Player) user).sendMessage(Util.prefix.concat(Util.toText("&7Received &f" + quantity + "x " + crate.Name + " &7crate keys!")));
                     }
                     return CommandResult.success();
                 } else {
-                    src.sendMessage(Util.prefix.concat(Util.toText("&7Player does not have permission to use this crate!")));
+                    src.sendMessage(Util.prefix.concat(Util.toText("&7Quantity must be greater than 1!")));
                     return CommandResult.empty();
                 }
             } else {
-                src.sendMessage(Util.prefix.concat(Util.toText("&7Quantity must be greater than 1!")));
+                src.sendMessage(Util.prefix.concat(Util.toText("&7Player does not have permission to use this crate!")));
                 return CommandResult.empty();
             }
         } else {

@@ -23,7 +23,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +62,12 @@ public class Config {
         }
         loadConfig();
         Util.clearStorage();
+        String displayPrefix = rootNode.getNode("config", "display-prefix").getString("&8&l[&eTesla&6Crate&8&l]&r ");
+        if (displayPrefix.toLowerCase().contains("edison")) {
+            TeslaCrate.getPlugin().getLogger().warn("Edison? Really? We're not having any of that here.");
+            displayPrefix = "&8&l[&eTesla&6Crate&8&l]&r ";
+        }
+        Util.displayPrefix = Util.toText(displayPrefix);
         strictChances = rootNode.getNode("config", "strict-chances").getBoolean(false);
         Map<Object, ? extends CommentedConfigurationNode> commandRewardsMap = rootNode.getNode("rewards", "command").getChildrenMap();
         for (Map.Entry<Object, ? extends CommentedConfigurationNode> rewardName : commandRewardsMap.entrySet()) {
@@ -110,7 +115,13 @@ public class Config {
             rewards.put(reward, chance);
         }
         CrateKeydata keydata = new CrateKeydata();
-        //keydata.Cost = crateNode.getNode("keydata", "cost").getDouble(0);
+        keydata.Consumed = crateNode.getNode("keydata", "consumed").getInt(1);
+        if (keydata.Consumed <= 0) {
+            TeslaCrate.getPlugin().getLogger().error("Key consumed value is less than 1! | Consumed:[" + keydata.Consumed + "] Crate:[" + crateName + "]");
+            return;
+        }
+        keydata.BuyCost = crateNode.getNode("keydata", "cost-buy").getDouble(0);
+        keydata.SellCost = crateNode.getNode("keydata", "cost-sell").getDouble(0);
         keydata.Display = crateNode.getNode("keydata", "display").getString(display + " &6Key");
         keydata.Physical = !crateNode.getNode("keydata", "physical").isVirtual();
         if (keydata.Physical) {
@@ -235,12 +246,11 @@ public class Config {
         for (Map.Entry<Object, ? extends CommentedConfigurationNode> crateName : keysMap.entrySet()) {
             Crate crate = Util.getStoredCrate((String) crateName.getKey());
             if (crate != null) {
-                keysList.add("&6" + crate.Display + " &7x" + rootNode.getNode("storage", "keys", user.getUniqueId().toString(), crate.Name).getInt(0));
+                keysList.add("&e" + crate.Display + "&7 x" + rootNode.getNode("storage", "keys", user.getUniqueId().toString(), crate.Name).getInt(0));
             } else {
                 TeslaCrate.getPlugin().getLogger().error("Attempted to load keys for unknown crate! | Crate:[" + crateName.getKey() + "] User:[" + user.getUniqueId() + " (" + user.getName() + ")]");
             }
         }
-        keysList.sort(Comparator.naturalOrder());
         return keysList;
     }
 

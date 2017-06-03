@@ -34,10 +34,10 @@ public class ListKeys implements CommandExecutor {
             int c = 1;
             List<Text> keys = Lists.newArrayList();
             for (String key : Config.getAllKeys(user)) {
-                keys.add(Util.toText("&e" + c++ + ": " + key));
+                keys.add(Util.toText("&6" + c++ + ": " + key));
             }
             if (keys.isEmpty()) {
-                keys.add(Util.toText("&eNo keys found!"));
+                keys.add(Util.toText("&7No keys found!"));
             }
             PaginationList.builder()
                     .padding(Text.of(TextColors.DARK_GRAY, "-"))

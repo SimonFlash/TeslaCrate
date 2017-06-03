@@ -6,7 +6,6 @@ import com.mcsimonflash.sponge.teslacrate.managers.Util;
 import com.mcsimonflash.sponge.teslacrate.objects.rewards.CrateReward;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.Map;
 
@@ -28,11 +27,13 @@ public class Crate {
 
     public void process(Player player) {
         if (Keydata.Physical) {
-            if (player.getInventory().query(Keydata.Item).poll(1).orElse(null) == null) {
-                TeslaCrate.getPlugin().getLogger().error("Unable to retrieve key! | Crate:[" + Name + "] Player:[" + player.getName() + "]");
+            if (player.getInventory().query(Keydata.Item).poll(Keydata.Consumed).orElse(null) == null) {
+                player.sendMessage(Util.toText("&cAn unexpected error occured! Error code 19626 | Crate:[" + Name + "]"));
+                TeslaCrate.getPlugin().getLogger().error("Unable to retrieve physical key! | Crate:[" + Name + "] Player:[" + player.getName() + "]");
+                return;
             }
         } else {
-            Config.setKeys(player, this, Config.getKeys(player, this) - 1);
+            Config.setKeys(player, this, Config.getKeys(player, this) - Keydata.Consumed);
         }
         double randSelec = Metadata.ChanceSum * Math.random();
         for (CrateReward reward : Rewards.keySet()) {
@@ -50,7 +51,7 @@ public class Crate {
                 return;
             }
         }
-        player.sendMessage(Util.toText("&cAn unexpected error occured! Error code 5417 | Crate:[" + Name + "]"));
+        player.sendMessage(Util.toText("&cAn unexpected error occured! Error code 54171 | Crate:[" + Name + "]"));
         TeslaCrate.getPlugin().getLogger().error("Reached end of crate process without selection! Error code 5417 | Crate:[" + Name + "]");
     }
 }

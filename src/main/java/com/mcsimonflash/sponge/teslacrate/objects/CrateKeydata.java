@@ -7,7 +7,9 @@ public class CrateKeydata {
     public CrateKeydata() {}
 
     public boolean Physical;
-    public double Cost;
+    public double BuyCost;
+    public double SellCost;
+    public int Consumed;
     public String Display;
     public ItemStack Item;
 }
