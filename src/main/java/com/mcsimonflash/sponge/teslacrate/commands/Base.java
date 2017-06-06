@@ -129,6 +129,8 @@ public class Base implements CommandExecutor {
                             .build())
                     .append(Text.of(TextColors.GOLD, " |"))
                     .build();
+        } else {
+            TeslaCrate.getLogger().error("The TeslaCrate wiki and Support Discord were not able to be displayed!");
         }
         PaginationList.builder()
                 .padding(Text.of(TextColors.DARK_GRAY, "-"))
