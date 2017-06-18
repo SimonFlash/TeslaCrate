@@ -16,84 +16,59 @@ public class Base implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        Text BuyKey = Text.builder("/TeslaCrate BuyKey ")
-                .color(TextColors.GOLD)
-                .onClick(TextActions.suggestCommand("/TeslaCrate BuyKey "))
-                .append(Text.builder("<Crate> ")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Crate<String>: ", TextColors.GRAY, "Name of the crate")))
-                        .build())
-                .append(Text.builder("<Quantity>")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Quantity<Integer>: ", TextColors.GRAY, "Number of keys")))
-                        .build())
-                .build();
+
         Text DeleteLoc = Text.builder("/TeslaCrate DeleteLoc ")
                 .color(TextColors.GOLD)
                 .onClick(TextActions.suggestCommand("/TeslaCrate DeleteLoc "))
                 .append(Text.builder("[World] ")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "World[String]: ", TextColors.GRAY, "Name of the world (Player-Optional)")))
+                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "World [String]: ", TextColors.GRAY, "Name of the world (Player-Optional)")))
                         .build())
                 .append(Text.builder("[Position]")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Location[Vector3i]: ", TextColors.GRAY, "Position of the crate (X Y Z) (Player-Optional)")))
+                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Location [Vector3i]: ", TextColors.GRAY, "Position of the crate (X Y Z) (Player-Optional)")))
                         .build())
                 .build();
         Text GiveKey = Text.builder("/TeslaCrate GiveKey ")
                 .color(TextColors.GOLD)
                 .onClick(TextActions.suggestCommand("/TeslaCrate GiveKey "))
-                .append(Text.builder("<User> ")
+                .append(Text.builder("<Target> ")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "User<User>: ", TextColors.GRAY, "Name of the user")))
+                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Target <User>: ", TextColors.GRAY, "Name of the user")))
                         .build())
                 .append(Text.builder("<Crate> ")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Crate<String>: ", TextColors.GRAY, "Name of the crate")))
+                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Crate <String>: ", TextColors.GRAY, "Name of the crate")))
                         .build())
                 .append(Text.builder("<Quantity>")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Quantity<Integer>: ", TextColors.GRAY, "Number of keys")))
+                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Quantity <Integer>: ", TextColors.GRAY, "Number of keys")))
                         .build())
+                .build();
+        Text ListCrates = Text.builder("/TeslaCrate ListCrates ")
+                .color(TextColors.GOLD)
+                .onClick(TextActions.suggestCommand("/TeslaCrate ListCrates"))
                 .build();
         Text ListKeys = Text.builder("/TeslaCrate ListKeys ")
                 .color(TextColors.GOLD)
-                .onClick(TextActions.suggestCommand("/TeslaCrate SetLoc "))
+                .onClick(TextActions.suggestCommand("/TeslaCrate ListKeys "))
                 .append(Text.builder("[User]")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "User<User>: ", TextColors.GRAY, "Name of the user")))
+                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "User <User>: ", TextColors.GRAY, "Name of the user")))
                         .build())
                 .build();
-        Text Lookup = Text.builder("/TeslaCrate SetLoc ")
+        Text Lookup = Text.builder("/TeslaCrate Lookup ")
                 .color(TextColors.GOLD)
-                .onClick(TextActions.suggestCommand("/TeslaCrate SetLoc "))
-                .append(Text.builder("[-c:Crate] ")
+                .onClick(TextActions.suggestCommand("/TeslaCrate Lookup "))
+                .append(Text.builder("[Flags]")
                         .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Crate[String]: ", TextColors.GRAY, "Name of a crate")))
-                        .build())
-                .append(Text.builder("[-p:Position] ")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Position[Vector3i]: ", TextColors.GRAY, "XYZ Position (X,Y,Z)")))
-                        .build())
-                .append(Text.builder("[-r:Radius]")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Radius[Integer]: ", TextColors.GRAY, "Radius around current position")))
-                        .build())
-                .append(Text.builder("[-w:World]")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "World[String]: ", TextColors.GRAY, "Name of a world")))
-                        .build())
-                .build();
-        Text SellKey = Text.builder("/TeslaCrate SellKey ")
-                .color(TextColors.GOLD)
-                .onClick(TextActions.suggestCommand("/TeslaCrate SellKey "))
-                .append(Text.builder("<Crate> ")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Crate<String>: ", TextColors.GRAY, "Name of the crate")))
-                        .build())
-                .append(Text.builder("<Quantity>")
-                        .color(TextColors.YELLOW)
-                        .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Quantity<Integer>: ", TextColors.GRAY, "Number of keys")))
+                        .onHover(TextActions.showText(Text.of(
+                                TextColors.WHITE, "-c:Crate [String]: ", TextColors.GRAY, "Name of a crate (ex. -c:tesla) \n",
+                                TextColors.WHITE, "-k:Key [String]: ", TextColors.GRAY, "Name of a key (ex. -k:skeleton) \n",
+                                TextColors.WHITE, "-p:Position [Vector3i]: ", TextColors.GRAY, "Position vector (ex. -p:7,42,-13) \n",
+                                TextColors.WHITE, "-r:Radius [Double]: ", TextColors.GRAY, "Radius around your position (ex. -r:21) \n",
+                                TextColors.WHITE, "-w:World [String]: ", TextColors.GRAY, "Name of a world (ex. -w:MiddleEarth) \n"
+                        )))
                         .build())
                 .build();
         Text SetLoc = Text.builder("/TeslaCrate SetLoc ")
@@ -112,31 +87,27 @@ public class Base implements CommandExecutor {
                         .onHover(TextActions.showText(Text.of(TextColors.WHITE, "Position[Vector3i]: ", TextColors.GRAY, "Position of the crate (X Y Z) (Player-Optional)")))
                         .build())
                 .build();
-        Text wikiDisc = Text.EMPTY;
-        if (TeslaCrate.getWiki() != null && TeslaCrate.getDiscord() != null) {
-            wikiDisc = Text.builder("| ")
-                    .color(TextColors.GOLD)
-                    .append(Text.builder("TeslaCrate Wiki")
-                            .color(TextColors.YELLOW).style(TextStyles.UNDERLINE)
-                            .onClick(TextActions.openUrl(TeslaCrate.getWiki()))
-                            .onHover(TextActions.showText(Text.of("Click to open the TeslaCrate Wiki")))
-                            .build())
-                    .append(Text.of(TextColors.GOLD, " | "))
-                    .append(Text.builder("Support Discord")
-                            .color(TextColors.YELLOW).style(TextStyles.UNDERLINE)
-                            .onClick(TextActions.openUrl(TeslaCrate.getDiscord()))
-                            .onHover(TextActions.showText(Text.of("Click to open the Support Discord")))
-                            .build())
-                    .append(Text.of(TextColors.GOLD, " |"))
-                    .build();
-        } else {
-            TeslaCrate.getLogger().error("The TeslaCrate wiki and Support Discord were not able to be displayed!");
-        }
+        Text WikiDisc = (TeslaCrate.getWiki() != null && TeslaCrate.getDiscord() != null) ?
+                Text.builder("| ")
+                        .color(TextColors.GOLD)
+                        .append(Text.builder("TeslaCrate Wiki")
+                                .color(TextColors.YELLOW).style(TextStyles.UNDERLINE)
+                                .onClick(TextActions.openUrl(TeslaCrate.getWiki()))
+                                .onHover(TextActions.showText(Text.of("Click to open the TeslaCrate Wiki")))
+                                .build())
+                        .append(Text.of(TextColors.GOLD, " | "))
+                        .append(Text.builder("Support Discord")
+                                .color(TextColors.YELLOW).style(TextStyles.UNDERLINE)
+                                .onClick(TextActions.openUrl(TeslaCrate.getDiscord()))
+                                .onHover(TextActions.showText(Text.of("Click to open the Support Discord")))
+                                .build())
+                        .append(Text.of(TextColors.GOLD, " |"))
+                        .build() : Text.EMPTY;
         PaginationList.builder()
                 .padding(Text.of(TextColors.DARK_GRAY, "-"))
                 .title(Text.of(TextColors.YELLOW, "Tesla", TextColors.GOLD, "Crate"))
-                .contents(BuyKey, DeleteLoc, GiveKey, ListKeys, Lookup, SellKey, SetLoc)
-                .footer(wikiDisc)
+                .contents(DeleteLoc, GiveKey, ListCrates, ListKeys, Lookup, SetLoc)
+                .footer(WikiDisc)
                 .sendTo(src);
         return CommandResult.success();
     }
