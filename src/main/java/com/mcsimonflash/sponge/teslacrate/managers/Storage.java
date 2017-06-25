@@ -28,6 +28,15 @@ public class Storage {
     private static ConfigurationLoader<CommentedConfigurationNode> locationsLoader, playersLoader;
     private static CommentedConfigurationNode locationsNode, playersNode;
 
+    public static Map<String, Crate> crateDirectory = Maps.newHashMap();
+    public static Map<CrateLocation, Crate> crateRegistry = Maps.newHashMap();
+    public static Map<String, Key> keyDirectory = Maps.newHashMap();
+    public static Map<String, String> globalCommands = Maps.newHashMap();
+    public static Map<String, ItemStack> globalItems = Maps.newHashMap();
+    public static Map<String, Key> globalKeys = Maps.newHashMap();
+    public static Map<String, Reward> globalRewards = Maps.newHashMap();
+    public static Map<Player, Long> clickCooldowns = Maps.newHashMap();
+
     private static void initializeNodes() {
         try {
             Files.createDirectories(storDir);
@@ -67,15 +76,6 @@ public class Storage {
         }
     }
 
-    public static Map<String, Crate> crateDirectory = Maps.newHashMap();
-    public static Map<CrateLocation, Crate> crateRegistry = Maps.newHashMap();
-    public static Map<String, Key> keyDirectory = Maps.newHashMap();
-    public static Map<String, String> globalCommands = Maps.newHashMap();
-    public static Map<String, ItemStack> globalItems = Maps.newHashMap();
-    public static Map<String, Key> globalKeys = Maps.newHashMap();
-    public static Map<String, Reward> globalRewards = Maps.newHashMap();
-    public static Map<Player, Long> clickCooldowns = Maps.newHashMap();
-
     public static void clearCache() {
         crateDirectory.clear();
         crateRegistry.clear();
@@ -111,16 +111,16 @@ public class Storage {
     }
 
     public static long getCooldown(User user, Crate crate) {
-        return playersNode.getNode(user.getUniqueId(), "cooldowns", crate.Name).getLong(0);
+        return playersNode.getNode(user.getUniqueId().toString(), "cooldowns", crate.Name).getLong(0);
     }
 
     public static boolean setCooldown(User user, Crate crate) {
-        playersNode.getNode(user.getUniqueId(), "cooldowns", crate.Name).setValue(System.nanoTime());
+        playersNode.getNode(user.getUniqueId().toString(), "cooldowns", crate.Name).setValue(System.nanoTime());
         return savePlayersNode();
     }
 
     public static int getStoredKeys(User user, Key key) {
-        return playersNode.getNode(user.getUniqueId(), "keys", key.Name).getInt(0);
+        return playersNode.getNode(user.getUniqueId().toString(), "keys", key.Name).getInt(0);
     }
 
     public static boolean setStoredKeys(User user, Key key, int quantity) {

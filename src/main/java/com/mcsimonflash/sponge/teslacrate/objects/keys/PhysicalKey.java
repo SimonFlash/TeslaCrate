@@ -17,7 +17,7 @@ public class PhysicalKey extends Key {
 
     @Override
     public boolean hasKeys(User user, int quantity) {
-        return user.isOnline() && user.getInventory().query(Item).size() >= quantity;
+        return user.isOnline() && user.getInventory().query(Item).totalItems() >= quantity;
     }
 
     @Override

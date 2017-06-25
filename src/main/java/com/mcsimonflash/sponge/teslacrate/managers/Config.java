@@ -43,11 +43,11 @@ public class Config {
         displayPrefix = Util.toText(prefix);
         strictChances = coreNode.getNode("config", "strict-chances").getBoolean(false);
         try {
-            commandsNode.getChildrenMap().values().forEach(c -> Storage.globalCommands.put((String) c.getKey(), Builders.buildCommand(c)));
-            itemsNode.getChildrenMap().values().forEach(i -> Storage.globalItems.put((String) i.getKey(), Builders.buildItem(i)));
-            keysNode.getChildrenMap().values().forEach(k -> Storage.globalKeys.put((String) k.getKey(), Builders.buildKey(k)));
-            rewardsNode.getChildrenMap().values().forEach(r -> Storage.globalRewards.put((String) r.getKey(), Builders.buildReward(r)));
-            cratesNode.getChildrenMap().values().forEach(c -> Storage.crateDirectory.put((String) c.getKey(), Builders.buildCrate(c)));
+            commandsNode.getChildrenMap().values().forEach(c -> Storage.globalCommands.put((String) c.getKey(), Builders.buildCommand(c, false)));
+            itemsNode.getChildrenMap().values().forEach(i -> Storage.globalItems.put((String) i.getKey(), Builders.buildItem(i, false)));
+            keysNode.getChildrenMap().values().forEach(k -> Storage.globalKeys.put((String) k.getKey(), Builders.buildKey(k, false)));
+            rewardsNode.getChildrenMap().values().forEach(r -> Storage.globalRewards.put((String) r.getKey(), Builders.buildReward(r, false)));
+            cratesNode.getChildrenMap().values().forEach(c -> Storage.crateDirectory.put((String) c.getKey(), Builders.buildCrate(c, false)));
         } catch (IllegalArgumentException e) {
             TeslaCrate.getPlugin().getLogger().error(e.getMessage());
         }
