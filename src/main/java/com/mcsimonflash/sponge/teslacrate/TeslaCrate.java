@@ -25,7 +25,7 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.GameReloadEvent;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
 
@@ -33,7 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 
-@Plugin(id = "teslacrate", name = "TeslaCrate", version = "mc1.10.2-v1.1.1", authors = "Simon_Flash", description = "Shockingly powerful crates")
+@Plugin(id = "teslacrate", name = "TeslaCrate", version = "mc1.10.2-v1.1.2", authors = "Simon_Flash", description = "Shockingly powerful crates")
 public class TeslaCrate {
 
     private static TeslaCrate plugin;
@@ -65,10 +65,10 @@ public class TeslaCrate {
     }
 
     @Listener
-    public void onInit(GameInitializationEvent event) {
+    public void onPostInit(GamePostInitializationEvent event) {
         plugin = this;
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
-        logger.info("|     TeslaCrate -- Version 1.1.1     |");
+        logger.info("|     TeslaCrate -- Version 1.1.2     |");
         logger.info("|      Developed By: Simon_Flash      |");
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
         try {

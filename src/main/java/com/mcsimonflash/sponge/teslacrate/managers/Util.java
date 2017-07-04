@@ -73,7 +73,7 @@ public class Util {
                         Storage.setCooldown(player, crate);
                     } else {
                         List<String> keyDisplays = Lists.newArrayList();
-                        missingKeys.forEach(k -> keyDisplays.add(k.DisplayName + " &7(Uses x" + crate.Keys.get(k) + ")"));
+                        missingKeys.forEach(k -> keyDisplays.add(k.DisplayName + " &7(Uses x" + crate.Keys.get(k) + ") "));
                         player.sendMessage(Config.displayPrefix.concat(Util.toText("&7Oh no! You're missing the following key" + (missingKeys.size() == 1 ? "" : "s") + ": &f" + String.join(", &f", keyDisplays) + "&7!")));
                     }
                 } else {
