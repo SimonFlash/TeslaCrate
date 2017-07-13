@@ -3,6 +3,7 @@ package com.mcsimonflash.sponge.teslacrate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacrate.commands.*;
+import com.mcsimonflash.sponge.teslacrate.commands.crates.ForceCrate;
 import com.mcsimonflash.sponge.teslacrate.commands.display.ListCrates;
 import com.mcsimonflash.sponge.teslacrate.commands.display.ListKeys;
 import com.mcsimonflash.sponge.teslacrate.commands.keys.GiveKey;
@@ -23,7 +24,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
-import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
@@ -33,7 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 
-@Plugin(id = "teslacrate", name = "TeslaCrate", version = "mc1.10.2-v1.1.2", authors = "Simon_Flash", description = "Shockingly powerful crates")
+@Plugin(id = "teslacrate", name = "TeslaCrate", version = "mc1.10.2-v1.1.3", authors = "Simon_Flash", description = "Shockingly powerful crates")
 public class TeslaCrate {
 
     private static TeslaCrate plugin;
@@ -68,7 +69,7 @@ public class TeslaCrate {
     public void onPostInit(GamePostInitializationEvent event) {
         plugin = this;
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
-        logger.info("|     TeslaCrate -- Version 1.1.2     |");
+        logger.info("|     TeslaCrate -- Version 1.1.3     |");
         logger.info("|      Developed By: Simon_Flash      |");
         logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
         try {
@@ -89,6 +90,15 @@ public class TeslaCrate {
                 .arguments(
                         GenericArguments.optional(GenericArguments.string(Text.of("world-name"))),
                         GenericArguments.optional(GenericArguments.vector3d(Text.of("crate-pos"))))
+                .build();
+        CommandSpec ForceCrate = CommandSpec.builder()
+                .executor(new ForceCrate())
+                .description(Text.of("Forces a player to redeem a crate"))
+                .permission("teslacrate.forcecrate.base")
+                .arguments(
+                        GenericArguments.onlyOne(GenericArguments.player(Text.of("player"))),
+                        GenericArguments.onlyOne(GenericArguments.string(Text.of("crate-name"))),
+                        GenericArguments.onlyOne(GenericArguments.integer(Text.of("quantity"))))
                 .build();
         CommandSpec GiveKey = CommandSpec.builder()
                 .executor(new GiveKey())
@@ -132,6 +142,7 @@ public class TeslaCrate {
                 .description(Text.of("Opens in-game documentation"))
                 .permission("teslacrate.base")
                 .child(DeleteLoc, "DeleteLoc", "DelLoc", "Del", "dl")
+                .child(ForceCrate, "ForceCrate", "Force", "fc")
                 .child(GiveKey, "GiveKey", "Give", "gk")
                 .child(ListCrates, "ListCrates", "Crates", "lc")
                 .child(ListKeys, "ListKeys", "Keys", "lk")
@@ -150,7 +161,7 @@ public class TeslaCrate {
     }
 
     @Listener
-    public void onInteractBlockPrimary(InteractBlockEvent.Primary event, @First Player player) {
+    public void onInteractBlockPrimary(InteractBlockEvent.Primary event, @Root Player player) {
         event.getTargetBlock().getLocation().ifPresent(loc -> {
             Crate crate = Storage.crateRegistry.get(new CrateLocation(player.getWorld().getName(), loc.getBlockPosition()));
             if (crate != null) {
@@ -163,12 +174,12 @@ public class TeslaCrate {
     }
 
     @Listener
-    public void onInteractBlockSecondary(InteractBlockEvent.Secondary event, @First Player player) {
+    public void onInteractBlockSecondary(InteractBlockEvent.Secondary event, @Root Player player) {
         event.getTargetBlock().getLocation().ifPresent(loc -> Util.processInteract(event, loc, player));
     }
 
     @Listener
-    public void onInteractEntityEventSecondary(InteractEntityEvent.Secondary event, @First Player player) {
+    public void onInteractEntityEventSecondary(InteractEntityEvent.Secondary event, @Root Player player) {
         Util.processInteract(event, event.getTargetEntity().getLocation(), player);
     }
 }

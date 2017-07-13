@@ -37,7 +37,7 @@ public class SetLoc implements CommandExecutor {
         CrateLocation crateLoc = new CrateLocation(worldName, cratePos);
         Crate existingCrate = Storage.crateRegistry.get(crateLoc);
         if (existingCrate == null) {
-            Crate crate = Storage.crateDirectory.get(crateName);
+            Crate crate = Storage.crateDirectory.get(crateName.toLowerCase());
             if (crate != null) {
                 Storage.crateRegistry.put(crateLoc, crate);
                 Storage.writeLocation(crate, crateLoc);

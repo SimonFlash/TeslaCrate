@@ -20,7 +20,7 @@ public class GiveKey implements CommandExecutor {
         String keyName = args.<String>getOne("key-name").get();
         Integer quantity = args.<Integer>getOne("quantity").get();
 
-        Key key = Storage.keyDirectory.get(keyName);
+        Key key = Storage.keyDirectory.get(keyName.toLowerCase());
         if (key != null) {
             if (quantity > 0) {
                 if (key.giveKeys(user, quantity)) {

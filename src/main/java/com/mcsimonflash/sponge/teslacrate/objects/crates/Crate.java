@@ -27,7 +27,6 @@ public class Crate {
     public Map<Reward, Double> Rewards = Maps.newHashMap();
 
     public void process(Player player) {
-        Keys.forEach((k, i) -> k.takeKeys(player, i));
         Reward reward = Util.getReward(this);
         if (!reward.DisplayName.isEmpty()) {
             if (!AnnounceMsg.isEmpty() && reward.Announce) {

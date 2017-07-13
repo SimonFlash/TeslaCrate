@@ -23,23 +23,28 @@ import java.util.stream.Collectors;
 
 public class Util {
 
-    public static CommentedConfigurationNode loadNode(Path root, String file) throws IOException {
-        Path path = root.resolve(file);
+    public static HoconConfigurationLoader getLoader(Path path, boolean asset) throws IOException {
         try {
             if (Files.notExists(path)) {
-                Sponge.getAssetManager().getAsset(TeslaCrate.getPlugin(), file).get().copyToFile(path);
+                if (asset) {
+                    Sponge.getAssetManager().getAsset(TeslaCrate.getPlugin(), path.getFileName().toString()).get().copyToFile(path);
+                } else {
+                    Files.createFile(path);
+                }
             }
-            return HoconConfigurationLoader.builder().setPath(path).build().load();
+            return HoconConfigurationLoader.builder().setPath(path).build();
         } catch (IOException e) {
-            TeslaCrate.getPlugin().getLogger().error("Error loading config! File:[" + file + "]");
+            TeslaCrate.getPlugin().getLogger().error("Error loading file! File:[" + path.getFileName().toString() + "]");
             throw e;
         }
     }
 
-    public static void initialize() {
+    public static boolean initialize() {
         Storage.clearCache();
-        Config.readConfig();
-        Storage.readStorage();
+        if (Config.readConfig()) {
+            return Storage.readStorage();
+        }
+        return false;
     }
 
     public static Text toText(String msg) {
@@ -59,27 +64,34 @@ public class Util {
         if (crate != null) {
             event.setCancelled(true);
             if (notSpamClick(player)) {
-                if (player.hasPermission("teslacrate.crates." + crate.Name + ".base")) {
-                    if (crate.Cooldown > 0 && !player.hasPermission("teslacrate.crates." + crate.Name + ".nocooldown")) {
-                        int cooldown = (int) ((System.nanoTime() - Storage.getCooldown(player, crate)) / 1e9);
-                        if (cooldown < crate.Cooldown) {
-                            player.sendMessage(Config.displayPrefix.concat(Util.toText("&7You must wait &f" + cooldown + " &7seconds before using this crate!")));
-                            return;
-                        }
-                    }
-                    List<Key> missingKeys = crate.Keys.keySet().stream().filter(k -> !k.hasKeys(player, crate.Keys.get(k))).collect(Collectors.toList());
-                    if (missingKeys.isEmpty()) {
-                        crate.process(player);
-                        Storage.setCooldown(player, crate);
-                    } else {
-                        List<String> keyDisplays = Lists.newArrayList();
-                        missingKeys.forEach(k -> keyDisplays.add(k.DisplayName + " &7(Uses x" + crate.Keys.get(k) + ") "));
-                        player.sendMessage(Config.displayPrefix.concat(Util.toText("&7Oh no! You're missing the following key" + (missingKeys.size() == 1 ? "" : "s") + ": &f" + String.join(", &f", keyDisplays) + "&7!")));
-                    }
-                } else {
-                    player.sendMessage(Config.displayPrefix.concat(Util.toText("&7You do not have permission to use this crate!")));
+                processCrate(crate, player);
+            }
+        }
+    }
+
+    public static void processCrate(Crate crate, Player player) {
+        if (player.hasPermission("teslacrate.crates." + crate.Name + ".base")) {
+            if (crate.Cooldown > 0 && !player.hasPermission("teslacrate.crates." + crate.Name + ".nocooldown")) {
+                int cooldown = (int) ((System.nanoTime() - Storage.getCooldown(player, crate)) / 1e9);
+                if (cooldown < crate.Cooldown) {
+                    player.sendMessage(Config.displayPrefix.concat(Util.toText("&7You must wait &f" + cooldown + " &7seconds before using this crate!")));
+                    return;
                 }
             }
+            List<Key> missingKeys = crate.Keys.keySet().stream().filter(k -> !k.hasKeys(player, crate.Keys.get(k))).collect(Collectors.toList());
+            if (missingKeys.isEmpty()) {
+                crate.Keys.forEach((k, i) -> k.takeKeys(player, i));
+                crate.process(player);
+                if (!player.hasPermission("teslacrate.crates" + crate.Name + ".nocooldown")) {
+                    Storage.setCooldown(player, crate);
+                }
+            } else {
+                List<String> keyDisplays = Lists.newArrayList();
+                missingKeys.forEach(k -> keyDisplays.add(k.DisplayName + " &7(Uses x" + crate.Keys.get(k) + ") "));
+                player.sendMessage(Config.displayPrefix.concat(Util.toText("&7Oh no! You're missing the following key" + (missingKeys.size() == 1 ? "" : "s") + ": &f" + String.join(", &f", keyDisplays) + "&7!")));
+            }
+        } else {
+            player.sendMessage(Config.displayPrefix.concat(Util.toText("&7You do not have permission to use this crate!")));
         }
     }
 

@@ -30,7 +30,7 @@ public class Lookup implements CommandExecutor {
         if (flags != null) {
             if (flags.contains("-c:")) {
                 String name = flags.substring(flags.indexOf("-c:") + 3, flags.indexOf(" ", flags.indexOf("-c:")));
-                if (Storage.crateDirectory.get(name) != null) {
+                if (Storage.crateDirectory.get(name.toLowerCase()) != null) {
                     crateLookup.removeIf(l -> !Storage.crateRegistry.get(l).Name.equalsIgnoreCase(name));
                 } else {
                     src.sendMessage(Config.teslaPrefix.concat(Util.toText("&7Unable to locate crate &f" + name + "&7!")));
@@ -39,7 +39,7 @@ public class Lookup implements CommandExecutor {
             }
             if (flags.contains("-k:")) {
                 String name = flags.substring(flags.indexOf("-k:") + 3, flags.indexOf(" ", flags.indexOf("-k:")));
-                if (Storage.globalKeys.get(name) != null) {
+                if (Storage.globalKeys.get(name.toLowerCase()) != null) {
                     crateLookup.removeIf(l -> Storage.crateRegistry.get(l).Keys.keySet().stream().noneMatch(k -> k.Name.equalsIgnoreCase(name)));
                 } else {
                     src.sendMessage(Config.teslaPrefix.concat(Util.toText("&7Unable to locate key &f" + name + "&7!")));
