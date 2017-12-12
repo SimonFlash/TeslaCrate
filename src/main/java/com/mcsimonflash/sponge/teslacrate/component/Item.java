@@ -1,10 +1,10 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
+import com.mcsimonflash.sponge.teslacore.util.DefVal;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
-import com.mcsimonflash.sponge.teslacore.util.DefVal;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;

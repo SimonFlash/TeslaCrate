@@ -8,6 +8,7 @@ import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeExceptio
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslacore.util.DefVal;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 
@@ -33,6 +34,14 @@ public abstract class Component {
         setDisplayName(node.getNode("display-name").getString());
         NodeUtils.ifAttached(node.getNode("display-item"), n -> setDisplayItem(Serializers.deserializeItemStack(n)));
         displayItem.setDef(getDefaultDisplayItem());
+        displayItem.ifPresent(i -> {
+            if (displayName.isPresent() && !i.get(Keys.DISPLAY_NAME).isPresent()) {
+                i.offer(Keys.DISPLAY_NAME, Utils.toText(getDisplayName()));
+            }
+            if (description.isPresent() && !i.get(Keys.ITEM_LORE).isPresent()) {
+                i.offer(Keys.ITEM_LORE, Lists.newArrayList(Utils.toText(getDescription())));
+            }
+        });
     }
 
     public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {

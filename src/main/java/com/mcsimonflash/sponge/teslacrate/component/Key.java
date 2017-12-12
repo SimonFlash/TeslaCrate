@@ -13,6 +13,7 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 
 import java.util.List;
 
@@ -26,21 +27,21 @@ public class Key extends Component {
     }
 
     public int check(User user) {
-        return item.isPresent() ? user.getInventory().queryAny(item.getVal()).totalItems() : Config.getKeys(user, this);
+        return item.isPresent() ? user.getInventory().queryAny(item.get()).totalItems() : Config.getKeys(user, this);
     }
 
     public boolean give(User user, int quantity) {
-        return item.isPresent() ? user.getInventory().offer(ItemStack.builder().fromContainer(item.getVal().toContainer()).quantity(quantity).build()).getRejectedItems().isEmpty() : Config.setKeys(user, this, check(user) + quantity);
+        return quantity == 0 || item.isPresent() ? user.getInventory().offer(ItemStack.builder().from(item.get()).quantity(quantity).build()).getType() == InventoryTransactionResult.Type.SUCCESS : Config.setKeys(user, this, check(user) + quantity);
     }
 
     public boolean take(User user, int quantity) {
-        return item.isPresent() ? user.getInventory().queryAny(item.getVal()).poll(quantity).isPresent() : Config.setKeys(user, this, check(user) - quantity);
+        return quantity == 0 || item.isPresent() ? user.getInventory().queryAny(item.get()).poll(quantity).isPresent() : Config.setKeys(user, this, check(user) - quantity);
     }
 
     @Override
     public void deserialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
         super.deserialize(node);
-        quantity = node.getNode("quantity").getInt(1);
+        setQuantity(node.getNode("quantity").getInt(1));
         NodeUtils.ifAttached(node.getNode("item"), n -> {
             if (n.hasMapChildren()) {
                 setItem(ItemStack.builder()

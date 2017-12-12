@@ -12,13 +12,13 @@ import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
 import com.mcsimonflash.sponge.teslalibs.inventory.View;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.meta.ItemEnchantment;
 import org.spongepowered.api.data.type.DyeColors;
 import org.spongepowered.api.effect.particle.ParticleEffect;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.Enchantments;
 import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.enchantment.Enchantment;
+import org.spongepowered.api.item.enchantment.EnchantmentTypes;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.scheduler.Task;
@@ -83,7 +83,7 @@ public class Effects {
                 List<Frame<Layout>> frames = Lists.newArrayList();
                 for (int i = 0; i < 76 + selection; i++) {
                     Layout.Builder builder = Layout.builder();
-                    IntStream.range(0, 9).forEach(j -> builder.slots(Element.of(j != 4 ? panes.get(j) : ItemStack.builder().fromContainer(panes.get(j).toContainer()).add(Keys.ITEM_ENCHANTMENTS, Lists.newArrayList(new ItemEnchantment(Enchantments.POWER, 7))).build()), j, j + 18));
+                    IntStream.range(0, 9).forEach(j -> builder.slots(Element.of(j != 4 ? panes.get(j) : ItemStack.builder().fromContainer(panes.get(j).toContainer()).add(Keys.ITEM_ENCHANTMENTS, Lists.newArrayList(Enchantment.of(EnchantmentTypes.POWER, 7))).build()), j, j + 18));
                     Collections.rotate(panes, -1);
                     if (i < 11 + selection || times.contains(slow++)) {
                         IntStream.range(0, 9).forEach(j -> builder.slot(Element.of(rewards.get(j).getDisplayItem()), j + 9));

@@ -6,7 +6,7 @@ import com.mcsimonflash.sponge.teslacrate.internal.*;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
@@ -15,7 +15,7 @@ import org.spongepowered.api.text.Text;
 
 import javax.inject.Inject;
 
-@Plugin(id = "teslacrate", name = "TeslaCrate", version = "2.0.0-legacy", dependencies = @Dependency(id = "teslacore"), authors = "Simon_Flash")
+@Plugin(id = "teslacrate", name = "TeslaCrate", version = "2.0.1-legacy", dependencies = @Dependency(id = "teslacore"), authors = "Simon_Flash")
 public class TeslaCrate extends Tesla {
 
     private static TeslaCrate tesla;
@@ -30,10 +30,14 @@ public class TeslaCrate extends Tesla {
     }
 
     @Listener
-    public void onPreInit(GamePreInitializationEvent event) {
-        Config.load();
+    public void onPostInit(GamePostInitializationEvent event) {
+        Logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
+        Logger.info("|  TeslaCrate - Version 2.0.1-legacy  |");
+        Logger.info("|      Developed By: Simon_Flash      |");
+        Logger.info("+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=+");
         Sponge.getCommandManager().register(Container, Base.COMMAND, "teslacrate", "crate");
         Sponge.getEventManager().registerListeners(Container, new Interact());
+        Config.load();
     }
 
     @Listener

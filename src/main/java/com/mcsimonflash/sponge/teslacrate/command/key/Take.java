@@ -31,7 +31,7 @@ public class Take implements CommandExecutor {
         User user = args.<User>getOne("user").get();
         Key key = args.<Key>getOne("key").get();
         Integer quantity = args.<Integer>getOne("quantity").get();
-        if (key.check(user) < quantity) {
+        if (key.check(user) >= quantity) {
             if (key.take(user, quantity)) {
                 TeslaCrate.sendMessage(src, "teslacrate.command.key.take.success", "user", user.getName(), "key", key.getName(), "quantity", quantity);
                 return CommandResult.success();

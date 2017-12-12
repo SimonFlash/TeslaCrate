@@ -3,7 +3,6 @@ package com.mcsimonflash.sponge.teslacrate.command;
 import com.google.common.collect.ImmutableMap;
 import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.command.reward.edit.Weight;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;

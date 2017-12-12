@@ -6,24 +6,15 @@ import com.google.common.reflect.TypeToken;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.component.*;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigHolder;
-import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.meta.ItemEnchantment;
-import org.spongepowered.api.data.type.TreeTypes;
-import org.spongepowered.api.effect.potion.PotionEffect;
-import org.spongepowered.api.effect.potion.PotionEffectTypes;
 import org.spongepowered.api.entity.living.player.User;
-import org.spongepowered.api.item.Enchantments;
-import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.Location;
@@ -110,12 +101,14 @@ public class Config {
 
     private static ConfigHolder createConfig(Path directory, String name, boolean asset) throws IOException {
         try {
-            Files.createDirectories(directory);
             Path path = directory.resolve(name);
-            if (asset) {
-                TeslaCrate.getTesla().Container.getAsset(name).get().copyToFile(path, false, true);
-            } else if (Files.notExists(path)) {
-                Files.createFile(path);
+            if (Files.notExists(path)) {
+                Files.createDirectories(directory);
+                if (asset) {
+                    TeslaCrate.getTesla().Container.getAsset(name).get().copyToFile(path);
+                } else {
+                    Files.createFile(path);
+                }
             }
             return ConfigHolder.of(HoconConfigurationLoader.builder()
                     .setPath(path)

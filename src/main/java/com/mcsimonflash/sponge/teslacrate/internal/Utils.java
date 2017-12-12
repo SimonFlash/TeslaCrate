@@ -11,6 +11,7 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.DyeColors;
+import org.spongepowered.api.data.type.SkullTypes;
 import org.spongepowered.api.effect.sound.SoundType;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
@@ -33,7 +34,6 @@ import org.spongepowered.api.world.World;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -107,12 +107,11 @@ public class Utils {
     }
 
     public static ItemStack createSkull(String texture, String name, String lore) {
-        GameProfile profile = GameProfile.of(UUID.randomUUID());
+        GameProfile profile = GameProfile.of(UUID.randomUUID(), null);
         profile.addProperty(ProfileProperty.of("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUv" + texture));
         return ItemStack.builder()
-                .fromContainer(createItem(ItemTypes.SKULL, name, lore, false)
-                        .toContainer()
-                        .set(DataQuery.of("UnsafeDamage"), 3))
+                .from(createItem(ItemTypes.SKULL, name, lore, false))
+                .add(Keys.SKULL_TYPE, SkullTypes.PLAYER)
                 .add(Keys.REPRESENTED_PLAYER, profile)
                 .build();
     }

@@ -1,15 +1,16 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.mcsimonflash.sponge.teslacrate.component.Component;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Key;
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 
@@ -23,6 +24,7 @@ public class Serializers {
         T component;
         if (node.hasMapChildren()) {
             component = supplier.get();
+            component.deserialize(node);
             component.setGlobal(false);
             storage.put(component.getName().toLowerCase(), component);
         } else {
@@ -56,22 +58,25 @@ public class Serializers {
 
     public static ItemStack deserializeItemStack(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
         if (node.getNode("custom-serializers").getBoolean(Config.isCustomSerializers())) {
-            String id = node.getNode("id").getString("none");
+            String id = node.getNode("id").getString("undefined");
             ItemType type = Sponge.getRegistry().getType(ItemType.class, id).orElseThrow(() -> new ConfigurationNodeException(node.getNode("id"), "No item found for id `%s`.", id).asUnchecked());
             int quantity = node.getNode("quantity").getInt(1);
             if (quantity <= 0 || quantity > type.getMaxStackQuantity()) {
                 throw new ConfigurationNodeException(node.getNode("quantity"), "Quantity is out of bounds.").asUnchecked();
             }
-            ItemStack.Builder builder = ItemStack.builder().itemType(type).quantity(quantity);
-            if (!node.getNode("display-name").isVirtual()) {
-                builder.add(Keys.DISPLAY_NAME, Utils.toText(node.getNode("display-name").getString()));
-            }
-            if (!node.getNode("description").isVirtual()) {
-                builder.add(Keys.ITEM_LORE, Lists.newArrayList(Utils.toText(node.getNode("description").getString())));
-            }
-            if (!node.getNode("data").isVirtual()) {
-                builder = ItemStack.builder().fromContainer(builder.build().toContainer().set(DataQuery.of("UnsafeDamage"), node.getNode("data").getInt(0)));
-            }
+            DataContainer container = ItemStack.of(type, quantity).toContainer();
+            NodeUtils.ifAttached(node.getNode("data"), n -> container.set(DataQuery.of("UnsafeDamage"), n.getInt(0)));
+            NodeUtils.ifAttached(node.getNode("nbt"), n -> {
+                Object value = n.getValue();
+                if (value instanceof Map) {
+                    Map data = container.getMap(DataQuery.of("UnsafeData")).map(Map.class::cast).orElseGet(Maps::newHashMap);
+                    data.putAll((Map) value);
+                    container.set(DataQuery.of("UnsafeData"), data);
+                } else {
+                    throw new ConfigurationNodeException(n, "Expected a map of values for nbt, but instead received " + value.getClass().getSimpleName() + ".").asUnchecked();
+                }
+            });
+            ItemStack.Builder builder = ItemStack.builder().fromContainer(container);
             for (ConfigurationNode child : node.getNode("keys").getChildrenMap().values()) {
                 String name = (((String) child.getKey()).contains(":") ? (String) child.getKey() : "sponge:" + child.getKey()).replace("-", "_");
                 Key key = Sponge.getRegistry().getType(Key.class, name).orElseThrow(() -> new ConfigurationNodeException(child, "No key found for id `%s`.", name).asUnchecked());

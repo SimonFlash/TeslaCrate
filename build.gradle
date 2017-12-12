@@ -1,19 +1,14 @@
-group 'com.mcsimonflash.sponge.teslacrate'
-ext {
-    teslapoweredversion = '1.0.0'
-    teslacrateversion = '2.0.0-legacy'
-    spongeapiversion = '7.0.0-SNAPSHOT'
-    completeversion = "-s${spongeapiversion.substring(0, 3)}-t${teslapoweredversion}-v${teslacrateversion}"
+plugins {
+    id 'java'
+    id 'org.spongepowered.plugin' version '0.8.1'
 }
 
-apply plugin: 'java'
-
-repositories {
-    mavenCentral()
-    maven {
-        name = 'sponge'
-        url = 'https://repo.spongepowered.org/maven'
-    }
+group 'com.mcsimonflash.sponge.teslacrate'
+ext {
+    teslapoweredversion = '1.0.1'
+    teslacrateversion = '2.0.1-legacy'
+    spongeapiversion = '7.0.0-SNAPSHOT'
+    completeversion = "-s${spongeapiversion.substring(0, 3)}-t${teslapoweredversion}-v${teslacrateversion}"
 }
 
 dependencies {
