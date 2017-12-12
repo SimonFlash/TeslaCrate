@@ -20,7 +20,7 @@ public abstract class Component {
     private String name;
     private DefVal<String> description = DefVal.of("");
     private DefVal<String> displayName = DefVal.of("");
-    private DefVal<ItemStack> displayItem = DefVal.of(ItemStack.empty());
+    private DefVal<ItemStack> displayItem = DefVal.of(ItemStack.of(ItemTypes.NONE, 1));
     private boolean global = true;
 
     public Component(String name) {

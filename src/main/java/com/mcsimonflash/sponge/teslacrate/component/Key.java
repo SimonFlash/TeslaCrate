@@ -19,7 +19,7 @@ import java.util.List;
 
 public class Key extends Component {
 
-    private DefVal<ItemStack> item = DefVal.of(ItemStack.empty());
+    private DefVal<ItemStack> item = DefVal.of(ItemStack.of(ItemTypes.NONE, 1));
     private int quantity = 1;
 
     public Key(String name) {
@@ -27,7 +27,7 @@ public class Key extends Component {
     }
 
     public int check(User user) {
-        return item.isPresent() ? user.getInventory().queryAny(item.get()).totalItems() : Config.getKeys(user, this);
+        return item.isPresent() ? user.getInventory().query(item.get()).totalItems() : Config.getKeys(user, this);
     }
 
     public boolean give(User user, int quantity) {
@@ -35,7 +35,7 @@ public class Key extends Component {
     }
 
     public boolean take(User user, int quantity) {
-        return quantity == 0 || item.isPresent() ? user.getInventory().queryAny(item.get()).poll(quantity).isPresent() : Config.setKeys(user, this, check(user) - quantity);
+        return quantity == 0 || item.isPresent() ? user.getInventory().query(item.get()).poll(quantity).isPresent() : Config.setKeys(user, this, check(user) - quantity);
     }
 
     @Override

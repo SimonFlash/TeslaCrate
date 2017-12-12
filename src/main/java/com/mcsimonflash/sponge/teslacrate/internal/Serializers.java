@@ -79,7 +79,7 @@ public class Serializers {
             ItemStack.Builder builder = ItemStack.builder().fromContainer(container);
             for (ConfigurationNode child : node.getNode("keys").getChildrenMap().values()) {
                 String name = (((String) child.getKey()).contains(":") ? (String) child.getKey() : "sponge:" + child.getKey()).replace("-", "_");
-                Key key = Sponge.getRegistry().getType(Key.class, name).orElseThrow(() -> new ConfigurationNodeException(child, "No key found for id `%s`.", name).asUnchecked());
+                Key key = Sponge.getRegistry().getAllOf(Key.class).stream().filter(k -> k.getId().equals(name)).findAny().orElseThrow(() -> new ConfigurationNodeException(child, "No key found for id `%s`.", name).asUnchecked());
                 try {
                     builder.add(key, child.getValue(key.getElementToken()));
                 } catch (ObjectMappingException e) {
@@ -98,7 +98,7 @@ public class Serializers {
 
     public static void serializeItemStack(ConfigurationNode node, ItemStack item) throws ConfigurationNodeException.Unchecked {
         if (node.getNode("custom-serializers").getBoolean(Config.isCustomSerializers())) {
-            node.getNode("id").setValue(item.getType().getId());
+            node.getNode("id").setValue(item.getItem().getId());
             if (item.getQuantity() != 1) {
                 node.getNode("quantity").setValue(item.getQuantity());
             }

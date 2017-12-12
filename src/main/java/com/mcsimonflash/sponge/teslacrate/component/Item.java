@@ -14,7 +14,7 @@ import java.util.List;
 
 public class Item extends Component {
 
-    private DefVal<ItemStack> item = DefVal.of(ItemStack.empty());
+    private DefVal<ItemStack> item = DefVal.of(ItemStack.of(ItemTypes.NONE, 1));
 
     public Item(String name) {
         super(name);
