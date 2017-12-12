@@ -98,7 +98,7 @@ public class Serializers {
 
     public static void serializeItemStack(ConfigurationNode node, ItemStack item) throws ConfigurationNodeException.Unchecked {
         if (node.getNode("custom-serializers").getBoolean(Config.isCustomSerializers())) {
-            node.getNode("id").setValue(item.getType().getId());
+            node.getNode("id").setValue(item.getItem().getId());
             if (item.getQuantity() != 1) {
                 node.getNode("quantity").setValue(item.getQuantity());
             }

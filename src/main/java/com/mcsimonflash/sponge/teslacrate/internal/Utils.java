@@ -7,6 +7,8 @@ import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
 import com.mcsimonflash.sponge.teslalibs.inventory.Page;
 import com.mcsimonflash.sponge.teslalibs.inventory.View;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTUtil;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
@@ -16,6 +18,7 @@ import org.spongepowered.api.effect.sound.SoundType;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.FireworkEffect;
 import org.spongepowered.api.item.FireworkShapes;
 import org.spongepowered.api.item.ItemType;
@@ -86,7 +89,7 @@ public class Utils {
     }
 
     public static List<String> printItem(ItemStack item) {
-        List<String> info = Lists.newArrayList("id=" + item.getType().getId().replace("minecraft:", ""));
+        List<String> info = Lists.newArrayList("id=" + item.getItem().getId().replace("minecraft:", ""));
         item.toContainer().getInt(DataQuery.of("UnsafeDamage")).filter(d -> d != 0).ifPresent(d -> info.add("data=" + d));
         info.add("quantity=" + item.getQuantity());
         for (Key key : item.getKeys()) {
@@ -109,11 +112,11 @@ public class Utils {
     public static ItemStack createSkull(String texture, String name, String lore) {
         GameProfile profile = GameProfile.of(UUID.randomUUID(), null);
         profile.addProperty(ProfileProperty.of("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUv" + texture));
-        return ItemStack.builder()
-                .from(createItem(ItemTypes.SKULL, name, lore, false))
-                .add(Keys.SKULL_TYPE, SkullTypes.PLAYER)
-                .add(Keys.REPRESENTED_PLAYER, profile)
-                .build();
+        ItemStack skull = createItem(ItemTypes.SKULL, name, lore, false);
+        skull.offer(Keys.SKULL_TYPE, SkullTypes.PLAYER);
+        NBTTagCompound nbt = NBTUtil.writeGameProfile(new NBTTagCompound(), (com.mojang.authlib.GameProfile) profile);
+        net.minecraft.item.ItemStack.class.cast(skull).setTagInfo("SkullOwner", nbt);
+        return skull;
     }
 
     public static ItemStack createItem(ItemType type, String name, String lore, boolean deserialize) {
@@ -139,7 +142,7 @@ public class Utils {
                 .colors(Color.YELLOW, Color.ofRgb(0xFFA500))
                 .flicker(true)
                 .build()));
-        location.getExtent().spawnEntity(firework);
+        location.getExtent().spawnEntity(firework, Cause.source(TeslaCrate.getTesla().Container).build());
     }
 
 }
