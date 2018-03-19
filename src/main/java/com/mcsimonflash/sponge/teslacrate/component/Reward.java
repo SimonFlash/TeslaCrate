@@ -3,6 +3,7 @@ package com.mcsimonflash.sponge.teslacrate.component;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Storage;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
@@ -38,38 +39,21 @@ public class Reward extends Component {
         setWeight(node.getNode("weight").getDouble(0.0));
         node.getNode("commands").getChildrenMap().values().forEach(n -> {
             Command command = Serializers.deserializeChild(n, Storage.commands, () -> new Command(getName() + ":" + n.getKey()), "command");
-            addCommand(command, n.hasMapChildren() || n.getString("").isEmpty() ? command.getCommand() : n.getString());
+            addCommand(command, n.hasMapChildren() || n.getString("").isEmpty() ? command.getValue() : n.getString());
         });
         node.getNode("items").getChildrenMap().values().forEach(n -> {
             Item item = Serializers.deserializeChild(n, Storage.items, () -> new Item(getName() + ":" + n.getKey()), "item");
-            addItem(item, n.hasMapChildren() || n.getInt(0) <= 0 ? item.getItem().getQuantity() : n.getInt());
+            addItem(item, n.hasMapChildren() || n.getInt() <= 0 ? item.getItem().getQuantity() : n.getInt());
         });
         super.deserialize(node);
-    }
-
-    @Override
-    public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        super.serialize(node);
-        node.getNode("announce").setValue(announce ? null : false);
-        node.getNode("weight").setValue(weight == 0.0 ? null : weight);
-        commands.forEach((c, v) -> Serializers.serializeChild(node.getNode("commands"), c, v));
-        items.forEach((i, q) -> Serializers.serializeChild(node.getNode("items"), i, q));
     }
 
     public void addCommand(Command command, String value) {
         commands.put(command, value);
     }
 
-    public void removeCommand(Command command) {
-        commands.remove(command);
-    }
-
     public void addItem(Item item, Integer quantity) {
         items.put(item, quantity);
-    }
-
-    public void removeItem(Item item) {
-        items.remove(item);
     }
 
     public boolean isAnnounce() {
@@ -92,22 +76,21 @@ public class Reward extends Component {
     @Override
     protected ItemStack getDefaultDisplayItem() {
         Set<Component> components = Sets.union(commands.keySet(), items.keySet());
-        if (components.size() == 0) {
-            return Utils.createItem(ItemTypes.BOOK, getDisplayName(), getDescription(), true);
-        } else if (components.size() == 1) {
+        if (components.size() == 1) {
             Component component = components.iterator().next();
-            return (component instanceof Item || component.getDisplayItem() != ItemTypes.NONE) ? component.getDisplayItem().copy() : Utils.createItem(ItemTypes.MAP, getDisplayName(), component instanceof Command ? ((Command) component).getCommand() : "", true);
+            return component.getDisplayItem().getType() != ItemTypes.NONE ? component.getDisplayItem() : Utils.createItem(ItemTypes.MAP, getDisplayName(), component instanceof Command ? ((Command) component).getCommand() : "", true);
         } else {
             return Utils.createItem(ItemTypes.BOOK, getDisplayName(), components.stream().map(Component::getDisplayName).collect(Collectors.toList()), true);
         }
     }
 
     @Override
-    public List<Element> getMenuElements() {
-        List<Element> elements = super.getMenuElements();
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Weight", String.valueOf(getWeight()), false)));
-        commands.forEach((c, v) -> elements.add(Element.of(Utils.createItem(ItemTypes.FILLED_MAP, c.getName(), "value=" + v, false), p -> Utils.page(c.getMenuElements()).open(p))));
-        items.forEach((i, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.MAP, i.getName(), "quantity=" + q, false), p -> Utils.page(i.getMenuElements()).open(p))));
+    public List<Element> getMenuElements(Element back) {
+        List<Element> elements = super.getMenuElements(back);
+        elements.add(Inventory.createDetail("Weight", String.valueOf(getWeight())));
+        Element self = Inventory.createComponent(this, back);
+        commands.forEach((c, v) -> elements.add(Element.of(Utils.createItem(ItemTypes.FILLED_MAP, c.getName(), "value=" + v, false), a -> Inventory.page(c.getName(), c.getMenuElements(self), self).open(a.getPlayer(), 0))));
+        items.forEach((i, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.MAP, i.getName(), "quantity=" + q, false), a -> Inventory.page(i.getName(), i.getMenuElements(self), self).open(a.getPlayer(), 0))));
         return elements;
     }
 

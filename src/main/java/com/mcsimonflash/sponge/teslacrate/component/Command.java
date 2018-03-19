@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
+import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
@@ -35,14 +36,6 @@ public class Command extends Component {
         super.deserialize(node);
     }
 
-    @Override
-    public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        super.serialize(node);
-        command.ifPresent(c -> node.getNode("command").setValue(c));
-        value.ifPresent(v -> node.getNode("value").setValue(v));
-        node.getNode("server").setValue(server ? null : false);
-    }
-
     public String getCommand() {
         return command.get();
     }
@@ -73,11 +66,11 @@ public class Command extends Component {
     }
 
     @Override
-    public List<Element> getMenuElements() {
-        List<Element> elements = super.getMenuElements();
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Command", getCommand(), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Value", getValue(), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Server", String.valueOf(isServer()), false)));
+    public List<Element> getMenuElements(Element back) {
+        List<Element> elements = super.getMenuElements(back);
+        elements.add(Inventory.createDetail("Command", getCommand()));
+        elements.add(Inventory.createDetail("Value", getValue()));
+        elements.add(Inventory.createDetail("Server", String.valueOf(isServer())));
         return elements;
     }
 

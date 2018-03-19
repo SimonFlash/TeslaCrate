@@ -1,32 +1,32 @@
 package com.mcsimonflash.sponge.teslacrate.command.command;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.command.command.edit.Value;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslacrate.command.TeslaCommand;
 import com.mcsimonflash.sponge.teslacrate.component.Command;
-import com.mcsimonflash.sponge.teslacrate.internal.Storage;
-import com.mcsimonflash.sponge.teslacore.command.Arguments;
-import org.spongepowered.api.command.CommandException;
+import com.mcsimonflash.sponge.teslalibs.argument.Arguments;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
 
-public class Give implements CommandExecutor {
+@Singleton
+@Aliases("give")
+@Permission("teslacrate.command.command.give.base")
+public class Give extends TeslaCommand {
 
-    public static final CommandSpec COMMAND = CommandSpec.builder()
-            .executor(new Value())
-            .arguments(GenericArguments.player(Text.of("player")),
-                    Arguments.map("command", Storage.commands, Arguments.string("string")),
-                    GenericArguments.optional(Arguments.remainingStrings("value")))
-            .permission("teslacrate.command.command.give.base")
-            .build();
+    @Inject
+    private Give() {
+        super(CmdUtils.usage("/teslacrate command give ", "Gives this command to the player, executing the command for them.", PLAYER_ARG, COMMAND_ARG, CmdUtils.arg(false, "value", "Value to insert into the command. Defaults to the default value of the command component.")),
+                settings().arguments(PLAYER_ELEM, COMMAND_ELEM, Arguments.remainingStrings().optional().toElement("value")));
+    }
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         Player player = args.<Player>getOne("player").get();
         Command command = args.<Command>getOne("command").get();
         String value = args.<String>getOne("value").orElse(command.getValue());

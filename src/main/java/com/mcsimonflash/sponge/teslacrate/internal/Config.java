@@ -1,7 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.component.*;
@@ -20,57 +19,49 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Config {
 
-    private static final Path directory = TeslaCrate.getTesla().Directory;
+    private static final Path directory = TeslaCrate.get().getDirectory();
     private static final Path configuration = directory.resolve("configuration");
     private static final Path storage = directory.resolve("storage");
     private static ConfigHolder core, commands, crates, items, keys, rewards, locations, players;
-    private static final ConfigurationOptions options = ConfigurationOptions.defaults().setSerializers(TypeSerializers.getDefaultSerializers().newChild().registerType(TypeToken.of(Text.class), new TypeSerializer<Text>() {
-        @Override
-        public Text deserialize(TypeToken<?> type, ConfigurationNode value) {
-            return TextSerializers.FORMATTING_CODE.deserialize(value.getString());
-        }
+    private static final ConfigurationOptions options = ConfigurationOptions.defaults().setSerializers(TypeSerializers.getDefaultSerializers().newChild()
+            .registerType(TypeToken.of(Text.class), new TypeSerializer<Text>() {
+                @Override
+                public Text deserialize(TypeToken<?> type, ConfigurationNode value) {
+                    return TextSerializers.FORMATTING_CODE.deserialize(value.getString());
+                }
+                @Override
+                public void serialize(TypeToken<?> type, Text obj, ConfigurationNode value) {
+                    value.setValue(TextSerializers.FORMATTING_CODE.serialize(obj));
+                }
+            }));
+    private static final Pattern VECTOR = Pattern.compile("\\((?<x>[-+]?[0-9]+), ?(?<y>[-+]?[0-9]+), ?(?<z>[-+]?[0-9]+)\\)");
 
-        @Override
-        public void serialize(TypeToken<?> type, Text obj, ConfigurationNode value) {
-            value.setValue(TextSerializers.FORMATTING_CODE.serialize(obj));
-        }
-    }));
+    public static boolean convertReference, customSerialization, errorComments;
 
-    private static boolean customSerializers;
-    private static boolean errorComments;
-
-    private static void loadConfig() {
+    public static void load() {
+        Storage.commands.clear();
+        Storage.crates.clear();
+        Storage.items.clear();
+        Storage.keys.clear();
+        Storage.rewards.clear();
+        Storage.registry.values().forEach(Registration::stopParticles);
+        Storage.registry.clear();
         try {
             core = createConfig(directory, "teslacrate.conf", true);
-            boolean legacy = core.getNode("-legacy").getBoolean(false);
-            if (legacy) {
-                TeslaCrate.getTesla().Logger.warn("Attempting to convert legacy configuration.");
-                try {
-                    Path lDirectory = Config.directory.getParent().resolve("teslapowered").resolve("teslacrate");
-                    Path lConfiguration = lDirectory.resolve("configuration");
-                    Path lStorage = lDirectory.resolve("storage");
-                    TeslaCrate.getTesla().Logger.warn("Copying legacy files...");
-                    copy(lDirectory, "core", Config.directory, "teslacrate");
-                    copy(lConfiguration, "conf", Config.configuration, "commands", "crates", "items", "keys", "rewards");
-                    copy(lStorage, "stor", Config.storage, "locations", "players");
-                    TeslaCrate.getTesla().Logger.warn("Successfully copied legacy files.");
-                } catch (IOException e) {
-                    TeslaCrate.getTesla().Logger.error("Error converting legacy config.");
-                    e.printStackTrace();
-                }
-            }
             commands = createConfig(configuration, "commands.conf", true);
             crates = createConfig(configuration, "crates.conf", true);
             items = createConfig(configuration, "items.conf", true);
@@ -78,91 +69,68 @@ public class Config {
             rewards = createConfig(configuration, "rewards.conf", true);
             locations = createConfig(storage, "locations.conf", false);
             players = createConfig(storage, "players.conf", false);
-            if (legacy) {
-                TeslaCrate.getTesla().Logger.warn("Converting legacy config...");
-                rewards.getNode().getChildrenMap().values().forEach(Config::legacyReward);
-                keys.getNode().getChildrenMap().values().forEach(Config::legacyKey);
-                crates.getNode().getChildrenMap().values().forEach(Config::legacyCrate);
-                locations.getNode().getChildrenMap().values().forEach(Config::legacyLocation);
-                NodeUtils.ifAttached(core.getNode("display-prefix"), n -> NodeUtils.tryComment(n, "Discontinued in v2.0.0"));
-                core.getNode("-legacy").setValue(false);
-                core.save();
-                rewards.save();
-                keys.save();
-                crates.save();
-                locations.save();
-                TeslaCrate.getTesla().Logger.warn("Completed legacy conversion.");
-            }
-        } catch (IOException e) {
-            TeslaCrate.getTesla().Logger.error("Failed to initialize config files.");
-            e.printStackTrace();
-        }
-    }
-
-    private static ConfigHolder createConfig(Path directory, String name, boolean asset) throws IOException {
-        try {
-            Path path = directory.resolve(name);
-            if (Files.notExists(path)) {
-                Files.createDirectories(directory);
-                if (asset) {
-                    TeslaCrate.getTesla().Container.getAsset(name).get().copyToFile(path);
+            customSerialization = core.getNode("custom-serialization").getBoolean(true);
+            errorComments = core.getNode("error-comments").getBoolean(false);
+            if (core.getNode("convert", "huskycrates").getBoolean(false)) {
+                convertReference = core.getNode("convert", "reference").getBoolean(true);
+                Path path = directory.getParent().resolve("huskycrates").resolve("huskycrates.conf");
+                if (Files.exists(path)) {
+                    TeslaCrate.get().getLogger().warn("Attempting to convert HuskyCrates config.");
+                    HoconConfigurationLoader.builder().setPath(path).build().load().getNode("crates").getChildrenMap().values().forEach(Config::convertHuskyCrate);
+                    commands.save();
+                    items.save();
+                    keys.save();
+                    rewards.save();
+                    crates.save();
+                    TeslaCrate.get().getLogger().warn("Conversion of HuskyCrates config complete.");
                 } else {
-                    Files.createFile(path);
+                    TeslaCrate.get().getLogger().warn("Attempted to convert HuskyCrates config, but no config was found.");
                 }
+                core.getNode("convert", "huskycrates").setValue(false);
+                core.save();
             }
-            return ConfigHolder.of(HoconConfigurationLoader.builder()
-                    .setPath(path)
-                    .setDefaultOptions(options)
-                    .build());
-        } catch (IOException e) {
-            TeslaCrate.getTesla().Logger.error("Unable to load config file " + name + ".");
-            throw e;
-        }
-
-    }
-
-    private static void copy(Path from, String fromExt, Path to, String... names) throws IOException {
-        for (String name : names) {
-            Path fromFile = from.resolve(name + "." + fromExt);
-            Path toFile = to.resolve(name + ".conf");
-            if (Files.exists(fromFile)) {
-                Files.copy(fromFile, toFile, StandardCopyOption.REPLACE_EXISTING);
-            }
-        }
-    }
-
-    public static void load() {
-        loadConfig();
-        Storage.commands.clear();
-        Storage.crates.clear();
-        Storage.items.clear();
-        Storage.keys.clear();
-        Storage.rewards.clear();
-        customSerializers = core.getNode("custom-serializers").getBoolean(true);
-        errorComments = core.getNode("error-comments").getBoolean(false);
-        try {
             items.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Item((String) n.getKey()), n, Storage.items));
             commands.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Command((String) n.getKey()), n, Storage.commands));
             rewards.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Reward((String) n.getKey()), n, Storage.rewards));
             keys.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Key((String) n.getKey()), n, Storage.keys));
             crates.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Crate((String) n.getKey()), n, Storage.crates));
+            loadLocations();
+        } catch (IOException e) {
+            TeslaCrate.get().getLogger().error("Failed to initialize config files.");
+            e.printStackTrace();
         } catch (ConfigurationNodeException.Unchecked e) {
             error(e.getCause().getNode(), e.getCause().getMessage());
         }
     }
 
-    private static <T extends Component> void loadComponent(T component, ConfigurationNode node, Map<String, T> storage) throws ConfigurationNodeException.Unchecked {
+    private static ConfigHolder createConfig(Path directory, String name, boolean asset) throws IOException {
         try {
-            component.deserialize(node);
-            storage.put(component.getName().toLowerCase(), component);
-        } catch (ConfigurationNodeException.Unchecked e) {
+            Files.createDirectories(directory);
+            Path path = directory.resolve(name);
+            if (asset) {
+                TeslaCrate.get().getContainer().getAsset(name).get().copyToFile(path);
+            } else if (Files.notExists(path)) {
+                Files.createFile(path);
+            }
+            return ConfigHolder.of(HoconConfigurationLoader.builder().setPath(path).setDefaultOptions(options).build());
+        } catch (IOException e) {
+            TeslaCrate.get().getLogger().error("Unable to load config file " + name + ".");
             throw e;
-        } catch (Exception e) {
-            throw new ConfigurationNodeException(node, e).asUnchecked();
         }
+
     }
 
-    private static final Pattern VECTOR = Pattern.compile("\\((?<x>[-+]?[0-9]+), ?(?<y>[-+]?[0-9]+), ?(?<z>[-+]?[0-9]+)\\)");
+    private static void error(ConfigurationNode node, String message) {
+        if (errorComments) {
+            NodeUtils.tryComment(node, "ERROR: " + message);
+        }
+        TeslaCrate.get().getLogger().error(message + " at " + Arrays.toString(node.getPath()));
+    }
+
+    private static <T extends Component> void loadComponent(T component, ConfigurationNode node, Map<String, T> storage) throws ConfigurationNodeException.Unchecked {
+        component.deserialize(node);
+        storage.put(component.getName().toLowerCase(), component);
+    }
 
     public static void loadLocations() {
         Storage.registry.values().forEach(Registration::stopParticles);
@@ -189,26 +157,6 @@ public class Config {
             }
         });
         Storage.registry.values().forEach(Registration::startParticles);
-    }
-
-    private static void error(ConfigurationNode node, String message) {
-        if (errorComments) {
-            NodeUtils.tryComment(node, "ERROR: " + message);
-        }
-        TeslaCrate.getTesla().Logger.error(message + " at " + Arrays.toString(node.getPath()));
-    }
-
-    public static void save() {
-        saveComponents(commands, Storage.commands);
-        saveComponents(items, Storage.items);
-        saveComponents(rewards, Storage.rewards);
-        saveComponents(keys, Storage.keys);
-        saveComponents(crates, Storage.crates);
-    }
-
-    public static <T extends Component> void saveComponents(ConfigHolder config, Map<String, T> storage) {
-        storage.values().stream().filter(Component::isGlobal).forEach(c -> c.serialize(config.getNode(c.getName())));
-        config.save();
     }
 
     public static boolean setLocation(Location<World> location, Crate crate) {
@@ -239,47 +187,87 @@ public class Config {
         return players.save();
     }
 
-    public static void legacyReward(ConfigurationNode reward) {
-        NodeUtils.ifAttached(reward.getNode("rewards"), node -> {
-            NodeUtils.ifAttached(node.getNode("commands"), n -> NodeUtils.move(n, reward.getNode("commands")));
-            NodeUtils.ifAttached(node.getNode("items"), n -> NodeUtils.move(n, reward.getNode("items")));
-            NodeUtils.ifAttached(node.getNode("chance"), n -> NodeUtils.move(n, reward.getNode("weight")));
-            node.setValue(null);
+    private static void convertHuskyCrate(ConfigurationNode husky) {
+        ConfigurationNode tesla = crates.getNode(((String) husky.getKey()).toLowerCase());
+        tesla.getNode("display-name").setValue(husky.getNode("name"));
+        tesla.getNode("message").setValue(convertHuskyLang(husky.getNode("lang", "rewardMessage").getString()));
+        tesla.getNode("announcement").setValue(convertHuskyLang(husky.getNode("lang", "rewardAnnounceMessage").getString()));
+        NodeUtils.ifAttached(husky.getNode("options", "keyID"), n -> {
+            ConfigurationNode key = (convertReference ? keys.getNode() : tesla.getNode("keys")).getNode(((String) tesla.getKey()).toLowerCase() + ":k");
+            key.getNode("display-name").setValue(husky.getNode("name"));
+            key.getNode("item", "id").setValue(n.getNode("none"));
+            if (convertReference) {
+                tesla.getNode("keys", key.getKey()).setValue(1);
+                key.removeChild("quantity");
+            }
         });
-        NodeUtils.ifAttached(reward.getNode("metadata", "announce"), n -> NodeUtils.move(n, reward.getNode("announce")));
+        husky.getNode("items").getChildrenList().forEach(child -> {
+            ConfigurationNode reward = (convertReference ? rewards.getNode() : tesla.getNode("rewards")).getNode(((String) tesla.getKey()).toLowerCase() + ":r" + child.getKey());
+            reward.getNode("display-name").setValue(child.getNode("huskydata", "overrideRewardName").getString(reward.getNode("display-item", "keys", "display-name").getString()));
+            convertHuskyItem(child, reward.getNode("display-item"), true);
+            reward.getNode("announce").setValue(child.getNode("huskydata", "announce").getBoolean(false) || tesla.getNode("announcement").isVirtual() ? null : false);
+            reward.getNode("weight").setValue(child.getNode("huskydata", "weight"));
+            child.getNode("huskydata", "rewards").getChildrenList().forEach(c -> {
+                String type = c.getNode("type").getString("");
+                if (type.equalsIgnoreCase("item")) {
+                    ConfigurationNode item = (convertReference ? items.getNode() : reward.getNode("items")).getNode(((String) reward.getKey()).toLowerCase() + ":i" + c.getKey());
+                    if (c.getNode("overrideItem").isVirtual()) {
+                        item.setValue(reward.getNode("display-item"));
+                        if (child.getNode("huskydata", "rewards").getChildrenList().size() == 1) {
+                            reward.getNode("display-item").setValue(null);
+                        }
+                    } else {
+                        convertHuskyItem(c.getNode("overrideItem"), item, false);
+                    }
+                    if (convertReference) {
+                        reward.getNode("items", item.getKey()).setValue(c.getNode("overrideCount").getInt(item.getInt(item.getNode("quantity").getInt(1))));
+                    }
+                } else if (type.equalsIgnoreCase("command")) {
+                    ConfigurationNode command = (convertReference ? commands.getNode() : reward.getNode("commands")).getNode(((String) reward.getKey()).toLowerCase() + ":c" + c.getKey());
+                    command.getNode("command").setValue(c.getNode("command").getString("").replace("%p", "<player>"));
+                    if (convertReference) {
+                        reward.getNode("commands", command.getKey()).setValue("");
+                    }
+                }
+            });
+            if (convertReference) {
+                tesla.getNode("rewards", reward.getKey()).setValue(reward.getNode("weight").getDouble(0.0));
+                reward.removeChild("weight");
+            }
+        });
     }
 
-    public static void legacyKey(ConfigurationNode key) {
-        NodeUtils.ifAttached(key.getNode("virtual"), n -> n.setValue(null));
-        NodeUtils.ifAttached(key.getNode("physical"), node -> {
-            NodeUtils.ifAttached(node.getNode("item"), n -> NodeUtils.move(n, key.getNode("item")));
-            node.setValue(null);
-        });
+    private static String convertHuskyLang(@Nullable String message) {
+        return message == null ? null : message
+                .replace("%a|%K|%k", "<UNUSED>")
+                .replace("%P|%p", "<player>")
+                .replace("%C|%c", "<crate>")
+                .replace("%R|%r", "<reward>");
     }
 
-    public static void legacyCrate(ConfigurationNode crate) {
-        NodeUtils.ifAttached(crate.getNode("metadata"), node -> {
-            NodeUtils.ifAttached(node.getNode("cooldown"), n -> NodeUtils.move(n, crate.getNode("cooldown")));
-            NodeUtils.ifAttached(node.getNode("msg-announce"), n -> NodeUtils.move(n, crate.getNode("announcement")));
-            NodeUtils.ifAttached(node.getNode("msg-player"), n -> NodeUtils.move(n, crate.getNode("message")));
-            node.setValue(null);
-        });
-        crate.getNode("keys").getChildrenMap().values().stream().filter(ConfigurationNode::hasMapChildren).forEach(Config::legacyKey);
-        crate.getNode("rewards").getChildrenMap().values().stream().filter(ConfigurationNode::hasMapChildren).forEach(Config::legacyReward);
-    }
-
-    public static void legacyLocation(ConfigurationNode location) {
-        String[] split = ((String) location.getKey()).split(",");
-        if (split.length == 4) {
-            locations.getNode(split[0], "(" + split[1] + ", " + split[2] + ", " + split[3] + ")").setValue(location.getString());
-            location.setValue(null);
+    private static void convertHuskyItem(ConfigurationNode husky, ConfigurationNode tesla, boolean display) {
+        tesla.getNode("id").setValue(husky.getNode("id"));
+        int quantity = husky.getNode("count").getInt(1);
+        tesla.getNode("quantity").setValue(quantity == 1 ? null : quantity);
+        tesla.getNode("damage").setValue(husky.getNode("damage"));
+        tesla.getNode("nbt").setValue(husky.getNode("nbt"));
+        List<String> lore = husky.getNode("lore").getChildrenList().stream().map(ConfigurationNode::getString).collect(Collectors.toList());
+        if (display) {
+            if (tesla.getParent().getNode("display-name").isVirtual()) {
+                tesla.getParent().getNode("display-name").setValue(husky.getNode("name"));
+            } else {
+                tesla.getNode("keys", "display-name").setValue(husky.getNode("name"));
+            }
+            if (lore.size() == 1) {
+                tesla.getParent().getNode("description").setValue(lore.get(0));
+            } else if (!lore.isEmpty()) {
+                tesla.getNode("keys", "item-lore").setValue(lore);
+            }
         } else {
-            TeslaCrate.getTesla().Logger.warn("Improperly formatted location found during conversion: " + location.getKey());
+            tesla.getNode("keys", "display-name").setValue(husky.getNode("name"));
+            tesla.getNode("keys", "item-lore").setValue(lore.isEmpty() ? null : lore.size() == 1 ? lore.get(0) : lore);
         }
-    }
-
-    public static boolean isCustomSerializers() {
-        return customSerializers;
+        tesla.getNode("keys", "enchantments").setValue(husky.getNode("enchantments"));
     }
 
 }

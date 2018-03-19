@@ -26,7 +26,7 @@ public class Registration {
                     .execute(new Effects.Particle.Runner(crate.getParticle(), location))
                     .async()
                     .interval(20, TimeUnit.MILLISECONDS)
-                    .submit(TeslaCrate.getTesla().Container);
+                    .submit(TeslaCrate.get().getContainer());
         }
     }
 

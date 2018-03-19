@@ -2,6 +2,7 @@ package com.mcsimonflash.sponge.teslacrate.component;
 
 import com.google.common.base.Preconditions;
 import com.mcsimonflash.sponge.teslacrate.internal.Config;
+import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
@@ -13,6 +14,7 @@ import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 
 import java.util.List;
@@ -26,16 +28,20 @@ public class Key extends Component {
         super(name);
     }
 
+    public boolean isPhysical() {
+        return item.isPresent();
+    }
+
     public int check(User user) {
-        return item.isPresent() ? user.getInventory().queryAny(item.get()).totalItems() : Config.getKeys(user, this);
+        return item.isPresent() ? user.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(item.get())).totalItems() : Config.getKeys(user, this);
     }
 
     public boolean give(User user, int quantity) {
-        return quantity == 0 || item.isPresent() ? user.getInventory().offer(ItemStack.builder().from(item.get()).quantity(quantity).build()).getType() == InventoryTransactionResult.Type.SUCCESS : Config.setKeys(user, this, check(user) + quantity);
+        return quantity == 0 || item.isPresent() ? Utils.offerItem(user, item.get(), quantity).getType() == InventoryTransactionResult.Type.SUCCESS : Config.setKeys(user, this, check(user) + quantity);
     }
 
     public boolean take(User user, int quantity) {
-        return quantity == 0 || item.isPresent() ? user.getInventory().queryAny(item.get()).poll(quantity).isPresent() : Config.setKeys(user, this, check(user) - quantity);
+        return quantity == 0 || item.isPresent() ? user.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(item.get())).poll(quantity).isPresent() : Config.setKeys(user, this, check(user) - quantity);
     }
 
     @Override
@@ -51,13 +57,6 @@ public class Key extends Component {
                 throw new ConfigurationNodeException(n, "A physical key may not use a reference item.").asUnchecked();
             }
         });
-    }
-
-    @Override
-    public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        super.serialize(node);
-        node.getNode("quantity").setValue(quantity == 1 ? null : quantity);
-        item.ifPresent(i -> Serializers.serializeItemStack(node.getNode("item"), i));
     }
 
     public int getQuantity() {
@@ -83,10 +82,11 @@ public class Key extends Component {
     }
 
     @Override
-    public List<Element> getMenuElements() {
-        List<Element> elements = super.getMenuElements();
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Item", Utils.printItem(getItem()), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Quantity", String.valueOf(getQuantity()), false)));
+    public List<Element> getMenuElements(Element back) {
+        List<Element> elements = super.getMenuElements(back);
+        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Type", isPhysical() ? "physical" : "virtual", false)));
+        item.ifPresent(i -> elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Item", Utils.printItem(i), false))));
+        elements.add(Inventory.createDetail("Quantity", String.valueOf(getQuantity())));
         return elements;
     }
 

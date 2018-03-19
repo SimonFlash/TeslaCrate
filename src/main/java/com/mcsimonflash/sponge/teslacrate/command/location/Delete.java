@@ -1,27 +1,32 @@
 package com.mcsimonflash.sponge.teslacrate.command.location;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslacrate.command.TeslaCommand;
 import com.mcsimonflash.sponge.teslacrate.internal.Config;
 import com.mcsimonflash.sponge.teslacrate.internal.Registration;
 import com.mcsimonflash.sponge.teslacrate.internal.Storage;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-public class Delete implements CommandExecutor {
+@Singleton
+@Aliases({"delete", "del"})
+@Permission("teslacrate.command.location.delete.base")
+public class Delete extends TeslaCommand {
 
-    public static final CommandSpec COMMAND = CommandSpec.builder()
-            .executor(new Delete())
-            .arguments(GenericArguments.location(Text.of("location")))
-            .permission("teslacrate.command.location.delete.base")
-            .build();
+    @Inject
+    private Delete() {
+        super(CmdUtils.usage("/teslacrate location delete ", "Deletes a registered location", WORLD_ARG, POSITION_ARG),
+                settings().arguments(LOCATION_ELEM));
+    }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {

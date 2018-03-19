@@ -1,33 +1,31 @@
 package com.mcsimonflash.sponge.teslacrate.command.item;
 
-import com.google.common.collect.Range;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslacrate.command.TeslaCommand;
 import com.mcsimonflash.sponge.teslacrate.component.Item;
-import com.mcsimonflash.sponge.teslacrate.internal.Storage;
-import com.mcsimonflash.sponge.teslacore.command.Arguments;
-import com.mcsimonflash.sponge.teslacore.command.element.core.ValueElement;
-import org.spongepowered.api.command.CommandException;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
 
-public class Give implements CommandExecutor {
+@Singleton
+@Aliases("give")
+@Permission("teslacrate.command.item.give.base")
+public class Give extends TeslaCommand {
 
-    public static final CommandSpec COMMAND = CommandSpec.builder()
-            .executor(new Give())
-            .arguments(GenericArguments.player(Text.of("player")),
-                    Arguments.map("item", Storage.items, ValueElement.next()),
-                    GenericArguments.optional(Arguments.range("quantity", Range.greaterThan(0), Arguments.intt("int"))))
-            .permission("teslacrate.command.item.give.base")
-            .build();
+    @Inject
+    private Give() {
+        super(CmdUtils.usage("/teslacrate item give ", "Gives an item to a player.", PLAYER_ARG, ITEM_ARG, QUANTITY_ARG),
+                settings().arguments(PLAYER_ELEM, ITEM_ELEM, QUANTITY_ELEM.getParser().optional().toElement("quantity")));
+    }
 
     @Override
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+    public CommandResult execute(CommandSource src, CommandContext args) {
         Player player = args.<Player>getOne("player").get();
         Item item = args.<Item>getOne("item").get();
         Integer quantity = args.<Integer>getOne("quantity").orElse(item.getItem().getQuantity());

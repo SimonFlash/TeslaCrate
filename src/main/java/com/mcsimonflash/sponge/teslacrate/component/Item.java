@@ -21,19 +21,13 @@ public class Item extends Component {
     }
 
     public void give(Player player, int quantity) {
-        item.ifPresent(i -> player.getInventory().offer(ItemStack.builder().fromContainer(i.toContainer()).quantity(quantity).build()));
+        item.ifPresent(i -> Utils.offerItem(player, i, quantity));
     }
 
     @Override
     public void deserialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
         super.deserialize(node);
         setItem(Serializers.deserializeItemStack(node));
-    }
-
-    @Override
-    public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        super.serialize(node);
-        item.ifPresent(i -> Serializers.serializeItemStack(node, i));
     }
 
     public ItemStack getItem() {
@@ -45,8 +39,8 @@ public class Item extends Component {
     }
 
     @Override
-    public List<Element> getMenuElements() {
-        List<Element> elements = super.getMenuElements();
+    public List<Element> getMenuElements(Element back) {
+        List<Element> elements = super.getMenuElements(back);
         elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Item", Utils.printItem(getItem()), false)));
         return elements;
     }

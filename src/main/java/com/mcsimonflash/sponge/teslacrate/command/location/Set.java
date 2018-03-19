@@ -1,31 +1,33 @@
 package com.mcsimonflash.sponge.teslacrate.command.location;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.command.TeslaCommand;
+import com.mcsimonflash.sponge.teslacrate.component.Crate;
 import com.mcsimonflash.sponge.teslacrate.internal.Config;
 import com.mcsimonflash.sponge.teslacrate.internal.Registration;
 import com.mcsimonflash.sponge.teslacrate.internal.Storage;
-import com.mcsimonflash.sponge.teslacrate.component.Crate;
-import com.mcsimonflash.sponge.teslacore.command.Arguments;
-import com.mcsimonflash.sponge.teslacore.command.element.core.ValueElement;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-public class Set implements CommandExecutor {
+@Singleton
+@Aliases("set")
+@Permission("teslacrate.command.location.set.base")
+public class Set extends TeslaCommand {
 
-    public static final CommandSpec COMMAND = CommandSpec.builder()
-            .executor(new Set())
-            .arguments(GenericArguments.location(Text.of("location")),
-                    Arguments.map("crate", Storage.crates, ValueElement.next()))
-            .permission("teslacrate.command.location.set.base")
-            .build();
+    @Inject
+    private Set() {
+        super(CmdUtils.usage("/teslacrate location set ", "Sets a location to a crate.", WORLD_ARG, POSITION_ARG, CRATE_ARG),
+                settings().arguments(LOCATION_ELEM, CRATE_ELEM));
+    }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {

@@ -4,24 +4,21 @@ plugins {
 }
 
 group 'com.mcsimonflash.sponge.teslacrate'
-ext {
-    teslapoweredversion = '1.0.1'
-    teslacrateversion = '2.0.1-legacy'
-    spongeapiversion = '7.0.0-SNAPSHOT'
-    completeversion = "-s${spongeapiversion.substring(0, 3)}-t${teslapoweredversion}-v${teslacrateversion}"
-}
+version '2.1.0'
+ext.teslaversion = '1.1.0'
+ext.spongeversion = '7.1.0-SNAPSHOT'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile "org.spongepowered:spongeapi:${spongeapiversion}"
+    compile "org.spongepowered:spongeapi:${spongeversion}"
 }
 
 jar {
-    archiveName = "${project.name}${completeversion}.jar"
+    archiveName = "${project.name}-s${spongeversion.substring(0, 3)}-t${teslaversion}-v${version}.jar"
 }
 
 task copyJars(type: Copy) {
-    from jar into project.file("#releases/${teslacrateversion}")
+    from jar into project.file("#releases/${version}")
 }
 
 build.dependsOn(copyJars)

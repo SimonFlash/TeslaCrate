@@ -1,33 +1,32 @@
 package com.mcsimonflash.sponge.teslacrate.command.crate;
 
-import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslacrate.command.TeslaCommand;
 import com.mcsimonflash.sponge.teslacrate.component.Crate;
-import com.mcsimonflash.sponge.teslacrate.internal.Storage;
-import com.mcsimonflash.sponge.teslacore.command.Arguments;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.entity.living.player.Player;
 
-public class Preview implements CommandExecutor {
+@Singleton
+@Aliases("preview")
+@Permission("teslacrate.command.crate.preview.base")
+public class Preview extends TeslaCommand {
 
-    public static final CommandSpec COMMAND = CommandSpec.builder()
-            .executor(new Preview())
-            .arguments(Arguments.map("crate", Storage.crates, Arguments.string("string")))
-            .permission("teslacrate.command.command.menu.base")
-            .build();
+    @Inject
+    private Preview() {
+        super(CmdUtils.usage("/teslacrate crate preview ", "Previews the rewards in a crate.", CRATE_ARG),
+                settings().arguments(CRATE_ELEM));
+    }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-        if (src instanceof Player) {
-            args.<Crate>getOne("crate").get().preview((Player) src);
-            return CommandResult.success();
-        } else {
-            throw new CommandException(TeslaCrate.getMessage(src, "teslacrate.command.player-only"));
-        }
+        args.<Crate>getOne("crate").get().preview(CmdUtils.requirePlayer(src));
+        return CommandResult.success();
     }
 
 }

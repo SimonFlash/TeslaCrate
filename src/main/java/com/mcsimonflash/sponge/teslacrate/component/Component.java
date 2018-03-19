@@ -44,12 +44,6 @@ public abstract class Component {
         });
     }
 
-    public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        description.ifPresent(d -> node.getNode("description").setValue(d));
-        displayName.ifPresent(d -> node.getNode("display-name").setValue(d));
-        displayItem.ifPresent(i -> Serializers.serializeItemStack(node.getNode("display-item"), i));
-    }
-
     public String getName() {
         return name;
     }
@@ -90,7 +84,7 @@ public abstract class Component {
         return Utils.createItem(ItemTypes.PAPER, getDisplayName(), getDescription(), true);
     }
 
-    public List<Element> getMenuElements() {
+    public List<Element> getMenuElements(Element back) {
         List<Element> elements = Lists.newArrayList();
         elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Name", getName(), false)));
         elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Description", getDescription(), false)));

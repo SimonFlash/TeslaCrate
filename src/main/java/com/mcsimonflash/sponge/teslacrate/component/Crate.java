@@ -6,14 +6,20 @@ import com.mcsimonflash.sponge.teslacrate.internal.*;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslacore.util.DefVal;
+import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
+import com.mcsimonflash.sponge.teslalibs.inventory.Page;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.FireworkEffect;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.property.InventoryTitle;
+import org.spongepowered.api.util.Color;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +41,7 @@ public class Crate extends Component {
 
     public void give(Player player, Reward reward, Location<World> location) {
         reward.give(player);
-        Utils.spawnFirework(location);
+        Utils.spawnFirework(FireworkEffect.builder().color(Color.YELLOW).build(), location);
         message.ifPresent(m -> player.sendMessage(Utils.toText(m.replace("<player>", player.getName()).replace("<crate>", getDisplayName()).replace("<reward>", reward.getDisplayName()))));
         if (announcement.isPresent() && reward.isAnnounce()) {
             Sponge.getServer().getBroadcastChannel().send(Utils.toText(getAnnouncement().replace("<player>", player.getName()).replace("<crate>", getDisplayName()).replace("<reward>", reward.getDisplayName())));
@@ -57,7 +63,7 @@ public class Crate extends Component {
         }
         List<Key> missing = keys.entrySet().stream().filter(e -> e.getKey().check(player) < e.getValue()).map(Map.Entry::getKey).collect(Collectors.toList());
         if (!missing.isEmpty()) {
-            TeslaCrate.sendMessage(player, "teslacrate.crate.missing-keys", "crate", getDisplayName(), "keys", String.join(", ", missing.stream().map(k -> TeslaCrate.getTesla().Messages.get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", k.getDisplayName(), "quantity", keys.get(k)).toString()).collect(Collectors.toList())));
+            TeslaCrate.sendMessage(player, "teslacrate.crate.missing-keys", "crate", getDisplayName(), "keys", String.join(", ", missing.stream().map(k -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).arg("key", k.getDisplayName()).arg("quantity", keys.get(k)).toString()).collect(Collectors.toList())));
             return false;
         }
         keys.forEach((k, q) -> k.take(player, q));
@@ -76,7 +82,19 @@ public class Crate extends Component {
     }
 
     public void preview(Player player) {
-        Utils.page(rewards.keySet().stream().map(Component::getDisplayItem).map(Element::of).collect(Collectors.toList())).open(player);
+        Page.builder()
+                .layout(Layout.builder()
+                        .setAll(Inventory.TEMPLATE.getElements())
+                        .set(Inventory.PANES[4], 45)
+                        .set(Inventory.PANES[1], 53)
+                        .build())
+                .property(InventoryTitle.of(Utils.toText(getDisplayName())))
+                .build(TeslaCrate.get().getContainer())
+                .define(rewards.entrySet().stream()
+                        .sorted(Comparator.comparingDouble(Map.Entry::getValue))
+                        .map(e -> Element.of(e.getKey().getDisplayItem()))
+                        .collect(Collectors.toList()))
+                .open(player, 0);
     }
 
     @Override
@@ -98,33 +116,12 @@ public class Crate extends Component {
         });
     }
 
-    @Override
-    public void serialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        super.serialize(node);
-        announcement.ifPresent(a -> node.getNode("announcement").setValue(a));
-        message.ifPresent(m -> node.getNode("message").setValue(m));
-        node.getNode("cooldown").setValue(cooldown == 0 ? null : cooldown);
-        node.getNode("firework").setValue(firework ? true : null);
-        gui.ifPresent(g -> Serializers.serializeEnum(node.getNode("gui"), g));
-        particle.ifPresent(p -> Serializers.serializeEnum(node.getNode("particle"), p));
-        keys.forEach((k, v) -> Serializers.serializeChild(node.getNode("keys"), k, v));
-        rewards.forEach((r, c) -> Serializers.serializeChild(node.getNode("rewards"), r, c));
-    }
-
     public void addKey(Key key, int quantity) {
         keys.put(key, quantity);
     }
 
-    public void removeKey(Key key) {
-        keys.remove(key);
-    }
-
     public void addReward(Reward reward, double weight) {
         rewards.put(reward, weight);
-    }
-
-    public void removeReward(Reward reward) {
-        rewards.remove(reward);
     }
 
     public String getAnnouncement() {
@@ -181,16 +178,17 @@ public class Crate extends Component {
     }
 
     @Override
-    public List<Element> getMenuElements() {
-        List<Element> elements = super.getMenuElements();
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Announcement", getAnnouncement(), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Message", getMessage(), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Cooldown", String.valueOf(getCooldown()), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Firework", String.valueOf(isFirework()), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Gui", getGui().name().toLowerCase(), false)));
-        elements.add(Element.of(Utils.createItem(ItemTypes.PAPER, "Particle", getParticle().name().toLowerCase(), false)));
-        keys.forEach((k, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.NAME_TAG, k.getName(), "quantity=" + q, false), p -> Utils.page(k.getMenuElements()).open(p))));
-        rewards.forEach((r, w) -> elements.add(Element.of(Utils.createItem(ItemTypes.BOOK, r.getName(), "weight=" + w, false), p -> Utils.page(r.getMenuElements()).open(p))));
+    public List<Element> getMenuElements(Element back) {
+        List<Element> elements = super.getMenuElements(back);
+        elements.add(Inventory.createDetail("Announcement", getAnnouncement()));
+        elements.add(Inventory.createDetail("Message", getMessage()));
+        elements.add(Inventory.createDetail("Cooldown", String.valueOf(getCooldown())));
+        elements.add(Inventory.createDetail("Firework", String.valueOf(isFirework())));
+        elements.add(Inventory.createDetail("Gui", getGui().name().toLowerCase()));
+        elements.add(Inventory.createDetail("Particle", getParticle().name().toLowerCase()));
+        Element self = Inventory.createComponent(this, back);
+        keys.forEach((k, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.NAME_TAG, k.getName(), "quantity=" + q, false), a -> Inventory.page(k.getName(), k.getMenuElements(self), self).open(a.getPlayer(), 0))));
+        rewards.forEach((r, w) -> elements.add(Element.of(Utils.createItem(ItemTypes.BOOK, r.getName(), "weight=" + w, false), a -> Inventory.page(r.getName(), r.getMenuElements(self), self).open(a.getPlayer(), 0))));
         return elements;
     }
 
