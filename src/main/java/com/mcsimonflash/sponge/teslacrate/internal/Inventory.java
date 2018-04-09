@@ -34,7 +34,7 @@ public class Inventory {
     public static final Element KEYS = createIcon(Storage.keys.values(), "Keys", "Confused?", "NjBjZTQzZTBjZGNlYTk4ZGNjNmYwYmUzN2IwZjc3NDVkYWFmMmE3ZGMyOWJmMTNiM2U3OGE2NWM2ZSJ9fX0=");
     public static final Element REWARDS = createIcon(Storage.rewards.values(), "Rewards", "Oohh, shiny!", "NmNlZjlhYTE0ZTg4NDc3M2VhYzEzNGE0ZWU4OTcyMDYzZjQ2NmRlNjc4MzYzY2Y3YjFhMjFhODViNyJ9fX0=");
     public static final View MENU = View.builder()
-            .property(InventoryTitle.of(Utils.toText("&e&lTesla&6&lCrate &8&lMenu")))
+            .property(InventoryTitle.of(Utils.toText("&eTesla&6Crate &7Menu")))
             .build(TeslaCrate.get().getContainer())
             .define(Layout.builder()
                     .dimension(InventoryDimension.of(9, 3))

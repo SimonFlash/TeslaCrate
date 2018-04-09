@@ -18,7 +18,7 @@ import org.spongepowered.api.text.Text;
 
 import javax.inject.Inject;
 
-@Plugin(id = "teslacrate", name = "TeslaCrate", version = "2.1.0", dependencies = @Dependency(id = "teslacore"), url = "https://forums.spongepowered.org/t/teslacrate-key-shockingly-powerful-crates-api-5-6-and-7/19116", authors = "Simon_Flash")
+@Plugin(id = "teslacrate", name = "TeslaCrate", version = "2.1.1", dependencies = @Dependency(id = "teslacore"), url = "https://forums.spongepowered.org/t/teslacrate-key-shockingly-powerful-crates-api-5-6-and-7/19116", authors = "Simon_Flash")
 public class TeslaCrate extends Tesla {
 
     private static TeslaCrate instance;

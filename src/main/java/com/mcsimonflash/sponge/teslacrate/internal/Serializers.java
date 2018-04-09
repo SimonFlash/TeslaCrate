@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.mcsimonflash.sponge.teslacrate.component.Component;
@@ -11,10 +12,14 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.enchantment.Enchantment;
+import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.item.inventory.ItemStack;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -66,8 +71,17 @@ public class Serializers {
             ItemStack.Builder builder = ItemStack.builder().fromContainer(container);
             for (ConfigurationNode child : node.getNode("keys").getChildrenMap().values()) {
                 String name = (((String) child.getKey()).contains(":") ? (String) child.getKey() : "sponge:" + child.getKey()).replace("-", "_");
-                Key key = Sponge.getRegistry().getType(Key.class, name).orElseThrow(() -> new ConfigurationNodeException(child, "No key found for id `%s`.", name).asUnchecked());
+                Key key = Sponge.getRegistry().getType(Key.class, name).orElseThrow(() -> new ConfigurationNodeException(child, "No key found for id %s.", name).asUnchecked());
                 wrapOME(child, c -> builder.add(key, c.getValue(key.getElementToken())));
+            }
+            List<Enchantment> enchantments = Lists.newArrayList();
+            for (ConfigurationNode child : node.getNode("enchantments").getChildrenMap().values()) {
+                String name = ((String) child.getKey()).replace("-", "_");
+                EnchantmentType enchantment = Sponge.getRegistry().getType(EnchantmentType.class, name.contains(":") ? name : "minecraft:" + name).orElseThrow(() -> new ConfigurationNodeException(child, "No enchantment found for id %s.", name).asUnchecked());
+                enchantments.add(Enchantment.of(enchantment, child.getInt(0)));
+            }
+            if (!enchantments.isEmpty()) {
+                builder.add(Keys.ITEM_ENCHANTMENTS, enchantments);
             }
             return builder.build();
         } else {

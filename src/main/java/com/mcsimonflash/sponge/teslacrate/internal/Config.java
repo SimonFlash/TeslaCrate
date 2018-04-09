@@ -61,6 +61,7 @@ public class Config {
         Storage.registry.values().forEach(Registration::stopParticles);
         Storage.registry.clear();
         try {
+            TeslaCrate.get().getLogger().info("&eLoading Configuration.");
             core = createConfig(directory, "teslacrate.conf", true);
             commands = createConfig(configuration, "commands.conf", true);
             crates = createConfig(configuration, "crates.conf", true);
@@ -84,7 +85,7 @@ public class Config {
                     crates.save();
                     TeslaCrate.get().getLogger().warn("Conversion of HuskyCrates config complete.");
                 } else {
-                    TeslaCrate.get().getLogger().warn("Attempted to convert HuskyCrates config, but no config was found.");
+                    TeslaCrate.get().getLogger().warn("Attempted to convert HuskyCrates config, but no config was found at /config/huskycrates/huskycrates.conf");
                 }
                 core.getNode("convert", "huskycrates").setValue(false);
                 core.save();
@@ -95,11 +96,11 @@ public class Config {
             keys.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Key((String) n.getKey()), n, Storage.keys));
             crates.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Crate((String) n.getKey()), n, Storage.crates));
             loadLocations();
+            TeslaCrate.get().getLogger().info("&eLoading Complete");
         } catch (IOException e) {
-            TeslaCrate.get().getLogger().error("Failed to initialize config files.");
-            e.printStackTrace();
+            TeslaCrate.get().getLogger().error("&cUnable to initialize configuration: " + e.getMessage());
         } catch (ConfigurationNodeException.Unchecked e) {
-            error(e.getCause().getNode(), e.getCause().getMessage());
+            TeslaCrate.get().getLogger().error("&cConfiguration loading has been halted.");
         }
     }
 
@@ -114,22 +115,27 @@ public class Config {
             }
             return ConfigHolder.of(HoconConfigurationLoader.builder().setPath(path).setDefaultOptions(options).build());
         } catch (IOException e) {
-            TeslaCrate.get().getLogger().error("Unable to load config file " + name + ".");
+            TeslaCrate.get().getLogger().error("&cUnable to load config file " + name + ".");
             throw e;
         }
 
     }
 
-    private static void error(ConfigurationNode node, String message) {
+    private static void error(ConfigurationNode node, String prefix, String message) {
         if (errorComments) {
             NodeUtils.tryComment(node, "ERROR: " + message);
         }
-        TeslaCrate.get().getLogger().error(message + " at " + Arrays.toString(node.getPath()));
+        TeslaCrate.get().getLogger().error(prefix + message);
     }
 
     private static <T extends Component> void loadComponent(T component, ConfigurationNode node, Map<String, T> storage) throws ConfigurationNodeException.Unchecked {
-        component.deserialize(node);
-        storage.put(component.getName().toLowerCase(), component);
+        try {
+            component.deserialize(node);
+            storage.put(component.getName().toLowerCase(), component);
+        } catch (ConfigurationNodeException.Unchecked e) {
+            error(e.getCause().getNode(), "Error loading component " + component.getName() + " in " + component.getClass().getSimpleName().toLowerCase() + "s.conf at " + Arrays.toString(node.getPath()) + ": ", e.getCause().getMessage());
+            throw e;
+        }
     }
 
     public static void loadLocations() {
@@ -146,14 +152,14 @@ public class Config {
                             Location<World> loc = new Location<>(optWorld.get(), new Vector3d(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")), Integer.parseInt(matcher.group("z"))));
                             Storage.registry.put(loc, new Registration(loc.add(0.5, 0.5, 0.5), crate));
                         } else {
-                            error(c, "No crate found for name " + c.getString() + ". Skipping this location.");
+                            error(c, "Unable to load location " + c.getKey() + " in world " + n.getKey() + ": ", "No crate found for name " + c.getString() + ".");
                         }
                     } else {
-                        error(c, "Unable to parse vector from input " + c.getKey() + ". Skipping this location.");
+                        error(c, "Unable to load location " + c.getKey() + " in world " + n.getKey() + " : ", "Invalid position format - expected (x,y,z).");
                     }
                 });
             } else {
-                error(n, "No world found for name " + n.getKey() + ". Skipping " + n.getChildrenMap().size() + " locations.");
+                error(n, "Unable to load locations: ", "No world found for name " + n.getString() + ".");
             }
         });
         Storage.registry.values().forEach(Registration::startParticles);

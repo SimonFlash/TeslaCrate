@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.internal.*;
@@ -19,12 +20,12 @@ import org.spongepowered.api.util.Color;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Crate extends Component {
+
+    private static final Random RANDOM = new Random();
 
     private Map<Key, Integer> keys = Maps.newHashMap();
     private Map<Reward, Double> rewards = Maps.newHashMap();
@@ -32,20 +33,23 @@ public class Crate extends Component {
     private DefVal<String> message = DefVal.of("undefined");
     private DefVal<Effects.Gui> gui = DefVal.of(Effects.Gui.NONE);
     private DefVal<Effects.Particle> particle = DefVal.of(Effects.Particle.NONE);
-    private int cooldown = 0;
-    private boolean firework = true;
+    private int cooldown, rollMin, rollMax;
+    private boolean firework, rollAll;
+    private double weightSum;
 
     public Crate(String name) {
         super(name);
     }
 
     public void give(Player player, Reward reward, Location<World> location) {
-        reward.give(player);
-        Utils.spawnFirework(FireworkEffect.builder().color(Color.YELLOW).build(), location);
         message.ifPresent(m -> player.sendMessage(Utils.toText(m.replace("<player>", player.getName()).replace("<crate>", getDisplayName()).replace("<reward>", reward.getDisplayName()))));
         if (announcement.isPresent() && reward.isAnnounce()) {
             Sponge.getServer().getBroadcastChannel().send(Utils.toText(getAnnouncement().replace("<player>", player.getName()).replace("<crate>", getDisplayName()).replace("<reward>", reward.getDisplayName())));
         }
+        if (firework) {
+            Utils.spawnFirework(FireworkEffect.builder().color(Color.YELLOW).build(), location);
+        }
+        reward.give(player);
     }
 
     public boolean process(Player player, Location<World> location) {
@@ -72,13 +76,39 @@ public class Crate extends Component {
     }
 
     public Reward getRandomReward() {
-        double random = Math.random() * rewards.values().stream().mapToDouble(Double::valueOf).sum();
-        for (Map.Entry<Reward, Double> entry : rewards.entrySet()) {
-            if ((random -= entry.getValue()) <= 0) {
-                return entry.getKey();
+        List<Reward> rewards = Lists.newArrayList();
+        int num = RANDOM.nextInt(rollMax - rollMin + 1) + rollMin;
+        for (int i = 0; i < num; i++) {
+            if (rollAll) {
+                this.rewards.entrySet().stream()
+                        .filter(e -> RANDOM.nextDouble() * weightSum < e.getValue())
+                        .map(Map.Entry::getKey)
+                        .forEach(rewards::add);
+            } else {
+                double random = RANDOM.nextDouble() * weightSum;
+                for (Map.Entry<Reward, Double> entry : this.rewards.entrySet()) {
+                    if ((random -= entry.getValue()) <= 0) {
+                        rewards.add(entry.getKey());
+                        break;
+                    }
+                }
             }
         }
-        throw new IllegalArgumentException("Reached end of rewards list without selection!");
+        if (rewards.size() == 1) {
+            return rewards.get(0);
+        } else {
+            Collections.shuffle(rewards);
+            Reward reward = new Reward("multi-reward") {
+                @Override
+                public void give(Player player) {
+                    rewards.forEach(r -> r.give(player));
+                }
+            };
+            reward.setDisplayName("&e" + String.join("&6, &e", rewards.stream().map(Component::getDisplayName).collect(Collectors.toList())) + "&6");
+            reward.setDisplayItem( Utils.createItem(ItemTypes.BOOK, getDisplayName(), rewards.stream().map(Component::getDisplayName).collect(Collectors.toList()), true));
+            reward.setAnnounce(rewards.stream().anyMatch(Reward::isAnnounce));
+            return reward;
+        }
     }
 
     public void preview(Player player) {
@@ -104,6 +134,12 @@ public class Crate extends Component {
         setMessage(node.getNode("message").getString());
         setCooldown(node.getNode("cooldown").getInt(0));
         setFirework(node.getNode("firework").getBoolean(false));
+        rollAll = node.getNode("roll-all").getBoolean(false);
+        rollMin = node.getNode("roll-min").getInt(1);
+        rollMax = node.getNode("roll-max").getInt(1);
+        if (rollMin > rollMax) {
+            throw new ConfigurationNodeException(node.getNode("roll-min"), "Roll-min cannot be larger than roll-max!").asUnchecked();
+        }
         setGui(Serializers.deserializeEnum(node.getNode("gui"), Effects.Gui.class, "No gui type found for name %s."));
         setParticle(Serializers.deserializeEnum(node.getNode("particle"), Effects.Particle.class, "No particle type found for name %s."));
         node.getNode("keys").getChildrenMap().values().forEach(n -> {
@@ -114,6 +150,11 @@ public class Crate extends Component {
             Reward reward = Serializers.deserializeChild(n, Storage.rewards, () -> new Reward(getName() + ":" + n.getKey()), "reward");
             addReward(reward, n.hasMapChildren() || n.getDouble(0) <= 0 ? reward.getWeight() : n.getDouble());
         });
+        double sum = rewards.values().stream().mapToDouble(Double::valueOf).sum();
+        weightSum = node.getNode("weight-sum").getDouble(sum);
+        if (!rollAll && sum != weightSum) {
+            throw new ConfigurationNodeException(node.getNode("rewards"), "Weight sum " + sum + " did not match the expected sum of " + weightSum + ".").asUnchecked();
+        }
     }
 
     public void addKey(Key key, int quantity) {
@@ -186,15 +227,14 @@ public class Crate extends Component {
         elements.add(Inventory.createDetail("Firework", String.valueOf(isFirework())));
         elements.add(Inventory.createDetail("Gui", getGui().name().toLowerCase()));
         elements.add(Inventory.createDetail("Particle", getParticle().name().toLowerCase()));
+        elements.add(Inventory.createDetail("Weight Sum", String.valueOf(weightSum)));
+        elements.add(Inventory.createDetail("Roll All", String.valueOf(rollAll)));
+        elements.add(Inventory.createDetail("Roll Min", String.valueOf(rollMin)));
+        elements.add(Inventory.createDetail("Roll Max", String.valueOf(rollMax)));
         Element self = Inventory.createComponent(this, back);
         keys.forEach((k, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.NAME_TAG, k.getName(), "quantity=" + q, false), a -> Inventory.page(k.getName(), k.getMenuElements(self), self).open(a.getPlayer(), 0))));
         rewards.forEach((r, w) -> elements.add(Element.of(Utils.createItem(ItemTypes.BOOK, r.getName(), "weight=" + w, false), a -> Inventory.page(r.getName(), r.getMenuElements(self), self).open(a.getPlayer(), 0))));
         return elements;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "\nKeys: " + String.join(", ", keys.keySet().stream().map(Component::getName).collect(Collectors.toList())) + "\nRewards: " + String.join(", ", rewards.keySet().stream().map(Component::getName).collect(Collectors.toList())) + "\nAnnounceMessage: " + getAnnouncement() + "\nPlayerMessage: " + getMessage() + "\nCooldown: " + getCooldown();
     }
 
 }

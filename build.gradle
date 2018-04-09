@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.mcsimonflash.sponge.teslacrate'
-version '2.1.0'
+version '2.1.1'
 ext.teslaversion = '1.1.0'
 ext.spongeversion = '7.1.0-SNAPSHOT'
 

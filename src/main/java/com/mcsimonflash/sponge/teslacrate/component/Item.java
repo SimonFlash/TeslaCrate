@@ -50,9 +50,4 @@ public class Item extends Component {
         return item.get();
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "\nItem: " + Utils.printItem(getItem());
-    }
-
 }

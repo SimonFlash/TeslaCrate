@@ -75,10 +75,9 @@ public class Utils {
     }
 
     public static InventoryTransactionResult offerItem(User user, ItemStack item, int quantity) {
-        item = item.copy();
-        item.setQuantity(quantity);
-        InventoryTransactionResult result = user.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class)).offer(item);
-        return result.getType() != InventoryTransactionResult.Type.SUCCESS ? user.getInventory().offer(item) : result;
+        return user.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class))
+                .union(user.getInventory())
+                .offer(ItemStack.builder().from(item).quantity(quantity).build());
     }
 
     public static List<String> printItem(ItemStack item) {

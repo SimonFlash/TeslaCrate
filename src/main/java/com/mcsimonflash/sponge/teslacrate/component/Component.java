@@ -94,9 +94,4 @@ public abstract class Component {
         return elements;
     }
 
-    @Override
-    public String toString() {
-        return "Name: " + getName() + "\nDescription: " + getDescription() + "\nDisplayName: " + getDisplayName() + "\nDisplayItem: " + Utils.printItem(getDisplayItem()) + "\nGlobal: " + isGlobal();
-    }
-
 }

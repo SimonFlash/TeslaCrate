@@ -80,7 +80,7 @@ public class Effects {
                 frames.add(Frame.of(Layout.builder().build(), 50));
                 AtomicBoolean closeable = new AtomicBoolean();
                 View view = View.builder()
-                        .onClose(a -> a.getEvent().setCancelled(closeable.get()))
+                        .onClose(a -> a.getEvent().setCancelled(!closeable.get()))
                         .build(TeslaCrate.get().getContainer());
                 Animator<View, Layout> animator = Animator.of(view, frames, TeslaCrate.get().getContainer());
                 animator.onCompletion(() -> {

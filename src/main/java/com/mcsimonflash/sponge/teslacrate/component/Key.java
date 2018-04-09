@@ -90,9 +90,4 @@ public class Key extends Component {
         return elements;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "\nQuantity: " + quantity + (item.isPresent() ? "Item: " + Utils.printItem(item.getVal()): "");
-    }
-
 }

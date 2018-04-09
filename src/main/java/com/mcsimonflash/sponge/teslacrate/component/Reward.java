@@ -94,9 +94,4 @@ public class Reward extends Component {
         return elements;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "\nCommands: " + String.join(", ", commands.keySet().stream().map(Component::getName).collect(Collectors.toList())) + "\nItems: " + String.join(", ", commands.keySet().stream().map(Component::getName).collect(Collectors.toList())) + "\nWeight: " + getWeight();
-    }
-
 }

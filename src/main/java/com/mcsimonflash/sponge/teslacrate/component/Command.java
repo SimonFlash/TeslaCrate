@@ -74,9 +74,4 @@ public class Command extends Component {
         return elements;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "\nCommand: " + getCommand() + "\nValue: " + getValue() + "\nServer: " + isServer();
-    }
-
 }
