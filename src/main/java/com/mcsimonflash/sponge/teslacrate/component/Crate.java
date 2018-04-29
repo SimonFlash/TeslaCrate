@@ -32,7 +32,7 @@ public class Crate extends Component {
     private DefVal<String> announcement = DefVal.of("undefined");
     private DefVal<String> message = DefVal.of("undefined");
     private DefVal<Effects.Gui> gui = DefVal.of(Effects.Gui.NONE);
-    private DefVal<Effects.Particle> particle = DefVal.of(Effects.Particle.NONE);
+    private List<Particle> particles = Lists.newArrayList();
     private int cooldown, rollMin, rollMax;
     private boolean firework, rollAll;
     private double weightSum;
@@ -115,8 +115,7 @@ public class Crate extends Component {
         Page.builder()
                 .layout(Layout.builder()
                         .setAll(Inventory.TEMPLATE.getElements())
-                        .set(Inventory.PANES[4], 45)
-                        .set(Inventory.PANES[1], 53)
+                        .set(Inventory.PANES[1], 45, 53)
                         .build())
                 .property(InventoryTitle.of(Utils.toText(getDisplayName())))
                 .build(TeslaCrate.get().getContainer())
@@ -141,7 +140,11 @@ public class Crate extends Component {
             throw new ConfigurationNodeException(node.getNode("roll-min"), "Roll-min cannot be larger than roll-max!").asUnchecked();
         }
         setGui(Serializers.deserializeEnum(node.getNode("gui"), Effects.Gui.class, "No gui type found for name %s."));
-        setParticle(Serializers.deserializeEnum(node.getNode("particle"), Effects.Particle.class, "No particle type found for name %s."));
+        node.getNode("particles").getChildrenMap().values().forEach(n -> {
+            Particle particle = new Particle((String) n.getKey());
+            particle.deserialize(n);
+            particles.add(particle);
+        });
         node.getNode("keys").getChildrenMap().values().forEach(n -> {
             Key key = Serializers.deserializeChild(n, Storage.keys, () -> new Key(getName() + ":" + n.getKey()), "key");
             addKey(key, n.hasMapChildren() || n.getInt(0) <= 0 ? key.getQuantity() : n.getInt());
@@ -197,12 +200,8 @@ public class Crate extends Component {
         this.gui.setVal(gui == Effects.Gui.NONE ? null : gui);
     }
 
-    public Effects.Particle getParticle() {
-        return particle.get();
-    }
-
-    public void setParticle(Effects.Particle particle) {
-        this.particle.setVal(particle == Effects.Particle.NONE ? null : particle);
+    public List<Particle> getParticles() {
+        return particles;
     }
 
     public boolean isFirework() {
@@ -226,12 +225,12 @@ public class Crate extends Component {
         elements.add(Inventory.createDetail("Cooldown", String.valueOf(getCooldown())));
         elements.add(Inventory.createDetail("Firework", String.valueOf(isFirework())));
         elements.add(Inventory.createDetail("Gui", getGui().name().toLowerCase()));
-        elements.add(Inventory.createDetail("Particle", getParticle().name().toLowerCase()));
         elements.add(Inventory.createDetail("Weight Sum", String.valueOf(weightSum)));
         elements.add(Inventory.createDetail("Roll All", String.valueOf(rollAll)));
         elements.add(Inventory.createDetail("Roll Min", String.valueOf(rollMin)));
         elements.add(Inventory.createDetail("Roll Max", String.valueOf(rollMax)));
         Element self = Inventory.createComponent(this, back);
+        particles.forEach(p -> elements.add(Element.of(p.getDisplayItem(), a -> Inventory.page(p.getName(), p.getMenuElements(self), self).open(a.getPlayer(), 0))));
         keys.forEach((k, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.NAME_TAG, k.getName(), "quantity=" + q, false), a -> Inventory.page(k.getName(), k.getMenuElements(self), self).open(a.getPlayer(), 0))));
         rewards.forEach((r, w) -> elements.add(Element.of(Utils.createItem(ItemTypes.BOOK, r.getName(), "weight=" + w, false), a -> Inventory.page(r.getName(), r.getMenuElements(self), self).open(a.getPlayer(), 0))));
         return elements;

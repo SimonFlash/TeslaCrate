@@ -1,18 +1,15 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.component.Crate;
 import com.mcsimonflash.sponge.teslacrate.component.Reward;
-import com.mcsimonflash.sponge.teslalibs.animation.AnimUtils;
 import com.mcsimonflash.sponge.teslalibs.animation.Animator;
 import com.mcsimonflash.sponge.teslalibs.animation.Frame;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
 import com.mcsimonflash.sponge.teslalibs.inventory.View;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.effect.particle.ParticleEffect;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.enchantment.Enchantment;
@@ -20,15 +17,13 @@ import org.spongepowered.api.item.enchantment.EnchantmentTypes;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.property.InventoryDimension;
-import org.spongepowered.api.scheduler.Task;
-import org.spongepowered.api.util.Color;
+import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,6 +37,7 @@ public class Effects {
                 Reward reward = crate.getRandomReward();
                 View.builder()
                         .archetype(InventoryArchetypes.DISPENSER)
+                        .property(InventoryTitle.of(Utils.toText(crate.getDisplayName())))
                         .build(TeslaCrate.get().getContainer())
                         .define(Layout.builder()
                                 .dimension(InventoryDimension.of(3, 3))
@@ -80,6 +76,7 @@ public class Effects {
                 frames.add(Frame.of(Layout.builder().build(), 50));
                 AtomicBoolean closeable = new AtomicBoolean();
                 View view = View.builder()
+                        .property(InventoryTitle.of(Utils.toText(crate.getDisplayName())))
                         .onClose(a -> a.getEvent().setCancelled(!closeable.get()))
                         .build(TeslaCrate.get().getContainer());
                 Animator<View, Layout> animator = Animator.of(view, frames, TeslaCrate.get().getContainer());
@@ -94,71 +91,6 @@ public class Effects {
         };
 
         public abstract void run(Player player, Crate crate, Location<World> location);
-
-    }
-
-    public enum Particle {
-
-        CIRCLE(0) {
-            @Override
-            public void run(Location<World> location, float radians) {
-                AnimUtils.spawn(location, AnimUtils.particle(Math.random() > 0.5 ? Color.BLACK : DARK_GRAY), AnimUtils.circle(radians).mul(1.5F));
-            }
-        },
-        HELIX(-AnimUtils.TAU / 4) {
-            @Override
-            public void run(Location<World> location, float radians) {
-                ParticleEffect particle = AnimUtils.particle(AnimUtils.rainbow(4 * radians / 7));
-                for (Vector3f vec : AnimUtils.parametric(radians, 3)) {
-                    AnimUtils.spawn(location, particle, vec);
-                }
-            }
-        },
-        NONE(0) {
-            @Override
-            public void run(Location<World> location, float radians) {}
-        },
-        RINGS(AnimUtils.TAU / 4) {
-            @Override
-            public void run(Location<World> location, float radians) {
-                float[] shifts = AnimUtils.shift(radians, (float) Math.PI);
-                float cos = AnimUtils.cos(shifts[0]);
-                AnimUtils.spawn(location, AnimUtils.particle(Color.YELLOW), new Vector3f(AnimUtils.sin(shifts[0]), -cos, cos).normalize().mul(1.2F));
-                AnimUtils.spawn(location, AnimUtils.particle(ORANGE), new Vector3f(AnimUtils.sin(shifts[1]), cos, cos).normalize().mul(1.2F));
-            }
-        };
-
-        public static final float INCREASE = AnimUtils.TAU / 90;
-        public static final Color DARK_GRAY = Color.ofRgb(0x404040);
-        public static final Color ORANGE = Color.ofRgb(0xFFA500);
-
-        public final float SHIFT;
-
-        Particle(float shift) {
-            SHIFT = shift;
-        }
-
-        public abstract void run(Location<World> location, float radians);
-
-        public static class Runner implements Consumer<Task> {
-
-                private final Particle particle;
-                private final Location<World> location;
-                private float radians;
-
-                public Runner(Particle particle, Location<World> location) {
-                    this.particle = particle;
-                    this.location = location;
-                    this.radians = particle.SHIFT;
-                }
-
-                @Override
-                public void accept(Task task) {
-                    particle.run(location, radians);
-                    radians += Particle.INCREASE;
-                }
-
-        }
 
     }
 

@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
@@ -24,6 +25,15 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class Serializers {
+
+    public static Vector3d deserializeVector3d(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
+        List<Double> components = Lists.newArrayList();
+        wrapOME(node, n -> components.addAll(n.getList(TypeToken.of(Double.class))));
+        if (components.size() != 3) {
+            throw new ConfigurationNodeException(node, "Expected 3 vector components (x,y,z).").asUnchecked();
+        }
+        return Vector3d.from(components.get(0), components.get(1), components.get(2));
+    }
 
     public static <T extends Component> T deserializeChild(ConfigurationNode node, Map<String, T> storage, Supplier<T> supplier, String type) throws ConfigurationNodeException.Unchecked {
         T component;

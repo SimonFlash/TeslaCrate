@@ -38,6 +38,7 @@ public class CmdUtils {
 
     public static Text link(String name, Optional<URL> optUrl) {
         return optUrl.map(u -> Text.builder(name)
+                .color(TextColors.WHITE)
                 .onClick(TextActions.openUrl(u))
                 .onHover(TextActions.showText(Text.of(u)))
                 .build()).orElseGet(() -> Text.builder(name)

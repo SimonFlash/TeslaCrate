@@ -61,7 +61,7 @@ public class Config {
         Storage.registry.values().forEach(Registration::stopParticles);
         Storage.registry.clear();
         try {
-            TeslaCrate.get().getLogger().info("&eLoading Configuration.");
+            TeslaCrate.get().getLogger().info("&aLoading Configuration.");
             core = createConfig(directory, "teslacrate.conf", true);
             commands = createConfig(configuration, "commands.conf", true);
             crates = createConfig(configuration, "crates.conf", true);
@@ -96,7 +96,7 @@ public class Config {
             keys.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Key((String) n.getKey()), n, Storage.keys));
             crates.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Crate((String) n.getKey()), n, Storage.crates));
             loadLocations();
-            TeslaCrate.get().getLogger().info("&eLoading Complete");
+            TeslaCrate.get().getLogger().info("&aLoading Complete");
         } catch (IOException e) {
             TeslaCrate.get().getLogger().error("&cUnable to initialize configuration: " + e.getMessage());
         } catch (ConfigurationNodeException.Unchecked e) {
@@ -133,7 +133,7 @@ public class Config {
             component.deserialize(node);
             storage.put(component.getName().toLowerCase(), component);
         } catch (ConfigurationNodeException.Unchecked e) {
-            error(e.getCause().getNode(), "Error loading component " + component.getName() + " in " + component.getClass().getSimpleName().toLowerCase() + "s.conf at " + Arrays.toString(node.getPath()) + ": ", e.getCause().getMessage());
+            error(e.getCause().getNode(), "&cError loading component " + component.getName() + " in " + component.getClass().getSimpleName().toLowerCase() + "s.conf at " + Arrays.toString(e.getCause().getNode().getPath()) + ": ", e.getCause().getMessage());
             throw e;
         }
     }
@@ -152,14 +152,14 @@ public class Config {
                             Location<World> loc = new Location<>(optWorld.get(), new Vector3d(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")), Integer.parseInt(matcher.group("z"))));
                             Storage.registry.put(loc, new Registration(loc.add(0.5, 0.5, 0.5), crate));
                         } else {
-                            error(c, "Unable to load location " + c.getKey() + " in world " + n.getKey() + ": ", "No crate found for name " + c.getString() + ".");
+                            error(c, "&cUnable to load location " + c.getKey() + " in world " + n.getKey() + ": ", "No crate found for name " + c.getString() + ".");
                         }
                     } else {
-                        error(c, "Unable to load location " + c.getKey() + " in world " + n.getKey() + " : ", "Invalid position format - expected (x,y,z).");
+                        error(c, "&cUnable to load location " + c.getKey() + " in world " + n.getKey() + " : ", "Invalid position format - expected (x,y,z).");
                     }
                 });
             } else {
-                error(n, "Unable to load locations: ", "No world found for name " + n.getString() + ".");
+                error(n, "&cUnable to load locations: ", "No world found for name " + n.getString() + ".");
             }
         });
         Storage.registry.values().forEach(Registration::startParticles);

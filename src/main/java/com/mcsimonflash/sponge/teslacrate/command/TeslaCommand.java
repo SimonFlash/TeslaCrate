@@ -16,6 +16,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +31,7 @@ public class TeslaCommand extends Command {
             CRATE_ELEM = Arguments.choices(Storage.crates, ImmutableMap.of("no-choice", "Argument <arg> is not the name of a crate component.")).toElement("crate"),
             ITEM_ELEM = Arguments.choices(Storage.items, ImmutableMap.of("no-choice", "Argument <arg> is not the name of a item component.")).toElement("item"),
             KEY_ELEM = Arguments.choices(Storage.keys, ImmutableMap.of("no-choice", "Argument <arg> is not the name of a key component.")).toElement("key"),
-            REWARD_ELEM = Arguments.choices(Storage.rewards, ImmutableMap.of("no-choice", "Argument <arg> is not the name of a reward component.")).toElement("crate"),
+            REWARD_ELEM = Arguments.choices(Storage.rewards, ImmutableMap.of("no-choice", "Argument <arg> is not the name of a reward component.")).toElement("reward"),
             QUANTITY_ELEM = Arguments.intObj().inRange(Range.closed(1, 64)).toElement("quantity"),
             LOCATION_ELEM = Arguments.location().toElement("location");
     protected static final Text
@@ -46,7 +47,7 @@ public class TeslaCommand extends Command {
             QUANTITY_ARG = CmdUtils.arg(true, "quantity", "An integer between 1 and 64 inclusive."),
             WORLD_ARG = CmdUtils.arg(true, "world", "Name of a loaded world. Defaults to the source's world if the source has a location."),
             POSITION_ARG = CmdUtils.arg(true, "position", "A vector3d (x, y, z) position. Relative coordinates (~) and select modifiers (#) are allowed.");
-    private static final Text WIKI_DESC = Text.joinWith(Utils.toText("&7 | "), CmdUtils.link("Sponge Thread", TeslaCrate.get().getContainer().getUrl().flatMap(TeslaUtils::parseURL)), CmdUtils.link("Support Discord", Tesla.DISCORD));
+    private static final Text LINKS = Text.of("                      ", CmdUtils.link("Ore Project", TeslaCrate.get().getContainer().getUrl().flatMap(TeslaUtils::parseURL)), TextColors.GRAY, " | ", CmdUtils.link("Support Discord", Tesla.DISCORD));
 
     private final Text usage;
 
@@ -64,7 +65,7 @@ public class TeslaCommand extends Command {
                         .map(TeslaCommand.class::cast)
                         .map(TeslaCommand::getUsage))
                         .collect(Collectors.toList()))
-                .footer(WIKI_DESC)
+                .footer(LINKS)
                 .sendTo(src);
         return CommandResult.success();
     }
