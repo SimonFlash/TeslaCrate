@@ -35,7 +35,7 @@ public class Registration {
             particles = Task.builder()
                     .execute(runners.size() == 1 ? runners.get(0) : t -> runners.forEach(r -> r.accept(t)))
                     .async()
-                    .interval(20, TimeUnit.MILLISECONDS)
+                    .interval(Config.particleRefresh, TimeUnit.MILLISECONDS)
                     .submit(TeslaCrate.get().getContainer());
         }
     }

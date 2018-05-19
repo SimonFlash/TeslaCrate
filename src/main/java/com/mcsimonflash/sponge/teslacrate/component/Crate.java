@@ -1,10 +1,13 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
+import com.flowpowered.math.vector.Vector3f;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.internal.*;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslacore.util.DefVal;
 import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
@@ -29,10 +32,10 @@ public class Crate extends Component {
 
     private Map<Key, Integer> keys = Maps.newHashMap();
     private Map<Reward, Double> rewards = Maps.newHashMap();
+    private Map<Particle, Vector3f> particles = Maps.newHashMap();
     private DefVal<String> announcement = DefVal.of("undefined");
     private DefVal<String> message = DefVal.of("undefined");
     private DefVal<Effects.Gui> gui = DefVal.of(Effects.Gui.NONE);
-    private List<Particle> particles = Lists.newArrayList();
     private int cooldown, rollMin, rollMax;
     private boolean firework, rollAll;
     private double weightSum;
@@ -97,7 +100,7 @@ public class Crate extends Component {
         if (rewards.size() == 1) {
             return rewards.get(0);
         } else {
-            Collections.shuffle(rewards);
+            rewards.sort(Comparator.comparing(o -> this.rewards.getOrDefault(o, o.getWeight())));
             Reward reward = new Reward("multi-reward") {
                 @Override
                 public void give(Player player) {
@@ -105,7 +108,7 @@ public class Crate extends Component {
                 }
             };
             reward.setDisplayName("&e" + String.join("&6, &e", rewards.stream().map(Component::getDisplayName).collect(Collectors.toList())) + "&6");
-            reward.setDisplayItem( Utils.createItem(ItemTypes.BOOK, getDisplayName(), rewards.stream().map(Component::getDisplayName).collect(Collectors.toList()), true));
+            reward.setDisplayItem(Utils.createItem(ItemTypes.BOOK, getDisplayName(), rewards.stream().map(Component::getDisplayName).collect(Collectors.toList()), true));
             reward.setAnnounce(rewards.stream().anyMatch(Reward::isAnnounce));
             return reward;
         }
@@ -115,7 +118,7 @@ public class Crate extends Component {
         Page.builder()
                 .layout(Layout.builder()
                         .setAll(Inventory.TEMPLATE.getElements())
-                        .set(Inventory.PANES[1], 45, 53)
+                        .set(Element.of(getDisplayItem()), 45)
                         .build())
                 .property(InventoryTitle.of(Utils.toText(getDisplayName())))
                 .build(TeslaCrate.get().getContainer())
@@ -140,11 +143,6 @@ public class Crate extends Component {
             throw new ConfigurationNodeException(node.getNode("roll-min"), "Roll-min cannot be larger than roll-max!").asUnchecked();
         }
         setGui(Serializers.deserializeEnum(node.getNode("gui"), Effects.Gui.class, "No gui type found for name %s."));
-        node.getNode("particles").getChildrenMap().values().forEach(n -> {
-            Particle particle = new Particle((String) n.getKey());
-            particle.deserialize(n);
-            particles.add(particle);
-        });
         node.getNode("keys").getChildrenMap().values().forEach(n -> {
             Key key = Serializers.deserializeChild(n, Storage.keys, () -> new Key(getName() + ":" + n.getKey()), "key");
             addKey(key, n.hasMapChildren() || n.getInt(0) <= 0 ? key.getQuantity() : n.getInt());
@@ -152,6 +150,21 @@ public class Crate extends Component {
         node.getNode("rewards").getChildrenMap().values().forEach(n -> {
             Reward reward = Serializers.deserializeChild(n, Storage.rewards, () -> new Reward(getName() + ":" + n.getKey()), "reward");
             addReward(reward, n.hasMapChildren() || n.getDouble(0) <= 0 ? reward.getWeight() : n.getDouble());
+        });
+        NodeUtils.ifAttached(node.getNode("particle"), n -> {
+            TeslaCrate.get().getLogger().warn("Updating particle type " + n.getString("undefined") + " for crate " + getName() + ".");
+            if (n.getString("").equals("helix")) {
+                node.getNode("particles", "rainbow-helix").setValue(ImmutableList.of(0, 0, 0));
+            } else if (n.getString("").equals("rings")) {
+                node.getNode("particles", "orange-ring").setValue(ImmutableList.of(0, 0, 0));
+                node.getNode("particles", "yellow-ring").setValue(ImmutableList.of(0, 0, 0));
+            } else {
+                TeslaCrate.get().getLogger().warn("The particle type " + n.getString("undefined") + " does not have a conversion.");
+            }
+        });
+        node.getNode("particles").getChildrenMap().values().forEach(n -> {
+            Particle particle = Serializers.deserializeChild(n, Storage.particles, () -> new Particle(getName() + ":" + n.getKey()), "particle");
+            addParticle(particle, n.hasMapChildren() || !n.hasListChildren() ? particle.getOffset() : Serializers.deserializeVector3d(n).toFloat());
         });
         double sum = rewards.values().stream().mapToDouble(Double::valueOf).sum();
         weightSum = node.getNode("weight-sum").getDouble(sum);
@@ -166,6 +179,10 @@ public class Crate extends Component {
 
     public void addReward(Reward reward, double weight) {
         rewards.put(reward, weight);
+    }
+
+    public void addParticle(Particle particle, Vector3f offset) {
+        particles.put(particle, offset);
     }
 
     public String getAnnouncement() {
@@ -200,8 +217,8 @@ public class Crate extends Component {
         this.gui.setVal(gui == Effects.Gui.NONE ? null : gui);
     }
 
-    public List<Particle> getParticles() {
-        return particles;
+    public Set<Particle> getParticles() {
+        return particles.keySet();
     }
 
     public boolean isFirework() {
@@ -230,7 +247,7 @@ public class Crate extends Component {
         elements.add(Inventory.createDetail("Roll Min", String.valueOf(rollMin)));
         elements.add(Inventory.createDetail("Roll Max", String.valueOf(rollMax)));
         Element self = Inventory.createComponent(this, back);
-        particles.forEach(p -> elements.add(Element.of(p.getDisplayItem(), a -> Inventory.page(p.getName(), p.getMenuElements(self), self).open(a.getPlayer(), 0))));
+        particles.forEach((p, o) -> elements.add(Element.of(Utils.createItem(ItemTypes.REDSTONE, p.getName(), "offset=" + o, false), a -> Inventory.page(p.getName(), p.getMenuElements(self), self).open(a.getPlayer(), 0))));
         keys.forEach((k, q) -> elements.add(Element.of(Utils.createItem(ItemTypes.NAME_TAG, k.getName(), "quantity=" + q, false), a -> Inventory.page(k.getName(), k.getMenuElements(self), self).open(a.getPlayer(), 0))));
         rewards.forEach((r, w) -> elements.add(Element.of(Utils.createItem(ItemTypes.BOOK, r.getName(), "weight=" + w, false), a -> Inventory.page(r.getName(), r.getMenuElements(self), self).open(a.getPlayer(), 0))));
         return elements;

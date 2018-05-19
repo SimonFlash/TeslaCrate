@@ -12,6 +12,7 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
 import org.spongepowered.api.event.filter.cause.Root;
+import org.spongepowered.api.event.item.inventory.CraftItemEvent;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
@@ -21,15 +22,30 @@ import java.util.Optional;
 public class Interact {
 
     @Listener
-    public void onInteractItemPrimary(InteractItemEvent event, @Root Player player) {
-        event.getItemStack().toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key")).ifPresent(i -> {
-            //Registration registration = event.getInteractionPoint().flatMap(v -> preInteract(event, new Location<>(player.getWorld(), v))).orElse(null);
-            if (!Storage.keys.containsKey(i)) {
-                player.sendMessage(TeslaCrate.PREFIX.concat(Utils.toText("&cThis item is registered as a &4" + i + "&c key, but that key doesn't exist!")));
-            //} else if (registration != null) {
-            //    interact(event, player, registration, event instanceof InteractItemEvent.Primary);
-            } else if (event instanceof HandInteractEvent && ((HandInteractEvent) event).getHandType() == HandTypes.MAIN_HAND) {
-                TeslaCrate.sendMessage(player, "teslacrate.key.interact", "key", i);
+    public void onCraftItem(CraftItemEvent event, @Root Player player) {
+        event.getTransactions().forEach(t -> t.getOriginal().toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key")).ifPresent(k -> {
+            if (!Storage.keys.containsKey(k.toLowerCase())) {
+                player.sendMessage(TeslaCrate.PREFIX.concat(Utils.toText("&cThis item is registered as a &4" + k + "&c key, but that key doesn't exist!")));
+            } else {
+                TeslaCrate.sendMessage(player, "teslacrate.key.craft", "key", k);
+            }
+            event.setCancelled(true);
+        }));
+    }
+
+    @Listener
+    public void onInteractItem(InteractItemEvent event, @Root Player player) {
+        event.getItemStack().toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key")).ifPresent(k -> {
+            Location<World> location = event.getInteractionPoint().map(p -> new Location<>(player.getWorld(), p)).orElse(null);
+            if (!Storage.keys.containsKey(k.toLowerCase())) {
+                player.sendMessage(TeslaCrate.PREFIX.concat(Utils.toText("&cThis item is registered as a &4" + k + "&c key, but that key doesn't exist!")));
+            } else if (location != null) {
+                Registration registration = preInteract(event, location).orElseGet(() -> preInteract(event, location.add(location.getPosition().getX() % 1 == 0 ? -1 : 0, location.getPosition().getY() % 1 == 0 ? -1 : 0, location.getPosition().getZ() % 1 == 0 ? -1 : 0)).orElse(null));
+                if (registration != null) {
+                    interact(event, player, registration, event instanceof InteractItemEvent.Primary);
+                } else if (event instanceof HandInteractEvent && ((HandInteractEvent) event).getHandType() == HandTypes.MAIN_HAND) {
+                    TeslaCrate.sendMessage(player, "teslacrate.key.interact", "key", k);
+                }
             }
             event.setCancelled(true);
         });
@@ -41,14 +57,14 @@ public class Interact {
     }
 
     @Listener
-    public void onInteractEntityEvent(InteractEntityEvent event, @Root Player player) {
+    public void onInteractEntity(InteractEntityEvent event, @Root Player player) {
         preInteract(event, event.getTargetEntity().getLocation()).ifPresent(r -> interact(event, player, r, event instanceof InteractEntityEvent.Primary));
     }
 
     private Optional<Registration> preInteract(InteractEvent event, Location<World> location) {
-        Optional<Registration> optCrate = Optional.ofNullable(Storage.registry.get(new Location<>(location.getExtent(), location.getBlockPosition())));
-        event.setCancelled(optCrate.isPresent());
-        return optCrate;
+        Optional<Registration> optReg = Optional.ofNullable(Storage.registry.get(new Location<>(location.getExtent(), location.getBlockPosition())));
+        event.setCancelled(optReg.isPresent());
+        return optReg;
     }
 
     private void interact(InteractEvent event, Player player, Registration registration, boolean primary) {

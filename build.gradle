@@ -3,19 +3,24 @@ plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
 }
 
+repositories {
+    maven {
+        url 'https://jitpack.io'
+    }
+}
+
 group 'com.mcsimonflash.sponge.teslacrate'
-version '2.2.0'
-ext.teslaversion = '1.1.1'
+version '2.2.1'
+ext.teslaversion = '1.1.2'
 ext.spongeversion = '7.1.0-SNAPSHOT'
 
 dependencies {
-    compile "junit:junit:4.12"
-    compile fileTree(dir: 'libs', include: '*.jar')
+    compile "com.github.SimonFlash:TeslaPowered:v1.1.2"
     compile "org.spongepowered:spongeapi:${spongeversion}"
 }
 
 jar {
-    archiveName = "${project.name}-s${spongeversion.substring(0, 3)}-t${teslaversion}-v${version}.jar"
+    archiveName = "${project.name}-s${spongeversion[0..2]}-t${teslaversion}-v${version}.jar"
 }
 
 task copyJars(type: Copy) {

@@ -36,7 +36,7 @@ public class Config {
     private static final Path directory = TeslaCrate.get().getDirectory();
     private static final Path configuration = directory.resolve("configuration");
     private static final Path storage = directory.resolve("storage");
-    private static ConfigHolder core, commands, crates, items, keys, rewards, locations, players;
+    private static ConfigHolder core, commands, crates, items, keys, particles, rewards, locations, players;
     private static final ConfigurationOptions options = ConfigurationOptions.defaults().setSerializers(TypeSerializers.getDefaultSerializers().newChild()
             .registerType(TypeToken.of(Text.class), new TypeSerializer<Text>() {
                 @Override
@@ -50,13 +50,15 @@ public class Config {
             }));
     private static final Pattern VECTOR = Pattern.compile("\\((?<x>[-+]?[0-9]+), ?(?<y>[-+]?[0-9]+), ?(?<z>[-+]?[0-9]+)\\)");
 
-    public static boolean convertReference, customSerialization, errorComments;
+    static boolean convertReference, customSerialization, errorComments;
+    static int particleRefresh;
 
     public static void load() {
         Storage.commands.clear();
         Storage.crates.clear();
         Storage.items.clear();
         Storage.keys.clear();
+        Storage.particles.clear();
         Storage.rewards.clear();
         Storage.registry.values().forEach(Registration::stopParticles);
         Storage.registry.clear();
@@ -67,11 +69,17 @@ public class Config {
             crates = createConfig(configuration, "crates.conf", true);
             items = createConfig(configuration, "items.conf", true);
             keys = createConfig(configuration, "keys.conf", true);
+            particles = createConfig(configuration, "particles.conf", true);
             rewards = createConfig(configuration, "rewards.conf", true);
             locations = createConfig(storage, "locations.conf", false);
             players = createConfig(storage, "players.conf", false);
             customSerialization = core.getNode("custom-serialization").getBoolean(true);
             errorComments = core.getNode("error-comments").getBoolean(false);
+            particleRefresh = core.getNode("particle-refresh").getInt(20);
+            if (particleRefresh <= 0) {
+                TeslaCrate.get().getLogger().error("The particle refresh rate must be greater than 0. Reverting to 20.");
+                particleRefresh = 20;
+            }
             if (core.getNode("convert", "huskycrates").getBoolean(false)) {
                 convertReference = core.getNode("convert", "reference").getBoolean(true);
                 Path path = directory.getParent().resolve("huskycrates").resolve("huskycrates.conf");
@@ -94,6 +102,7 @@ public class Config {
             commands.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Command((String) n.getKey()), n, Storage.commands));
             rewards.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Reward((String) n.getKey()), n, Storage.rewards));
             keys.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Key((String) n.getKey()), n, Storage.keys));
+            particles.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Particle((String) n.getKey()), n, Storage.particles));
             crates.getNode().getChildrenMap().values().forEach(n -> loadComponent(new Crate((String) n.getKey()), n, Storage.crates));
             loadLocations();
             TeslaCrate.get().getLogger().info("&aLoading Complete");
@@ -147,7 +156,7 @@ public class Config {
                 n.getChildrenMap().values().forEach(c -> {
                     Matcher matcher = VECTOR.matcher((String) c.getKey());
                     if (matcher.matches()) {
-                        Crate crate = Storage.crates.get(c.getString());
+                        Crate crate = Storage.crates.get(c.getString("").toLowerCase());
                         if (crate != null) {
                             Location<World> loc = new Location<>(optWorld.get(), new Vector3d(Integer.parseInt(matcher.group("x")), Integer.parseInt(matcher.group("y")), Integer.parseInt(matcher.group("z"))));
                             Storage.registry.put(loc, new Registration(loc.add(0.5, 0.5, 0.5), crate));

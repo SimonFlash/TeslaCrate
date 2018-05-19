@@ -49,11 +49,8 @@ public class TeslaCommand extends Command {
             POSITION_ARG = CmdUtils.arg(true, "position", "A vector3d (x, y, z) position. Relative coordinates (~) and select modifiers (#) are allowed.");
     private static final Text LINKS = Text.of("                      ", CmdUtils.link("Ore Project", TeslaCrate.get().getContainer().getUrl().flatMap(TeslaUtils::parseURL)), TextColors.GRAY, " | ", CmdUtils.link("Support Discord", Tesla.DISCORD));
 
-    private final Text usage;
-
     protected TeslaCommand(Text usage, Settings settings) {
-        super(TeslaCrate.get().getCommands(), settings);
-        this.usage = usage;
+        super(TeslaCrate.get().getCommands(), settings.usage(usage));
     }
 
     @Override
@@ -61,17 +58,10 @@ public class TeslaCommand extends Command {
         PaginationList.builder()
                 .title(TeslaCrate.PREFIX)
                 .padding(Utils.toText("&7="))
-                .contents(Stream.concat(Stream.of(getUsage()), getChildren().stream()
-                        .map(TeslaCommand.class::cast)
-                        .map(TeslaCommand::getUsage))
-                        .collect(Collectors.toList()))
+                .contents(Stream.concat(Stream.of(getUsage()), getChildren().stream().map(Command::getUsage)).collect(Collectors.toList()))
                 .footer(LINKS)
                 .sendTo(src);
         return CommandResult.success();
-    }
-
-    public Text getUsage() {
-        return usage;
     }
 
 }

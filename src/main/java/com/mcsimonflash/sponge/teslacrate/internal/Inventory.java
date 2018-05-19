@@ -61,11 +61,11 @@ public class Inventory {
             .build();
 
     public static Element createIcon(Collection<? extends Component> components, String name, String lore, String texture) {
-        return Element.of(Utils.createSkull(name, lore, texture), a -> menu(name, components, a.getElement()).open(a.getPlayer(), 0));
+        return Element.of(Utils.createSkull(name, lore, texture), a -> menu(name, components, a.getElement()).open(a.getPlayer(), 1));
     }
 
     public static Element createComponent(Component component, Element back) {
-        return Element.of(component.getDisplayItem(), a -> page(component.getName(), component.getMenuElements(back), back).open(a.getPlayer(), 0));
+        return Element.of(component.getDisplayItem(), a -> page(component.getName(), component.getMenuElements(back), back).open(a.getPlayer(), 1));
     }
 
     public static Element createDetail(String name, String lore) {

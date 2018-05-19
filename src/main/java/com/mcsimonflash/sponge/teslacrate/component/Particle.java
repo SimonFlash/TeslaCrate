@@ -38,12 +38,12 @@ public class Particle extends Component {
 
     @Override
     public void deserialize(ConfigurationNode node) throws ConfigurationNodeException.Unchecked {
-        ParticleEffect.Builder builder = ParticleEffect.builder();
-        String name = node.getNode("particle").getString("redstone_dust").replace("-", "_");
-        builder.type(Sponge.getRegistry().getType(ParticleType.class, name.contains(":") ? name : "minecraft:" + name).orElseThrow(() -> new ConfigurationNodeException(node.getNode("particle"), "No particle found for id %s", node.getNode("particle").getString()).asUnchecked()));
         if (node.getNode("rainbow").getBoolean(false)) {
             effect = r -> AnimUtils.particle(AnimUtils.rainbow(10 * r / 7));
         } else {
+            ParticleEffect.Builder builder = ParticleEffect.builder();
+            String name = node.getNode("particle").getString("redstone_dust").replace("-", "_");
+            builder.type(Sponge.getRegistry().getType(ParticleType.class, name.contains(":") ? name : "minecraft:" + name).orElseThrow(() -> new ConfigurationNodeException(node.getNode("particle"), "No particle found for id %s", node.getNode("particle").getString()).asUnchecked()));
             NodeUtils.ifAttached(node.getNode("color"), n -> builder.option(ParticleOptions.COLOR, Color.ofRgb(n.getInt(0))));
             ParticleEffect particle = builder.build();
             effect = r -> particle;
@@ -54,18 +54,7 @@ public class Particle extends Component {
         shift = AnimUtils.TAU * node.getNode("shift").getFloat(0);
         scale = node.getNode("scale").isVirtual() ? Vector3f.ONE : Serializers.deserializeVector3d(node.getNode("scale")).toFloat();
         offset = node.getNode("offset").isVirtual() ? Vector3f.ZERO : Serializers.deserializeVector3d(node.getNode("offset")).toFloat();
-        int segments = node.getNode("segments").getInt(1);
-        if (node.getNode("type").getString("").equalsIgnoreCase("circle")) {
-            path = new CirclePath(segments, node.getNode("axis").isVirtual() ? Vector3f.UNIT_Y : Serializers.deserializeVector3d(node.getNode("axis")).toFloat().normalize());
-        } else if (node.getNode("type").getString("").equalsIgnoreCase("helix")) {
-            path = new HelixPath(segments);
-        } else if (node.getNode("type").getString("").equalsIgnoreCase("spiral")) {
-            path = new SpiralPath(segments, precision);
-        } else if (node.getNode("type").getString("").equalsIgnoreCase("vortex")) {
-            path = new VortexPath(segments, precision);
-        } else {
-            throw new ConfigurationNodeException(node.getNode("type"), "No path type found for input %s", node.getNode("type").getString()).asUnchecked();
-        }
+        path = AnimationPath.getPath(node, precision);
         super.deserialize(node);
     }
 

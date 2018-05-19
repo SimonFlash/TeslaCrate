@@ -14,5 +14,6 @@ public class Storage {
     public static final Map<String, Reward> rewards = Maps.newHashMap();
     public static final Map<String, Command> commands = Maps.newHashMap();
     public static final Map<String, Item> items = Maps.newHashMap();
+    public static final Map<String, Particle> particles = Maps.newHashMap();
 
 }
