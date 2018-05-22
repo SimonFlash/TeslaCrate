@@ -1,35 +1,44 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public final class Type<T extends Component, B extends Component.Builder<T, B>> extends Component<Type<T, B>> {
+public final class Type<T extends Component<T>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> extends Component<Type<T, V, B, R>> {
 
-    private Function<String, B> function;
+    private final Function<String, B> component;
+    private final BiFunction<String, T, R> reference;
 
-    private Type(Builder<T, B> builder) {
+    private Type(Builder<T, V, B, R> builder) {
         super(builder);
-        function = builder.function;
+        component = builder.component;
+        reference = builder.reference;
     }
 
     public final B create(String id) {
-        return function.apply(id);
+        return component.apply(id);
     }
 
-    public static <T extends Component, B extends Component.Builder<T, B>> Type<T, B> of(String id, Function<String, B> function) {
-        return new Builder<>(id, function).build();
+    public final R createRef(String id, T component) {
+        return reference.apply(id, component);
     }
 
-    private static final class Builder<T extends Component, B extends Component.Builder<T, B>> extends Component.Builder<Type<T, B>, Builder<T, B>> {
+    public static <T extends Component<T>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> Builder<T, V, B, R> create(String id, Function<String, B> component, BiFunction<String, T, R> reference) {
+        return new Builder<>(id, component, reference);
+    }
 
-        private final Function<String, B> function;
+    public static final class Builder<T extends Component<T>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> extends Component.Builder<Type<T, V, B, R>, Builder<T, V, B, R>> {
 
-        private Builder(String id, Function<String, B> function) {
-            super(id, null);
-            this.function = function;
+        private final Function<String, B> component;
+        private final BiFunction<String, T, R> reference;
+
+        private Builder(String id, Function<String, B> component, BiFunction<String, T, R> reference) {
+            super(id);
+            this.component = component;
+            this.reference = reference;
         }
 
         @Override
-        public Type<T, B> build() {
+        public final Type<T, V, B, R> build() {
             return new Type<>(this);
         }
 
