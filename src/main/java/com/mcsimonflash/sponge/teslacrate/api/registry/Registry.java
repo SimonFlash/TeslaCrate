@@ -8,6 +8,9 @@ import java.util.Optional;
 
 public final class Registry<T extends Referenceable<? extends T, ?>> {
 
+    public static final Registry<Crate<?, ?>> CRATES = new Registry<>();
+    public static final Registry<Effect<?, ?>> EFFECTS = new Registry<>();
+    public static final Registry<Key<?>> KEYS = new Registry<>();
     public static final Registry<Prize<?, ?>> PRIZES = new Registry<>();
     public static final Registry<Reward<?>> REWARDS = new Registry<>();
 
@@ -28,6 +31,15 @@ public final class Registry<T extends Referenceable<? extends T, ?>> {
 
     public final boolean registerType(Type<? extends T, ?, ?, ?> type, PluginContainer container) {
         return types.register(type.getId(), type, container);
+    }
+
+    //TODO: Restrict access to TeslaCrate
+    public static void clear(PluginContainer container) {
+        CRATES.components.clear();
+        EFFECTS.components.clear();
+        KEYS.components.clear();
+        PRIZES.components.clear();
+        REWARDS.components.clear();
     }
 
 }

@@ -2,7 +2,7 @@ package com.mcsimonflash.sponge.teslacrate.component.prize;
 
 import com.mcsimonflash.sponge.teslacrate.api.component.*;
 import com.mcsimonflash.sponge.teslacrate.api.configuration.Serializers;
-import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.*;
@@ -55,10 +55,9 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
         }
 
         @Override
-        public Builder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
-            ItemStackSnapshot item = Serializers.deserializeItem(node.getNode("item"));
+        public final Builder deserialize(ConfigurationNode node) throws ConfigurationException {
             return super.deserialize(node)
-                    .item(item)
+                    .item(Serializers.deserializeItem(node.getNode("item")))
                     .quantity(item.getQuantity());
         }
 
@@ -76,7 +75,7 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
         }
 
         @Override
-        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
+        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationException {
             return super.deserialize(node).value(node.getInt(component.getQuantity()));
         }
 

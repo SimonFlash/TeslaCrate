@@ -1,6 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslacrate.api.configuration.Serializers;
+import com.mcsimonflash.sponge.teslalibs.configuration.*;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
@@ -64,7 +65,10 @@ public abstract class Component<T extends Component<T>> {
         }
 
         @OverridingMethodsMustInvokeSuper
-        public B deserialize(ConfigurationNode node) throws ConfigurationNodeException {
+        public B deserialize(ConfigurationNode node) throws ConfigurationException {
+            NodeUtils.ifAttached(node.getNode("name"), n -> name(Serializers.deserializeText(n)));
+            NodeUtils.ifAttached(node.getNode("description"), n -> description(Serializers.deserializeText(n)));
+            NodeUtils.ifAttached(node.getNode("icon"), n -> icon(Serializers.deserializeItem(n)));
             return (B) this;
         }
 

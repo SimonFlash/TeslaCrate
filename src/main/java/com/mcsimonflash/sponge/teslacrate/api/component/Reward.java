@@ -1,6 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 
@@ -33,7 +33,7 @@ public abstract class Reward<T extends Reward<T>> extends Referenceable<T, Doubl
         }
 
         @Override
-        public B deserialize(ConfigurationNode node) throws ConfigurationNodeException {
+        public B deserialize(ConfigurationNode node) throws ConfigurationException {
             return super.deserialize(node).weight(node.getNode("weight").getDouble());
         }
 

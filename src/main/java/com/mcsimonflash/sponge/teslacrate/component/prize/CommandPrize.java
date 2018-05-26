@@ -1,7 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
 import com.mcsimonflash.sponge.teslacrate.api.component.*;
-import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -53,7 +53,7 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
         }
 
         @Override
-        public Builder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
+        public final Builder deserialize(ConfigurationNode node) throws ConfigurationException {
             return super.deserialize(node)
                     .command(node.getNode("command").getString(""))
                     .value(node.getNode("value").getString(""));
@@ -73,7 +73,7 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
         }
 
         @Override
-        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
+        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationException {
             return super.deserialize(node).value(node.getString(component.getValue()));
         }
 
