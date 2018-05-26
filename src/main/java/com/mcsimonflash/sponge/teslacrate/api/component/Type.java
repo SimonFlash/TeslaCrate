@@ -1,9 +1,8 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.*;
 
-public final class Type<T extends Component<T>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> extends Component<Type<T, V, B, R>> {
+public final class Type<T extends Referenceable<T, V>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> extends Component<Type<T, V, B, R>> {
 
     private final Function<String, B> component;
     private final BiFunction<String, T, R> reference;
@@ -22,11 +21,11 @@ public final class Type<T extends Component<T>, V, B extends Component.Builder<T
         return reference.apply(id, component);
     }
 
-    public static <T extends Component<T>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> Builder<T, V, B, R> create(String id, Function<String, B> component, BiFunction<String, T, R> reference) {
+    public static <T extends Referenceable<T, V>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> Builder<T, V, B, R> create(String id, Function<String, B> component, BiFunction<String, T, R> reference) {
         return new Builder<>(id, component, reference);
     }
 
-    public static final class Builder<T extends Component<T>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> extends Component.Builder<Type<T, V, B, R>, Builder<T, V, B, R>> {
+    public static final class Builder<T extends Referenceable<T, V>, V, B extends Component.Builder<T, B>, R extends Reference.Builder<T, V, R>> extends Component.Builder<Type<T, V, B, R>, Builder<T, V, B, R>> {
 
         private final Function<String, B> component;
         private final BiFunction<String, T, R> reference;

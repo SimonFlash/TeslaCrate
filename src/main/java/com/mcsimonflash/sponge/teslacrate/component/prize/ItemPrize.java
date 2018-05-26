@@ -1,13 +1,11 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
-import com.mcsimonflash.sponge.teslacrate.api.component.Prize;
-import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
-import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.api.component.*;
+import com.mcsimonflash.sponge.teslacrate.api.configuration.Serializers;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.inventory.InventoryTransformations;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.*;
 
 public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
@@ -37,7 +35,7 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
         return quantity;
     }
 
-    private static final class Builder extends Prize.Builder<ItemPrize, Integer, Builder> {
+    public static final class Builder extends Prize.Builder<ItemPrize, Integer, Builder> {
 
         private ItemStackSnapshot item;
         private int quantity;
@@ -57,20 +55,28 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
         }
 
         @Override
+        public Builder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
+            ItemStackSnapshot item = Serializers.deserializeItem(node.getNode("item"));
+            return super.deserialize(node)
+                    .item(item)
+                    .quantity(item.getQuantity());
+        }
+
+        @Override
         public final ItemPrize build() {
             return new ItemPrize(this);
         }
 
     }
 
-    private static final class RefBuilder extends Reference.Builder<ItemPrize, Integer, RefBuilder> {
+    public static final class RefBuilder extends Reference.Builder<ItemPrize, Integer, RefBuilder> {
 
         private RefBuilder(String id, ItemPrize component) {
             super(id, component);
         }
 
         @Override
-        public final RefBuilder deserialize(ConfigurationNode node) {
+        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
             return super.deserialize(node).value(node.getInt(component.getQuantity()));
         }
 

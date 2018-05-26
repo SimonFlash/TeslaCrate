@@ -1,17 +1,14 @@
 package com.mcsimonflash.sponge.teslacrate.component.reward;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.mcsimonflash.sponge.teslacrate.api.component.Prize;
-import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
-import com.mcsimonflash.sponge.teslacrate.api.component.Reward;
-import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.google.common.collect.*;
+import com.mcsimonflash.sponge.teslacrate.api.component.*;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationNodeException;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 
 import java.util.Set;
 
-public class StandardReward extends Reward<StandardReward> {
+public final class StandardReward extends Reward<StandardReward> {
 
     public static final Type<StandardReward, Double, Builder, RefBuilder> TYPE = Type.create("Standard", Builder::new, RefBuilder::new).build();
 
@@ -58,7 +55,7 @@ public class StandardReward extends Reward<StandardReward> {
         }
 
         @Override
-        public final RefBuilder deserialize(ConfigurationNode node) {
+        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationNodeException {
             return super.deserialize(node).value(node.getDouble(component.getWeight()));
         }
 

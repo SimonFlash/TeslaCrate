@@ -1,6 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-public final class Reference<T extends Component<T>, V> extends Component<Reference<T, V>> {
+public final class Reference<T extends Referenceable<T, V>, V> extends Component<Reference<T, V>> {
 
     private final T component;
     private final V value;
@@ -19,7 +19,7 @@ public final class Reference<T extends Component<T>, V> extends Component<Refere
         return value;
     }
 
-    public static abstract class Builder<T extends Component<T>, V, R extends Builder<T, V, R>> extends Component.Builder<Reference<T, V>, R> {
+    public static abstract class Builder<T extends Referenceable<T, V>, V, R extends Builder<T, V, R>> extends Component.Builder<Reference<T, V>, R> {
 
         protected final T component;
         private V value;
