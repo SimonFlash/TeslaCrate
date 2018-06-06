@@ -1,10 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.component.key;
 
-import com.mcsimonflash.sponge.teslacrate.api.component.Key;
-import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
-import com.mcsimonflash.sponge.teslacrate.api.component.Type;
-import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
-import ninja.leaping.configurate.ConfigurationNode;
+import com.mcsimonflash.sponge.teslacrate.component.Type;
+import org.spongepowered.api.entity.living.player.User;
 
 public final class VirtualKey extends Key<VirtualKey> {
 
@@ -13,6 +10,27 @@ public final class VirtualKey extends Key<VirtualKey> {
     private VirtualKey(Builder builder) {
         super(builder);
     }
+
+    @Override
+    public int get(User user) {
+        return 0;
+    }
+
+    @Override
+    public boolean check(User user, int quantity) {
+        return false;
+    }
+
+    @Override
+    public boolean give(User user, int quantity) {
+        return false;
+    }
+
+    @Override
+    public boolean take(User user, int quantity) {
+        return false;
+    }
+
 
     public static final class Builder extends Key.Builder<VirtualKey, Builder> {
 
@@ -27,15 +45,10 @@ public final class VirtualKey extends Key<VirtualKey> {
 
     }
 
-    public static final class RefBuilder extends Reference.Builder<VirtualKey, Integer, RefBuilder> {
+    public static final class RefBuilder extends Key.RefBuilder<VirtualKey, RefBuilder> {
 
         private RefBuilder(String id, VirtualKey component) {
             super(id, component);
-        }
-
-        @Override
-        public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationException {
-            return super.deserialize(node).value(node.getInt(component.getQuantity()));
         }
 
     }

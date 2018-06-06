@@ -1,10 +1,16 @@
-package com.mcsimonflash.sponge.teslacrate.api.registry;
+package com.mcsimonflash.sponge.teslacrate.internal;
 
 import com.mcsimonflash.sponge.teslacore.registry.RegistryService;
-import com.mcsimonflash.sponge.teslacrate.api.component.*;
+import com.mcsimonflash.sponge.teslacrate.component.*;
+import com.mcsimonflash.sponge.teslacrate.component.crate.Crate;
+import com.mcsimonflash.sponge.teslacrate.component.effects.Effect;
+import com.mcsimonflash.sponge.teslacrate.component.key.Key;
+import com.mcsimonflash.sponge.teslacrate.component.prize.Prize;
+import com.mcsimonflash.sponge.teslacrate.component.reward.Reward;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.util.Tuple;
 
-import java.util.Optional;
+import java.util.*;
 
 public final class Registry<T extends Referenceable<? extends T, ?>> {
 
@@ -25,6 +31,14 @@ public final class Registry<T extends Referenceable<? extends T, ?>> {
         return types.getValue(id);
     }
 
+    public final Map<String, Tuple<T, PluginContainer>> getComponents() {
+        return components.getAll();
+    }
+
+    public final Map<String, Tuple<Type<? extends T, ?, ?, ?>, PluginContainer>> getTypes() {
+        return types.getAll();
+    }
+
     public final boolean register(T component, PluginContainer container) {
         return components.register(component.getId(), component, container);
     }
@@ -33,8 +47,7 @@ public final class Registry<T extends Referenceable<? extends T, ?>> {
         return types.register(type.getId(), type, container);
     }
 
-    //TODO: Restrict access to TeslaCrate
-    public static void clear(PluginContainer container) {
+    static void clear() {
         CRATES.components.clear();
         EFFECTS.components.clear();
         KEYS.components.clear();

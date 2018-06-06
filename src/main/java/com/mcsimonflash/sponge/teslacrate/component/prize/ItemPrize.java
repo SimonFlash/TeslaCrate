@@ -1,15 +1,19 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
-import com.mcsimonflash.sponge.teslacrate.api.component.*;
-import com.mcsimonflash.sponge.teslacrate.api.configuration.Serializers;
-import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
+import com.google.common.base.MoreObjects;
+import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
+import com.mcsimonflash.sponge.teslacrate.component.Reference;
+import com.mcsimonflash.sponge.teslacrate.component.Type;
+import com.mcsimonflash.sponge.teslalibs.configuration.*;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.*;
 
 public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
-    public static final Type<ItemPrize, Integer, Builder, RefBuilder> TYPE = Type.create("Item", Builder::new, RefBuilder::new).build();
+    public static final Type<ItemPrize, Integer, Builder, RefBuilder> TYPE = Type.create("Item", Builder::new, RefBuilder::new)
+            .matcher(n -> !n.getNode("item").isVirtual())
+            .build();
 
     private final ItemStackSnapshot item;
     private final int quantity;
@@ -35,6 +39,13 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
         return quantity;
     }
 
+    @Override
+    protected MoreObjects.ToStringHelper toStringHelper() {
+        return super.toStringHelper()
+                .add("item", item)
+                .add("quantity", quantity);
+    }
+
     public static final class Builder extends Prize.Builder<ItemPrize, Integer, Builder> {
 
         private ItemStackSnapshot item;
@@ -56,13 +67,15 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
         @Override
         public final Builder deserialize(ConfigurationNode node) throws ConfigurationException {
-            return super.deserialize(node)
-                    .item(Serializers.deserializeItem(node.getNode("item")))
-                    .quantity(item.getQuantity());
+            super.deserialize(node)
+                .item(Serializers.deserializeItem(node.getNode("item")))
+                .quantity(item.getQuantity());
+            return this;
         }
 
         @Override
         public final ItemPrize build() {
+            if (icon == null) icon(item);
             return new ItemPrize(this);
         }
 

@@ -1,9 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
-import com.mcsimonflash.sponge.teslacrate.api.configuration.Serializers;
-import com.mcsimonflash.sponge.teslacrate.api.registry.Registry;
+import com.mcsimonflash.sponge.teslacrate.component.Referenceable;
 import com.mcsimonflash.sponge.teslalibs.configuration.*;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -20,7 +18,7 @@ public final class Config {
 
     public static void load() {
         try {
-            Registry.clear(TeslaCrate.get().getContainer());
+            Registry.clear();
             TeslaCrate.get().getLogger().info("&aLoading config...");
             Files.createDirectories(configuration);
             loadComponents(loadConfig(configuration, "prizes.conf", true), Registry.PRIZES, "prize");
@@ -35,8 +33,8 @@ public final class Config {
     }
 
     private static ConfigHolder loadConfig(Path dir, String name, boolean asset) throws IOException {
+        Path path = dir.resolve(name);
         try {
-            Path path = dir.resolve(name);
             if (asset) {
                 Sponge.getAssetManager().getAsset(TeslaCrate.get(), name).get().copyToFile(path);
             } else if (Files.notExists(path)) {
@@ -44,7 +42,7 @@ public final class Config {
             }
             return ConfigHolder.of(HoconConfigurationLoader.builder().setPath(path).build());
         } catch (IOException e) {
-            TeslaCrate.get().getLogger().error("An unexpected error occurred initializing " + name + ": " + e.getMessage());
+            TeslaCrate.get().getLogger().error("&cAn unexpected error occurred initializing " + name + ": " + e.getMessage());
             e.printStackTrace();
             throw e;
         }
@@ -53,9 +51,9 @@ public final class Config {
     private static <T extends Referenceable<? extends T, ?>> void loadComponents(ConfigHolder config, Registry<T> registry, String type) throws ConfigurationException {
         for (ConfigurationNode node : config.getNode().getChildrenMap().values()) {
             try {
-                registry.register(Serializers.deserialize((String) node.getKey(), node, registry), TeslaCrate.get().getContainer());
-            } catch (ConfigurationException e) { //TODO: Error comments
-                TeslaCrate.get().getLogger().error("An unexpected error occurred loading " + type + " '" + node.getKey() + "': " + e.getMessage() + " @" + Arrays.toString(e.getNode().getPath()));
+                registry.register(Serializers.<T>getType(node, registry).create((String) node.getKey()).deserialize(node).build(), TeslaCrate.get().getContainer());
+            } catch (ConfigurationException e) {
+                TeslaCrate.get().getLogger().error("&cAn unexpected error occurred loading " + type + " '" + node.getKey() + "': " + e.getMessage() + " @" + Arrays.toString(e.getNode().getPath()));
                 throw e;
             }
         }

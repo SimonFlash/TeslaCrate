@@ -1,15 +1,21 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
-import com.mcsimonflash.sponge.teslacrate.api.component.*;
+import com.google.common.base.MoreObjects;
+import com.mcsimonflash.sponge.teslacrate.component.Reference;
+import com.mcsimonflash.sponge.teslacrate.component.Type;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 
+import static com.google.common.base.Preconditions.checkState;
+
 public final class CommandPrize extends Prize<CommandPrize, String> {
 
-    public static final Type<CommandPrize, String, Builder, RefBuilder> TYPE = Type.create("Command", Builder::new, RefBuilder::new).build();
+    public static final Type<CommandPrize, String, Builder, RefBuilder> TYPE = Type.create("Command", Builder::new, RefBuilder::new)
+            .matcher(n -> !n.getNode("command").isVirtual())
+            .build();
 
     private final String command;
     private final String value;
@@ -31,6 +37,13 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
 
     public final String getValue() {
         return value;
+    }
+
+    @Override
+    protected MoreObjects.ToStringHelper toStringHelper() {
+        return super.toStringHelper()
+                .add("command", command)
+                .add("value", value);
     }
 
     public static final class Builder extends Prize.Builder<CommandPrize, String, Builder> {
@@ -60,6 +73,12 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
         }
 
         @Override
+        protected void resolve() throws IllegalStateException {
+            super.resolve();
+            checkState(!command.isEmpty(), "Command may not be empty.");
+        }
+
+        @Override
         public final CommandPrize build() {
             return new CommandPrize(this);
         }
@@ -74,7 +93,8 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
 
         @Override
         public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationException {
-            return super.deserialize(node).value(node.getString(component.getValue()));
+            String value = node.getString("");
+            return super.deserialize(node).value(value.isEmpty() ? component.getValue() : value);
         }
 
     }

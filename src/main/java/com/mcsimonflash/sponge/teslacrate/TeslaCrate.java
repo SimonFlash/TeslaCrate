@@ -2,11 +2,10 @@ package com.mcsimonflash.sponge.teslacrate;
 
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
-import com.mcsimonflash.sponge.teslacrate.api.registry.Registry;
 import com.mcsimonflash.sponge.teslacrate.component.key.*;
 import com.mcsimonflash.sponge.teslacrate.component.prize.*;
 import com.mcsimonflash.sponge.teslacrate.component.reward.StandardReward;
-import com.mcsimonflash.sponge.teslacrate.internal.Config;
+import com.mcsimonflash.sponge.teslacrate.internal.*;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.*;

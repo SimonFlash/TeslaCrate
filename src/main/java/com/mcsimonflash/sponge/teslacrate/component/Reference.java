@@ -1,4 +1,6 @@
-package com.mcsimonflash.sponge.teslacrate.api.component;
+package com.mcsimonflash.sponge.teslacrate.component;
+
+import com.google.common.base.MoreObjects;
 
 public final class Reference<T extends Referenceable<T, V>, V> extends Component<Reference<T, V>> {
 
@@ -19,10 +21,17 @@ public final class Reference<T extends Referenceable<T, V>, V> extends Component
         return value;
     }
 
+    @Override
+    protected MoreObjects.ToStringHelper toStringHelper() {
+        return super.toStringHelper()
+                .add("component", component.getId())
+                .add("value", value);
+    }
+
     public static abstract class Builder<T extends Referenceable<T, V>, V, R extends Builder<T, V, R>> extends Component.Builder<Reference<T, V>, R> {
 
         protected final T component;
-        private V value;
+        protected V value;
 
         protected Builder(String id, T component) {
             super(id);

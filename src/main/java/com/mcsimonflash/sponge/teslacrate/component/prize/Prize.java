@@ -1,5 +1,7 @@
-package com.mcsimonflash.sponge.teslacrate.api.component;
+package com.mcsimonflash.sponge.teslacrate.component.prize;
 
+import com.mcsimonflash.sponge.teslacrate.component.Referenceable;
+import com.mcsimonflash.sponge.teslacrate.component.Type;
 import org.spongepowered.api.entity.living.player.Player;
 
 public abstract class Prize<T extends Prize<T, V>, V> extends Referenceable<T, V> {
