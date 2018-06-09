@@ -8,7 +8,7 @@ import com.mcsimonflash.sponge.teslacrate.component.prize.Prize;
 import com.mcsimonflash.sponge.teslacrate.internal.*;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
-import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 
 import java.util.*;
 
@@ -27,7 +27,7 @@ public abstract class Reward<T extends Reward<T>> extends Referenceable<T, Doubl
         prizes = ImmutableSet.copyOf(builder.prizes);
     }
 
-    public abstract void give(Player player);
+    public abstract void give(User user);
 
     public final double getWeight() {
         return weight;

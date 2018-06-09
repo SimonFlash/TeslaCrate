@@ -25,11 +25,8 @@ public abstract class Component<T extends Component<T>> {
         builder.resolve();
         id = builder.id;
         name = builder.name;
-        description = builder.description != null ? builder.description : name;
-        icon = builder.icon != null ? builder.icon : ItemStack.builder()
-                .itemType(ItemTypes.WRITABLE_BOOK)
-                .add(Keys.DISPLAY_NAME, name)
-                .build().createSnapshot();
+        description = builder.description;
+        icon = builder.icon;
     }
 
     public final String getId() {

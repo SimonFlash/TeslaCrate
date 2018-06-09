@@ -36,6 +36,7 @@ public final class Reference<T extends Referenceable<T, V>, V> extends Component
         protected Builder(String id, T component) {
             super(id);
             this.component = component;
+            this.value = component.getValue();
         }
 
         public final R value(V value) {

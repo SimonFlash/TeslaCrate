@@ -1,13 +1,13 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
 import com.google.common.base.MoreObjects;
+import com.mcsimonflash.sponge.teslacrate.component.*;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
-import com.mcsimonflash.sponge.teslacrate.component.Reference;
-import com.mcsimonflash.sponge.teslacrate.component.Type;
-import com.mcsimonflash.sponge.teslalibs.configuration.*;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
-import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.inventory.*;
+import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 
 public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
@@ -16,19 +16,17 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
             .build();
 
     private final ItemStackSnapshot item;
-    private final int quantity;
 
     private ItemPrize(Builder builder) {
         super(builder);
         item = builder.item;
-        quantity = builder.quantity;
     }
 
     @Override
-    public final void give(Player player, Integer value) {
+    public final boolean give(User user, Integer value) {
         ItemStack item = getItem().createStack();
         item.setQuantity(value);
-        player.getInventory().transform(InventoryTransformations.PLAYER_MAIN_HOTBAR_FIRST).offer(item);
+        return user.getInventory().transform(InventoryTransformations.PLAYER_MAIN_HOTBAR_FIRST).offer(item).getType() == InventoryTransactionResult.Type.SUCCESS;
     }
 
     public final ItemStackSnapshot getItem() {
@@ -36,20 +34,17 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
     }
 
     public final int getQuantity() {
-        return quantity;
+        return getValue();
     }
 
     @Override
     protected MoreObjects.ToStringHelper toStringHelper() {
-        return super.toStringHelper()
-                .add("item", item)
-                .add("quantity", quantity);
+        return super.toStringHelper().add("item", item);
     }
 
     public static final class Builder extends Prize.Builder<ItemPrize, Integer, Builder> {
 
         private ItemStackSnapshot item;
-        private int quantity;
 
         private Builder(String id) {
             super(id, TYPE);
@@ -61,8 +56,7 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
         }
 
         public final Builder quantity(int quantity) {
-            this.quantity = quantity;
-            return this;
+            return value(quantity);
         }
 
         @Override
@@ -89,7 +83,7 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
         @Override
         public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationException {
-            return super.deserialize(node).value(node.getInt(component.getQuantity()));
+            return super.deserialize(node).value(node.getInt(value));
         }
 
     }

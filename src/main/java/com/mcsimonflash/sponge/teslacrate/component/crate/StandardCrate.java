@@ -14,7 +14,7 @@ public class StandardCrate extends Crate<StandardCrate, Object> {
     }
 
     @Override
-    public final void give(Player player, Location<World> location) {
+    public final void open(Player player, Location<World> location) {
         double rand = Math.random() * getRewards().stream().mapToDouble(Reference::getValue).sum();
         for (Reference<? extends Reward, Double> reward : getRewards()) {
             if ((rand -= reward.getValue()) <= 0) {

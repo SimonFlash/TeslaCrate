@@ -22,7 +22,7 @@ public abstract class Crate<T extends Crate<T, V>, V> extends Referenceable<T, V
         rewards = ImmutableSet.copyOf(builder.rewards);
     }
 
-    public abstract void give(Player player, Location<World> location);
+    public abstract void open(Player player, Location<World> location);
 
     public final ImmutableSet<Reference<? extends Reward, Double>> getRewards() {
         return rewards;

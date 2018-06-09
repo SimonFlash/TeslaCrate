@@ -1,16 +1,18 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
-import com.mcsimonflash.sponge.teslacore.registry.RegistryService;
-import com.mcsimonflash.sponge.teslacrate.component.*;
+import com.mcsimonflash.sponge.teslacrate.component.Referenceable;
+import com.mcsimonflash.sponge.teslacrate.component.Type;
 import com.mcsimonflash.sponge.teslacrate.component.crate.Crate;
-import com.mcsimonflash.sponge.teslacrate.component.effects.Effect;
+import com.mcsimonflash.sponge.teslacrate.component.effect.Effect;
 import com.mcsimonflash.sponge.teslacrate.component.key.Key;
 import com.mcsimonflash.sponge.teslacrate.component.prize.Prize;
 import com.mcsimonflash.sponge.teslacrate.component.reward.Reward;
+import com.mcsimonflash.sponge.teslalibs.registry.RegistryService;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.Tuple;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 
 public final class Registry<T extends Referenceable<? extends T, ?>> {
 
@@ -20,8 +22,9 @@ public final class Registry<T extends Referenceable<? extends T, ?>> {
     public static final Registry<Prize<?, ?>> PRIZES = new Registry<>();
     public static final Registry<Reward<?>> REWARDS = new Registry<>();
 
-    private final RegistryService<T> components = RegistryService.of();
-    private final RegistryService<Type<? extends T, ?, ?, ?>> types = RegistryService.of();
+    private final com.mcsimonflash.sponge.teslalibs.registry.Registry<T> registry = com.mcsimonflash.sponge.teslalibs.registry.Registry.of();
+    private final RegistryService<T> components = RegistryService.of(registry);
+    private final RegistryService<Type<? extends T, ?, ?, ?>> types = RegistryService.of(com.mcsimonflash.sponge.teslalibs.registry.Registry.of());
 
     public final Optional<T> get(String id) {
         return components.getValue(id);
@@ -48,11 +51,11 @@ public final class Registry<T extends Referenceable<? extends T, ?>> {
     }
 
     static void clear() {
-        CRATES.components.clear();
-        EFFECTS.components.clear();
-        KEYS.components.clear();
-        PRIZES.components.clear();
-        REWARDS.components.clear();
+        CRATES.registry.clear();
+        EFFECTS.registry.clear();
+        KEYS.registry.clear();
+        PRIZES.registry.clear();
+        REWARDS.registry.clear();
     }
 
 }

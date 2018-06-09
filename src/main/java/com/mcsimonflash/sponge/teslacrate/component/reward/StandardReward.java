@@ -1,7 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.component.reward;
 
 import com.mcsimonflash.sponge.teslacrate.component.Type;
-import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.*;
 
 public final class StandardReward extends Reward<StandardReward> {
 
@@ -12,8 +12,8 @@ public final class StandardReward extends Reward<StandardReward> {
     }
 
     @Override
-    public final void give(Player player) {
-        getPrizes().forEach(r -> r.getComponent().give(player, r.getValue()));
+    public final void give(User user) {
+        getPrizes().forEach(r -> r.getComponent().give(user, r.getValue()));
     }
 
     public static final class Builder extends Reward.Builder<StandardReward, Builder> {

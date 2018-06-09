@@ -1,4 +1,4 @@
-package com.mcsimonflash.sponge.teslacrate.component.effects;
+package com.mcsimonflash.sponge.teslacrate.component.effect;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.mcsimonflash.sponge.teslacrate.component.Reference;
@@ -21,7 +21,7 @@ public class ParticleEffect extends Effect<ParticleEffect, Vector3d> {
     }
 
     @Override
-    public final void play(Player player, Location<World> location) {}
+    public final void run(Player player, Location<World> location, Vector3d value) {}
 
     public final Vector3d getOffset() {
         return offset;

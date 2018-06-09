@@ -1,4 +1,4 @@
-package com.mcsimonflash.sponge.teslacrate.component.effects;
+package com.mcsimonflash.sponge.teslacrate.component.effect;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.mcsimonflash.sponge.teslacrate.component.*;
@@ -21,7 +21,7 @@ public class SoundEffect extends Effect<SoundEffect, Object> {
     }
 
     @Override
-    public void play(Player player, Location<World> location) {
+    public final void run(Player player, Location<World> location, Object value) {
         location.getExtent().playSound(SoundTypes.RECORD_13, location.getPosition().add(offset), 1.0);
     }
 

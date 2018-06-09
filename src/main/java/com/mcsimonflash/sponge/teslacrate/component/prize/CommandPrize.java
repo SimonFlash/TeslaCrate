@@ -1,13 +1,12 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
 import com.google.common.base.MoreObjects;
-import com.mcsimonflash.sponge.teslacrate.component.Reference;
-import com.mcsimonflash.sponge.teslacrate.component.Type;
+import com.mcsimonflash.sponge.teslacrate.component.*;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -18,38 +17,33 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
             .build();
 
     private final String command;
-    private final String value;
 
     private CommandPrize(Builder builder) {
         super(builder);
         command = builder.command;
-        value = builder.value;
     }
 
     @Override
-    public final void give(Player player, String value) {
-        Sponge.getCommandManager().process(Sponge.getServer().getConsole(), Message.of(getCommand()).args("value", value, "player", player.getName()).toString());
+    public final boolean give(User user, String value) {
+        if (user.isOnline()) {
+            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), Message.of(getCommand()).args("value", value, "player", user.getName()).toString());
+            return true;
+        }
+        return false;
     }
 
     public final String getCommand() {
         return command;
     }
 
-    public final String getValue() {
-        return value;
-    }
-
     @Override
     protected MoreObjects.ToStringHelper toStringHelper() {
-        return super.toStringHelper()
-                .add("command", command)
-                .add("value", value);
+        return super.toStringHelper().add("command", command);
     }
 
     public static final class Builder extends Prize.Builder<CommandPrize, String, Builder> {
 
         private String command;
-        private String value;
 
         private Builder(String id) {
             super(id, TYPE);
@@ -57,11 +51,6 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
 
         public final Builder command(String command) {
             this.command = command;
-            return this;
-        }
-
-        public final Builder value(String value) {
-            this.value = value;
             return this;
         }
 
@@ -94,7 +83,7 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
         @Override
         public final RefBuilder deserialize(ConfigurationNode node) throws ConfigurationException {
             String value = node.getString("");
-            return super.deserialize(node).value(value.isEmpty() ? component.getValue() : value);
+            return super.deserialize(node).value(value.isEmpty() ? this.value : value);
         }
 
     }
