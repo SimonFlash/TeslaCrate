@@ -27,19 +27,15 @@ public final class Give extends Command {
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
         Collection<User> users = args.getAll("users");
-        Reward reward = args.<Reward>getOne("reward").get();
         if (users.isEmpty()) {
-            throw new CommandException(getMessage(src, "no-users", users, reward, reward.getValue()));
+            throw new CommandException(TeslaCrate.getMessage(src, "teslacrate.command.no-users"));
         }
+        Reward reward = args.<Reward>getOne("reward").get();
         users.forEach(reward::give);
-        src.sendMessage(getMessage(src, "success", users, reward, reward.getValue()));
-        return CommandResult.successCount(users.size());
-    }
-
-    private static Text getMessage(CommandSource src, String name, Collection<User> users, Reward reward, Object value) {
-        return TeslaCrate.getMessage(src, "teslacrate.command.reward.give." + name, "user", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
+        src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.reward.give.success", "user", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
                 .onHover(TextActions.showText(Text.of(users.stream().map(User::getName).collect(Collectors.toList()))))
-                .build(), "reward", reward.getId(), "value", value);
+                .build(), "reward", reward.getId(), "value", reward.getValue()));
+        return CommandResult.successCount(users.size());
     }
 
 }

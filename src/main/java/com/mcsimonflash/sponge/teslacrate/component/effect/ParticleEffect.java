@@ -1,8 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.component.effect;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.mcsimonflash.sponge.teslacrate.component.Reference;
-import com.mcsimonflash.sponge.teslacrate.component.Type;
+import com.mcsimonflash.sponge.teslacrate.component.*;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;

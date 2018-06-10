@@ -17,7 +17,7 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.util.Tuple;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 public final class Serializers {
@@ -87,23 +87,23 @@ public final class Serializers {
         return TextSerializers.FORMATTING_CODE.deserialize(node.getString(""));
     }
 
-    public static Vector3i deserializeVector2i(ConfigurationNode node) throws ConfigurationException {
-        Integer[] components = deserializeComponents(node, Integer::parseInt);
+    public static Vector3i deserializeVector3i(ConfigurationNode node) throws ConfigurationException {
+        Integer[] components = deserializeComponents(node, Integer::parseInt, Integer[]::new);
         return Vector3i.from(components[0], components[1], components[2]);
     }
 
     public static Vector3d deserializeVector3d(ConfigurationNode node) throws ConfigurationException {
-        Double[] components = deserializeComponents(node, Double::parseDouble);
+        Double[] components = deserializeComponents(node, Double::parseDouble, Double[]::new);
         return Vector3d.from(components[0], components[1], components[2]);
     }
 
-    private static <T> T[] deserializeComponents(ConfigurationNode node, Function<String, T> parser) {
+    private static <T> T[] deserializeComponents(ConfigurationNode node, Function<String, T> parser, IntFunction<T[]> array) {
         T[] components;
         if (node.hasListChildren()) {
-            components = (T[]) node.getChildrenList().stream().map(n -> n.getString("")).map(parser).toArray();
+            components = node.getChildrenList().stream().map(n -> n.getString("")).map(parser).toArray(array);
         } else {
             try {
-                components = (T[]) Arrays.stream(node.getString("").split(",")).map(parser).toArray();
+                components = Arrays.stream(node.getString("").split(",")).map(parser).toArray(array);
             } catch (NumberFormatException e) {
                 throw new ConfigurationException(node, "Unable to retrieve a list of doubles.");
             }

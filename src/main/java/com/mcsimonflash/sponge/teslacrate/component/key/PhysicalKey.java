@@ -5,6 +5,7 @@ import com.mcsimonflash.sponge.teslacrate.component.*;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.inventory.*;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
@@ -23,7 +24,7 @@ public final class PhysicalKey extends Key<PhysicalKey> {
 
     private PhysicalKey(Builder builder) {
         super(builder);
-        item = builder.item;
+        item = ItemStack.builder().fromContainer(builder.item.toContainer().set(DataQuery.of("UnsafeData", "TeslaCrate", "Key"), getId())).build().createSnapshot();
     }
 
     @Override
@@ -40,7 +41,7 @@ public final class PhysicalKey extends Key<PhysicalKey> {
     public boolean give(User user, int quantity) {
         ItemStack stack = item.createStack();
         stack.setQuantity(quantity);
-        return user.getInventory().offer(stack).getType().equals(InventoryTransactionResult.Type.SUCCESS);
+        return user.getInventory().transform(InventoryTransformations.PLAYER_MAIN_HOTBAR_FIRST).offer(stack).getType().equals(InventoryTransactionResult.Type.SUCCESS);
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -49,8 +50,8 @@ public abstract class Component<T extends Component<T>> {
     protected MoreObjects.ToStringHelper toStringHelper() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
-                .add("name", name)
-                .add("description", description)
+                .add("name", TextSerializers.FORMATTING_CODE.serialize(name))
+                .add("description", TextSerializers.FORMATTING_CODE.serialize(description))
                 .add("icon", icon);
     }
 

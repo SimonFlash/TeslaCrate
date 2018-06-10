@@ -16,7 +16,7 @@ public final class Get extends Command {
 
     @Inject
     private Get(Settings settings) {
-        super(settings.usage(usage("/teslacrate key get ", "Gets the number of keys a user has.", USER_ARG, KEY_ARG)));
+        super(settings.usage(usage("/teslacrate key get ", "Gets the number of keys a user has.", USER_ARG, KEY_ARG)).elements(USER_ELEM, KEY_ELEM));
     }
 
     @Override

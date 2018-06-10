@@ -1,17 +1,12 @@
 package com.mcsimonflash.sponge.teslacrate.command;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Range;
-import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
-import com.mcsimonflash.sponge.teslacore.tesla.TeslaUtils;
+import com.google.common.collect.*;
+import com.mcsimonflash.sponge.teslacore.tesla.*;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.internal.Registry;
-import com.mcsimonflash.sponge.teslacrate.internal.Utils;
-import com.mcsimonflash.sponge.teslalibs.argument.Arguments;
-import com.mcsimonflash.sponge.teslalibs.argument.CommandElement;
+import com.mcsimonflash.sponge.teslacrate.internal.*;
+import com.mcsimonflash.sponge.teslalibs.argument.*;
 import com.mcsimonflash.sponge.teslalibs.command.Command;
-import org.spongepowered.api.command.CommandException;
-import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.*;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
@@ -21,8 +16,7 @@ import org.spongepowered.api.util.Tuple;
 
 import java.net.URL;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 public final class CmdUtils {
 
@@ -38,7 +32,7 @@ public final class CmdUtils {
             OPT_USER_ELEM = Arguments.user().orSource().toElement("user"),
             LOCATION_ELEM = Arguments.location().toElement("location"),
             OPT_LOCATION_ELEM = Arguments.location().orSource().toElement("location"),
-            QUANTITY_ELEM = Arguments.intObj().inRange(Range.greaterThan(0)).optional().toElement("quantity");
+            QUANTITY_ELEM = Arguments.intObj().inRange(Range.atLeast(1)).toElement("quantity");
     public static final Text
             SUBCOMMAND_ARG = arg(true, "...", "A subcommand."),
             CRATE_ARG = arg(true, "crate", "Id of a crate component."),

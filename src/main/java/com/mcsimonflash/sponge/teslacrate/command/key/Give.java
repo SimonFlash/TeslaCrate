@@ -21,7 +21,7 @@ public final class Give extends Command {
 
     @Inject
     private Give(Settings settings) {
-        super(settings.usage(usage("/teslacrate key give ", "Gives a number of keys to a user.", USER_ARG, KEY_ARG, QUANTITY_ARG)).elements(USERS_ELEM, KEY_ELEM, QUANTITY_ELEM));
+        super(settings.usage(usage("/teslacrate key give ", "Gives a number of keys to a user.", USERS_ARG, KEY_ARG, QUANTITY_ARG)).elements(USERS_ELEM, KEY_ELEM, QUANTITY_ELEM));
     }
 
     @Override
