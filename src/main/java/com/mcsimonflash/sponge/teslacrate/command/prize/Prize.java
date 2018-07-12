@@ -1,11 +1,14 @@
 package com.mcsimonflash.sponge.teslacrate.command.prize;
 
 import com.google.inject.Inject;
-import com.mcsimonflash.sponge.teslalibs.command.*;
-import org.spongepowered.api.command.*;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Children;
+import com.mcsimonflash.sponge.teslalibs.command.Command;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-
-import static com.mcsimonflash.sponge.teslacrate.command.CmdUtils.*;
 
 @Aliases({"prize"})
 @Permission("teslacrate.command.prize.base")
@@ -14,12 +17,12 @@ public final class Prize extends Command {
 
     @Inject
     private Prize(Settings settings) {
-        super(settings.usage(usage("teslacrate prize ", "The base command for prizes.", SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("teslacrate prize ", "The base command for prizes.", CmdUtils.SUBCOMMAND_ARG)));
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        getUsages(this).sendTo(src);
+        CmdUtils.getUsages(this).sendTo(src);
         return CommandResult.success();
     }
 

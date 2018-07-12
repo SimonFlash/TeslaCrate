@@ -2,7 +2,6 @@ package com.mcsimonflash.sponge.teslacrate.api.component;
 
 import com.google.common.base.MoreObjects;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
-import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -12,25 +11,26 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 public abstract class Component {
 
-    private final String name;
-    private Text displayName = Text.EMPTY;
+    private final String id;
+    private Text name;
     private Text description = Text.EMPTY;
     private ItemStackSnapshot displayItem = ItemStackSnapshot.NONE;
 
-    protected Component(String name) {
-        this.name = name;
+    Component(String id) {
+        this.id = id;
+        this.name = Text.of(id);
     }
 
-    public final String getName() {
+    public final String getId() {
+        return id;
+    }
+
+    public final Text getName() {
         return name;
     }
 
-    public final Text getDisplayName() {
-        return displayName;
-    }
-
-    public final void setDisplayName(Text displayName) {
-        this.displayName = displayName;
+    public final void setName(Text displayName) {
+        this.name = displayName;
     }
 
     public final Text getDescription() {
@@ -51,7 +51,7 @@ public abstract class Component {
 
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
-        setDisplayName(Utils.toText(node.getNode("display-name").getString(getName())));
+        NodeUtils.ifAttached(node.getNode("name"), n -> setName(Serializers.deserializeText(n)));
         NodeUtils.ifAttached(node.getNode("description"), n -> setDescription(Serializers.deserializeText(n)));
         NodeUtils.ifAttached(node.getNode("display-item"), n -> setDisplayItem(Serializers.deserializeItem(n)));
     }
@@ -62,16 +62,16 @@ public abstract class Component {
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected MoreObjects.ToStringHelper toStringHelper() {
+    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
         return MoreObjects.toStringHelper(this)
-                .add("name", name)
-                .add("display-name", displayName)
-                .add("description", description)
-                .add("display-item", displayItem);
+                .add(indent + "id", id)
+                .add(indent + "name", name)
+                .add(indent + "description", description)
+                .add(indent + "display-item", displayItem);
     }
 
     public final String toString() {
-        return toStringHelper().toString();
+        return toStringHelper("\n    ").addValue("\n").toString();
     }
 
 }

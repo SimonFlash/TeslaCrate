@@ -1,6 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
 import com.google.common.base.MoreObjects;
+import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Prize;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
@@ -13,12 +14,12 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 
 public final class ItemPrize extends Prize<Integer> {
 
-    public static final Type<ItemPrize, Integer> TYPE = Type.create("Item", ItemPrize::new, n -> !n.getNode("item").isVirtual());
+    public static final Type<ItemPrize, Integer> TYPE = new Type<>("Item", ItemPrize::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
 
     private ItemStackSnapshot item = ItemStackSnapshot.NONE;
 
-    private ItemPrize(String name) {
-        super(name);
+    private ItemPrize(String id) {
+        super(id);
     }
 
     public final ItemStackSnapshot getItem() {
@@ -44,6 +45,9 @@ public final class ItemPrize extends Prize<Integer> {
     public void deserialize(ConfigurationNode node) {
         super.deserialize(node);
         setItem(Serializers.deserializeItem(node.getNode("item")));
+        if (getDisplayItem() == ItemStackSnapshot.NONE) {
+            setDisplayItem(getItem());
+        }
     }
 
     @Override
@@ -52,19 +56,19 @@ public final class ItemPrize extends Prize<Integer> {
     }
 
     @Override
-    public final Ref createRef(String name) {
-        return new Ref(name, this);
+    public final Ref createRef(String id) {
+        return new Ref(id, this);
     }
 
     @Override
-    protected final MoreObjects.ToStringHelper toStringHelper() {
-        return super.toStringHelper().add("item", item);
+    protected final MoreObjects.ToStringHelper toStringHelper(String indent) {
+        return super.toStringHelper(indent).add(indent + "item", item);
     }
 
     public final static class Ref extends Prize.Ref<ItemPrize, Integer> {
 
-        private Ref(String name, ItemPrize component) {
-            super(name, component);
+        private Ref(String id, ItemPrize component) {
+            super(id, component);
         }
 
         @Override

@@ -2,13 +2,15 @@ package com.mcsimonflash.sponge.teslacrate.command.key;
 
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.component.key.Key;
-import com.mcsimonflash.sponge.teslalibs.command.*;
-import org.spongepowered.api.command.*;
+import com.mcsimonflash.sponge.teslacrate.api.component.Key;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Command;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.User;
-
-import static com.mcsimonflash.sponge.teslacrate.command.CmdUtils.*;
 
 @Aliases({"get"})
 @Permission("teslacrate.command.key.get.base")
@@ -16,7 +18,8 @@ public final class Get extends Command {
 
     @Inject
     private Get(Settings settings) {
-        super(settings.usage(usage("/teslacrate key get ", "Gets the number of keys a user has.", USER_ARG, KEY_ARG)).elements(USER_ELEM, KEY_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate key get ", "Gets the number of keys a user has.", CmdUtils.USER_ARG, CmdUtils.KEY_ARG))
+                .elements(CmdUtils.USER_ELEM, CmdUtils.KEY_ELEM));
     }
 
     @Override

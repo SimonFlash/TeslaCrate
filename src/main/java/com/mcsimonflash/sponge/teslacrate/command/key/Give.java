@@ -2,9 +2,15 @@ package com.mcsimonflash.sponge.teslacrate.command.key;
 
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.component.key.Key;
-import com.mcsimonflash.sponge.teslalibs.command.*;
-import org.spongepowered.api.command.*;
+import com.mcsimonflash.sponge.teslacrate.api.component.Key;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslacrate.internal.Utils;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Command;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
@@ -13,15 +19,14 @@ import org.spongepowered.api.text.action.TextActions;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.mcsimonflash.sponge.teslacrate.command.CmdUtils.*;
-
 @Aliases({"give"})
 @Permission("teslacrate.command.key.give.base")
 public final class Give extends Command {
 
     @Inject
     private Give(Settings settings) {
-        super(settings.usage(usage("/teslacrate key give ", "Gives a number of keys to a user.", USERS_ARG, KEY_ARG, QUANTITY_ARG)).elements(USERS_ELEM, KEY_ELEM, QUANTITY_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate key give ", "Gives a number of keys to a user.", CmdUtils.USERS_ARG, CmdUtils.KEY_ARG, CmdUtils.QUANTITY_ARG))
+                .elements(CmdUtils.USERS_ELEM, CmdUtils.KEY_ELEM, CmdUtils.QUANTITY_ELEM));
     }
 
     @Override
@@ -51,8 +56,8 @@ public final class Give extends Command {
     }
 
     private static Text getMessage(CommandSource src, String name, Collection<User> users, Key key, Integer quantity) {
-        return TeslaCrate.getMessage(src, "teslacrate.command.key.give." + name, "user", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
-                .onHover(TextActions.showText(Text.of(users.stream().map(User::getName).collect(Collectors.toList()))))
+        return TeslaCrate.getMessage(src, "teslacrate.command.key.give." + name, "users", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
+                .onHover(TextActions.showText(Text.joinWith(Utils.toText("&7, "), users.stream().map(u -> Utils.toText("&f" + u.getName())).collect(Collectors.toList()))))
                 .build(), "key", key.getId(), "quantity", quantity);
     }
 

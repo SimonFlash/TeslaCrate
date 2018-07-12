@@ -2,9 +2,14 @@ package com.mcsimonflash.sponge.teslacrate.command.reward;
 
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.component.reward.Reward;
-import com.mcsimonflash.sponge.teslalibs.command.*;
-import org.spongepowered.api.command.*;
+import com.mcsimonflash.sponge.teslacrate.api.component.Reward;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Command;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
@@ -13,15 +18,13 @@ import org.spongepowered.api.text.action.TextActions;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.mcsimonflash.sponge.teslacrate.command.CmdUtils.*;
-
 @Aliases({"give"})
 @Permission("teslacrate.command.reward.give.base")
 public final class Give extends Command {
 
     @Inject
     private Give(Settings settings) {
-        super(settings.usage(usage("/teslacrate reward give ", "Gives a reward to a set of users.", USERS_ARG, PRIZE_ARG)).elements(USERS_ELEM, PRIZE_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate reward give ", "Gives a reward to a set of users.", CmdUtils.USERS_ARG, CmdUtils.REWARD_ARG)).elements(CmdUtils.USERS_ELEM, CmdUtils.REWARD_ELEM));
     }
 
     @Override
@@ -34,7 +37,7 @@ public final class Give extends Command {
         users.forEach(reward::give);
         src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.reward.give.success", "user", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
                 .onHover(TextActions.showText(Text.of(users.stream().map(User::getName).collect(Collectors.toList()))))
-                .build(), "reward", reward.getId(), "value", reward.getValue()));
+                .build(), "reward", reward.getId(), "value", reward.getRefValue()));
         return CommandResult.successCount(users.size());
     }
 

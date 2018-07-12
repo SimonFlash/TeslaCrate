@@ -1,12 +1,17 @@
 package com.mcsimonflash.sponge.teslacrate.command;
 
-import com.google.common.collect.*;
-import com.mcsimonflash.sponge.teslacore.tesla.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Range;
+import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
+import com.mcsimonflash.sponge.teslacore.tesla.TeslaUtils;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.internal.*;
-import com.mcsimonflash.sponge.teslalibs.argument.*;
+import com.mcsimonflash.sponge.teslacrate.internal.Registry;
+import com.mcsimonflash.sponge.teslacrate.internal.Utils;
+import com.mcsimonflash.sponge.teslalibs.argument.Arguments;
+import com.mcsimonflash.sponge.teslalibs.argument.CommandElement;
 import com.mcsimonflash.sponge.teslalibs.command.Command;
-import org.spongepowered.api.command.*;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
@@ -16,16 +21,17 @@ import org.spongepowered.api.util.Tuple;
 
 import java.net.URL;
 import java.util.Optional;
-import java.util.stream.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class CmdUtils {
 
     public static final CommandElement
-            CRATE_ELEM = Arguments.choices(Registry.CRATES.getComponents(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a crate.")).map(Tuple::getFirst).toElement("crate"),
-            EFFECT_ELEM = Arguments.choices(Registry.EFFECTS.getComponents(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a effect.")).map(Tuple::getFirst).toElement("effect"),
-            KEY_ELEM = Arguments.choices(Registry.KEYS.getComponents(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a key.")).map(Tuple::getFirst).toElement("key"),
-            PRIZE_ELEM = Arguments.choices(Registry.PRIZES.getComponents(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a prize.")).map(Tuple::getFirst).toElement("prize"),
-            REWARD_ELEM = Arguments.choices(Registry.REWARDS.getComponents(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a reward.")).map(Tuple::getFirst).toElement("reward"),
+            CRATE_ELEM = Arguments.choices(Registry.CRATES.getComponents().getAll(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a crate.")).map(Tuple::getFirst).toElement("crate"),
+            EFFECT_ELEM = Arguments.choices(Registry.EFFECTS.getComponents().getAll(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a effect.")).map(Tuple::getFirst).toElement("effect"),
+            KEY_ELEM = Arguments.choices(Registry.KEYS.getComponents().getAll(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a key.")).map(Tuple::getFirst).toElement("key"),
+            PRIZE_ELEM = Arguments.choices(Registry.PRIZES.getComponents().getAll(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a prize.")).map(Tuple::getFirst).toElement("prize"),
+            REWARD_ELEM = Arguments.choices(Registry.REWARDS.getComponents().getAll(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a reward.")).map(Tuple::getFirst).toElement("reward"),
             PLAYER_ELEM = Arguments.player().toElement("player"),
             USER_ELEM = Arguments.user().toElement("user"),
             USERS_ELEM = Arguments.userSelector().toElement("users"),

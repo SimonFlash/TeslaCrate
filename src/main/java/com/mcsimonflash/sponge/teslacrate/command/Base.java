@@ -7,11 +7,13 @@ import com.mcsimonflash.sponge.teslacrate.command.key.Key;
 import com.mcsimonflash.sponge.teslacrate.command.location.Location;
 import com.mcsimonflash.sponge.teslacrate.command.prize.Prize;
 import com.mcsimonflash.sponge.teslacrate.command.reward.Reward;
-import com.mcsimonflash.sponge.teslalibs.command.*;
-import org.spongepowered.api.command.*;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Children;
+import com.mcsimonflash.sponge.teslalibs.command.Command;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-
-import static com.mcsimonflash.sponge.teslacrate.command.CmdUtils.*;
 
 @Aliases({"teslacrate", "tcrate", "crate", "tc"})
 @Permission("teslacrate.command.base")
@@ -20,12 +22,12 @@ public final class Base extends Command {
 
     @Inject
     private Base(Settings settings) {
-        super(settings.usage(usage("teslacrate", "The base command for &eTesla&6Crate&f.", SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("/teslacrate ", "The base command for &eTesla&6Crate&f.", CmdUtils.SUBCOMMAND_ARG)));
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
-        getUsages(this).sendTo(src);
+        CmdUtils.getUsages(this).sendTo(src);
         return CommandResult.success();
     }
 

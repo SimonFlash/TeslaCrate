@@ -1,8 +1,10 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
 import com.google.common.base.MoreObjects;
+import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.living.player.User;
@@ -13,15 +15,14 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 
-//TODO: Data registration to identify keys
 public final class PhysicalKey extends Key {
 
-    public static final Type<PhysicalKey, Integer> TYPE = Type.create("Physical", PhysicalKey::new, n -> !n.getNode("item").isVirtual());
+    public static final Type<PhysicalKey, Integer> TYPE = new Type<>("Physical", PhysicalKey::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
 
     private ItemStackSnapshot item = ItemStackSnapshot.NONE;
 
-    private PhysicalKey(String name) {
-        super(name);
+    private PhysicalKey(String id) {
+        super(id);
     }
 
     public final ItemStackSnapshot getItem() {
@@ -30,7 +31,7 @@ public final class PhysicalKey extends Key {
 
     public final void setItem(ItemStackSnapshot item) {
         this.item = ItemStack.builder()
-                .fromContainer(item.toContainer().set(DataQuery.of("TeslaCrate", "Key"), getName()))
+                .fromContainer(item.toContainer().set(DataQuery.of("UnsafeData", "TeslaCrate", "Key"), getId()))
                 .build().createSnapshot();
     }
 
@@ -60,12 +61,15 @@ public final class PhysicalKey extends Key {
     @Override
     public final void deserialize(ConfigurationNode node) {
         super.deserialize(node);
-        //TODO:
+        setItem(Serializers.deserializeItem(node.getNode("item")));
+        if (getDisplayItem() == ItemStackSnapshot.NONE) {
+            setDisplayItem(getItem());
+        }
     }
 
     @Override
-    protected final MoreObjects.ToStringHelper toStringHelper() {
-        return super.toStringHelper().add("item", item);
+    protected final MoreObjects.ToStringHelper toStringHelper(String indent) {
+        return super.toStringHelper(indent).add(indent + "item", item);
     }
 
 }

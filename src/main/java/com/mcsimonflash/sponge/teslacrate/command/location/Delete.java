@@ -2,14 +2,18 @@ package com.mcsimonflash.sponge.teslacrate.command.location;
 
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.internal.*;
-import com.mcsimonflash.sponge.teslalibs.command.*;
-import org.spongepowered.api.command.*;
+import com.mcsimonflash.sponge.teslacrate.command.CmdUtils;
+import com.mcsimonflash.sponge.teslacrate.internal.Config;
+import com.mcsimonflash.sponge.teslacrate.internal.Registration;
+import com.mcsimonflash.sponge.teslalibs.command.Aliases;
+import com.mcsimonflash.sponge.teslalibs.command.Command;
+import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.*;
-
-import static com.mcsimonflash.sponge.teslacrate.command.CmdUtils.*;
+import org.spongepowered.api.world.World;
 
 @Aliases({"delete"})
 @Permission("teslacrate.command.location.delete.base")
@@ -17,7 +21,7 @@ public final class Delete extends Command {
 
     @Inject
     private Delete(Settings settings) {
-        super(settings.usage(usage("/teslacrate location delete ", "Deletes a registered location.", LOCATION_ARG)).elements(LOCATION_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate location delete ", "Deletes a registered location.", CmdUtils.LOCATION_ARG)).elements(CmdUtils.LOCATION_ELEM));
     }
 
     @Override

@@ -15,10 +15,10 @@ import org.spongepowered.api.world.*;
 
 import java.util.Optional;
 
-public class Listeners {
+public final class Listeners {
 
     @Listener
-    public void onCraftItem(CraftItemEvent event, @Root Player player) {
+    public final void onCraftItem(CraftItemEvent event, @Root Player player) {
         event.getTransactions().forEach(t -> t.getOriginal().toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key")).ifPresent(k -> {
             if (!Registry.KEYS.get(k).isPresent()) {
                 player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cThis item is registered as a &4" + k + "&c key, but that key doesn't exist!")));
@@ -30,7 +30,7 @@ public class Listeners {
     }
 
     @Listener
-    public void onInteractItem(InteractItemEvent event, @Root Player player) {
+    public final void onInteractItem(InteractItemEvent event, @Root Player player) {
         event.getItemStack().toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key")).ifPresent(k -> {
             Location<World> location = event.getInteractionPoint().map(p -> new Location<>(player.getWorld(), p)).orElse(null);
             if (!Registry.KEYS.get(k).isPresent()) {
@@ -48,12 +48,12 @@ public class Listeners {
     }
 
     @Listener
-    public void onInteractBlock(InteractBlockEvent event, @Root Player player) {
+    public final void onInteractBlock(InteractBlockEvent event, @Root Player player) {
         event.getTargetBlock().getLocation().ifPresent(l -> preInteract(event, l).ifPresent(r -> interact(event, player, r, event instanceof InteractBlockEvent.Primary)));
     }
 
     @Listener
-    public void onInteractEntity(InteractEntityEvent event, @Root Player player) {
+    public final void onInteractEntity(InteractEntityEvent event, @Root Player player) {
         preInteract(event, event.getTargetEntity().getLocation()).ifPresent(r -> interact(event, player, r, event instanceof InteractEntityEvent.Primary));
     }
 

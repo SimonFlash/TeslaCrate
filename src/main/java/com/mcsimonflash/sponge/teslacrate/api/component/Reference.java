@@ -2,16 +2,17 @@ package com.mcsimonflash.sponge.teslacrate.api.component;
 
 import com.google.common.base.MoreObjects;
 
-public class Reference<T extends Referenceable<V>, V> extends Component {
+import javax.annotation.Nullable;
+
+public abstract class Reference<T extends Referenceable<V>, V> extends Component {
 
     private final T component;
-    private V value;
+    @Nullable private V value;
 
-    public Reference(String name, T component) {
-        super(name);
+    Reference(String id, T component) {
+        super(id);
         this.component = component;
-        this.value = component.getRefValue();
-        setDisplayName(component.getDisplayName());
+        setName(component.getName());
         setDescription(component.getDescription());
         setDisplayItem(component.getDisplayItem());
     }
@@ -21,18 +22,18 @@ public class Reference<T extends Referenceable<V>, V> extends Component {
     }
 
     public final V getValue() {
-        return value;
+        return value != null ? value : component.getRefValue();
     }
 
-    public final void setValue(V value) {
+    public final void setValue(@Nullable V value) {
         this.value = value;
     }
 
     @Override
-    protected MoreObjects.ToStringHelper toStringHelper() {
-        return super.toStringHelper()
-                .add("component", component.getName())
-                .add("value", value);
+    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
+        return super.toStringHelper(indent)
+                .add(indent + "component", component.getId())
+                .add(indent + "value", getValue());
     }
 
 }

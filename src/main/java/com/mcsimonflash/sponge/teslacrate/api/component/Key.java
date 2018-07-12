@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
+import com.google.common.base.MoreObjects;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.User;
 
@@ -9,8 +10,8 @@ public abstract class Key extends Referenceable<Integer> {
 
     private int quantity = 1;
 
-    protected Key(String name) {
-        super(name);
+    protected Key(String id) {
+        super(id);
     }
 
     public final int getQuantity() {
@@ -42,18 +43,25 @@ public abstract class Key extends Referenceable<Integer> {
     }
 
     @Override
-    public final Ref createRef(String name) {
-        return new Ref(name, this);
+    public final Ref createRef(String id) {
+        return new Ref(id, this);
+    }
+
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
+        return super.toStringHelper(indent).add(indent + "quantity", quantity);
     }
 
     public final static class Ref extends Reference<Key, Integer> {
 
-        protected Ref(String name, Key component) {
-            super(name, component);
+        private Ref(String id, Key component) {
+            super(id, component);
         }
 
         @Override
         public final void deserialize(ConfigurationNode node) {
+            super.deserialize(node);
             setValue(node.getInt(getValue()));
         }
 

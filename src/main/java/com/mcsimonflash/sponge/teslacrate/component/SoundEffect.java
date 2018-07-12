@@ -1,9 +1,11 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
 import com.google.common.base.MoreObjects;
+import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.effect.sound.SoundType;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
@@ -12,7 +14,7 @@ import org.spongepowered.api.world.World;
 
 public final class SoundEffect extends Effect<Double> {
 
-    public static final Type<SoundEffect, Double> TYPE = Type.create("Sound", SoundEffect::new, n -> !n.getNode("sound").isVirtual());
+    public static final Type<SoundEffect, Double> TYPE = new Type<>("Sound", SoundEffect::new, n -> !n.getNode("sound").isVirtual(), TeslaCrate.get().getContainer());
 
     private SoundType sound = SoundTypes.ENTITY_SLIME_SQUISH;
     private double volume = 1.0;
@@ -43,6 +45,13 @@ public final class SoundEffect extends Effect<Double> {
     }
 
     @Override
+    public void deserialize(ConfigurationNode node) {
+        super.deserialize(node);
+        setSound(Sponge.getRegistry().getType(SoundType.class, node.getString("")).orElse(SoundTypes.ENTITY_SLIME_SQUISH));
+        setVolume(node.getNode("volume").getDouble(1.0));
+    }
+
+    @Override
     public final Double getRefValue() {
         return volume;
     }
@@ -53,10 +62,10 @@ public final class SoundEffect extends Effect<Double> {
     }
 
     @Override
-    protected final MoreObjects.ToStringHelper toStringHelper() {
-        return super.toStringHelper()
-                .add("sound", sound.getId())
-                .add("volume", volume);
+    protected final MoreObjects.ToStringHelper toStringHelper(String indent) {
+        return super.toStringHelper(indent)
+                .add(indent + "sound", String.format("\"%s\"", sound.getId()))
+                .add(indent + "volume", volume);
     }
 
     public static final class Ref extends Effect.Ref<SoundEffect, Double> {

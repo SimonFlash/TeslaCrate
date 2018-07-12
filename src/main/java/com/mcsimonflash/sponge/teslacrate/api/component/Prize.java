@@ -4,24 +4,24 @@ import org.spongepowered.api.entity.living.player.User;
 
 public abstract class Prize<V> extends Referenceable<V> {
 
-    protected Prize(String name) {
-        super(name);
+    protected Prize(String id) {
+        super(id);
     }
 
     public abstract boolean give(User user, V value);
 
     @Override
-    public Ref<? extends Prize<V>, V> createRef(String name) {
-        return new Ref<>(name, this);
+    public Ref<? extends Prize<V>, V> createRef(String id) {
+        return new Ref<>(id, this);
     }
 
     public static class Ref<T extends Prize<V>, V> extends Reference<T, V> {
 
-        protected Ref(String name, T component) {
-            super(name, component);
+        protected Ref(String id, T component) {
+            super(id, component);
         }
 
-        public void give(User user) {
+        public final void give(User user) {
             getComponent().give(user, getValue());
         }
 

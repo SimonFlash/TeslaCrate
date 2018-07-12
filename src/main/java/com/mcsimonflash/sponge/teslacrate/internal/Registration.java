@@ -1,6 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
-import com.mcsimonflash.sponge.teslacrate.component.crate.Crate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
 import org.spongepowered.api.world.*;
 
 public final class Registration {
