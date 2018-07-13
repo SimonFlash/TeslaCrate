@@ -15,7 +15,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-@Aliases({"delete"})
+@Aliases({"delete", "del"})
 @Permission("teslacrate.command.location.delete.base")
 public final class Delete extends Command {
 

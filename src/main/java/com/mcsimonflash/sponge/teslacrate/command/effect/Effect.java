@@ -10,14 +10,14 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 
-@Aliases({"effect"})
+@Aliases("effect")
 @Permission("teslacrate.command.effect.base")
 @Children(Run.class)
 public final class Effect extends Command {
 
     @Inject
     private Effect(Settings settings) {
-        super(settings.usage(CmdUtils.usage("teslacrate effect ", "The base command for effects.", CmdUtils.SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("/teslacrate effect ", "The base command for effects.")));
     }
 
         @Override

@@ -17,7 +17,7 @@ public final class Location extends Command {
 
     @Inject
     private Location(Settings settings) {
-        super(settings.usage(CmdUtils.usage("teslacrate location ", "The base command for locations.", CmdUtils.SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("/teslacrate location ", "The base command for locations.")));
     }
 
     @Override

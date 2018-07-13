@@ -14,13 +14,13 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-@Aliases({"open"})
+@Aliases("open")
 @Permission("teslacrate.command.crate.open.base")
 public final class Open extends Command {
 
     @Inject
     private Open(Settings settings) {
-        super(settings.usage(CmdUtils.usage("teslacrate crate open ", "Opens a crate for a player.", CmdUtils.PLAYER_ARG, CmdUtils.CRATE_ARG, CmdUtils.OPT_LOCATION_ARG))
+        super(settings.usage(CmdUtils.usage("/teslacrate crate open ", "Opens a crate for a player.", CmdUtils.PLAYER_ARG, CmdUtils.CRATE_ARG, CmdUtils.OPT_LOCATION_ARG))
                 .elements(CmdUtils.PLAYER_ELEM, CmdUtils.CRATE_ELEM, CmdUtils.OPT_LOCATION_ELEM));
     }
 

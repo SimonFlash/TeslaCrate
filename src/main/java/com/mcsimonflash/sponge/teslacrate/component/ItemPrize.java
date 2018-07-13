@@ -43,11 +43,8 @@ public final class ItemPrize extends Prize<Integer> {
 
     @Override
     public void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
         setItem(Serializers.deserializeItem(node.getNode("item")));
-        if (getDisplayItem() == ItemStackSnapshot.NONE) {
-            setDisplayItem(getItem());
-        }
+        super.deserialize(node);
     }
 
     @Override
@@ -58,6 +55,11 @@ public final class ItemPrize extends Prize<Integer> {
     @Override
     public final Ref createRef(String id) {
         return new Ref(id, this);
+    }
+
+    @Override
+    protected ItemStack.Builder createDisplayItem(Integer value) {
+        return ItemStack.builder().fromSnapshot(item);
     }
 
     @Override

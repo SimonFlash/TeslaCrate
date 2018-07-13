@@ -1,14 +1,18 @@
 package com.mcsimonflash.sponge.teslacrate.component;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.effect.sound.SoundType;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -46,9 +50,9 @@ public final class SoundEffect extends Effect<Double> {
 
     @Override
     public void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
         setSound(Sponge.getRegistry().getType(SoundType.class, node.getString("")).orElse(SoundTypes.ENTITY_SLIME_SQUISH));
         setVolume(node.getNode("volume").getDouble(1.0));
+        super.deserialize(node);
     }
 
     @Override
@@ -59,6 +63,11 @@ public final class SoundEffect extends Effect<Double> {
     @Override
     public final Ref createRef(String name) {
         return new Ref(name, this);
+    }
+
+    @Override
+    protected ItemStack.Builder createDisplayItem(Double value) {
+        return Utils.createItem(ItemTypes.RECORD_13, getName(), Lists.newArrayList(getDescription()));
     }
 
     @Override
@@ -76,8 +85,8 @@ public final class SoundEffect extends Effect<Double> {
 
         @Override
         public void deserialize(ConfigurationNode node) {
+            setValue(node.getDouble(getComponent().getRefValue()));
             super.deserialize(node);
-            setValue(node.getDouble(getValue()));
         }
 
     }

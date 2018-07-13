@@ -8,6 +8,7 @@ import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.command.Aliases;
 import com.mcsimonflash.sponge.teslalibs.command.Command;
 import com.mcsimonflash.sponge.teslalibs.command.Permission;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -19,7 +20,7 @@ import org.spongepowered.api.text.action.TextActions;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-@Aliases({"give"})
+@Aliases("give")
 @Permission("teslacrate.command.key.give.base")
 public final class Give extends Command {
 
@@ -37,9 +38,12 @@ public final class Give extends Command {
         if (users.isEmpty()) {
             throw new CommandException(getMessage(src, "no-users", users, key, quantity));
         } else if (users.size() == 1) {
-            if (!key.give(users.iterator().next(), quantity)) {
+            User user = users.iterator().next();
+            if (!key.give(user, quantity)) {
                 throw new CommandException(getMessage(src, "failure", users, key, quantity));
             }
+            src.sendMessage(getMessage(src, "success", users, key, quantity));
+            Sponge.getServer().getPlayer(user.getUniqueId()).ifPresent(p -> p.sendMessage(TeslaCrate.getMessage(p, "teslacrate.command.key.give.receive", "key", key.getId(), "quantity", quantity)));
             return CommandResult.success();
         } else {
             Collection<User> successful = users.stream().filter(u -> key.give(u, quantity)).collect(Collectors.toList());
@@ -51,6 +55,10 @@ public final class Give extends Command {
                 src.sendMessage(message);
             }
             src.sendMessage(getMessage(src, "success", users, key, quantity));
+            successful.stream()
+                    .filter(User::isOnline)
+                    .map(u -> u.getPlayer().get())
+                    .forEach(p -> p.sendMessage(TeslaCrate.getMessage(p, "teslacrate.command.key.give.receive", "key", key.getId(), "quantity", quantity)));
             return CommandResult.successCount(successful.size());
         }
     }

@@ -14,13 +14,13 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.text.Text;
 
-@Aliases({"info"})
+@Aliases("info")
 @Permission("teslacrate.command.info.base")
 public final class Info extends Command {
 
     @Inject
     private Info(Settings settings) {
-        super(settings.usage(CmdUtils.usage("teslacrate info ", "Displays info about a component", Utils.toText("&e<type>"), Utils.toText("&e<id>")))
+        super(settings.usage(CmdUtils.usage("/teslacrate info ", "Displays info about a component", Utils.toText("&e<type>"), Utils.toText("&e<id>")))
                 .elements(Arguments.choices(ImmutableMap.of("crate", Registry.CRATES, "effect", Registry.EFFECTS, "key", Registry.KEYS, "prize", Registry.PRIZES, "reward", Registry.REWARDS), ImmutableMap.of()).toElement("type"), Arguments.string().toElement("id")));
     }
 

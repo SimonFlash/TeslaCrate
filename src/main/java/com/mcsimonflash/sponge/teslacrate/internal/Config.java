@@ -4,6 +4,7 @@ import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Key;
 import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigHolder;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class Config {
@@ -27,7 +29,7 @@ public final class Config {
     private static final Path directory = TeslaCrate.get().getDirectory();
     private static final Path configuration = directory.resolve("configuration");
     private static final Path storage = directory.resolve("storage");
-    private static ConfigHolder config, crates, effects, keys, prizes, rewards, registrations;
+    private static ConfigHolder config, crates, effects, keys, prizes, rewards, registrations, users;
 
     private static final Map<Location<World>, Registration> REGISTRATIONS = Maps.newHashMap();
 
@@ -43,16 +45,18 @@ public final class Config {
             keys = loadConfig(configuration, "keys.conf", true);
             prizes = loadConfig(configuration, "prizes.conf", true);
             rewards = loadConfig(configuration, "rewards.conf", true);
+            registrations = loadConfig(storage, "registrations.conf", false);
+            users = loadConfig(storage, "users.conf", false);
             if (config.getNode("converters", "teslacrate-v2").getBoolean(false)) {
                 TeslaCrate.get().getLogger().info("&aStarting conversion from v2 to v3.");
                 convertTeslaV2();
-                config.getNode("converters", "teslacrate-v2").setValue(false);
+                config.getNode("converters", "teslacrate-v2").setValue(null);
                 config.save();
                 TeslaCrate.get().getLogger().info("&aConversion has completed successfully.");
             } else if (config.getNode("converters", "huskycrates-v2").getBoolean(false)) {
                 TeslaCrate.get().getLogger().info("&aStarting conversion from HuskyCrates v2 to TeslaCrate v3.");
                 convertHuskyV2();
-                config.getNode("converters", "huskycrates-v2").setValue(false);
+                config.getNode("converters", "huskycrates-v2").setValue(null);
                 config.save();
                 TeslaCrate.get().getLogger().info("&aConversion has completed successfully.");
             }
@@ -61,7 +65,6 @@ public final class Config {
             loadComponents(effects, Registry.EFFECTS, "effect");
             loadComponents(keys, Registry.KEYS, "key");
             loadComponents(crates, Registry.CRATES, "crate");
-            registrations = loadConfig(storage, "registrations.conf", false);
             loadRegistrations();
             TeslaCrate.get().getLogger().info("&aSuccessfully loaded config.");
         } catch (IOException | ConfigurationException e) {
@@ -138,6 +141,24 @@ public final class Config {
         return false;
     }
 
+    public static long getCooldown(UUID uuid, Crate crate) {
+        return users.getNode(uuid.toString(), "cooldowns", crate.getId()).getLong(0);
+    }
+
+    public static boolean resetCooldown(UUID uuid, Crate crate) {
+        users.getNode(uuid.toString(), "cooldowns", crate.getId()).setValue(System.currentTimeMillis());
+        return users.save();
+    }
+
+    public static int getStoredKeys(UUID uuid, Key key) {
+        return users.getNode(uuid.toString(), "keys", key.getId()).getInt(0);
+    }
+
+    public static boolean setStoredKeys(UUID uuid, Key key, int quantity) {
+        users.getNode(uuid.toString(), "keys", key.getId()).setValue(quantity);
+        return users.save();
+    }
+
     private static void convertTeslaV2() throws IOException {
         ConfigHolder commands = loadConfig(configuration, "commands.conf", false);
         ConfigHolder items = loadConfig(configuration, "items.conf", false);
@@ -179,7 +200,10 @@ public final class Config {
             NodeUtils.ifAttached(key.getNode("item"), Config::convertItemKeys);
             NodeUtils.ifVirtual(key.getNode("item"), n -> key.getNode("virtual").setValue(true));
         });
-        crates.getNode().getChildrenMap().values().forEach(Config::convertComponent);
+        crates.getNode().getChildrenMap().values().forEach(crate -> {
+            Config.convertComponent(crate);
+            NodeUtils.ifAttached(crate.getNode("cooldown"), n -> n.setValue(1000 * n.getLong(0)));
+        });
         crates.save();
         effects.save();
         keys.save();
@@ -208,14 +232,25 @@ public final class Config {
         config.getNode().getChildrenMap().values().forEach(c -> {
             ConfigurationNode crate = crates.getNode(c.getKey());
             NodeUtils.ifAttached(c.getNode("name"), n -> NodeUtils.move(n, crate.getNode("name")));
+            NodeUtils.ifAttached(c.getNode("acceptedKeys"), k -> {
+                if (k.hasMapChildren()) {
+                    NodeUtils.move(k, crate.getNode("keys"));
+                } else {
+                    k.getChildrenList().forEach(n -> crate.getNode("keys", n.getString("")).setValue(1));
+                }
+            });
+            NodeUtils.ifAttached(c.getNode("localKey"), k -> {
+                convertHuskyItem(k, keys.getNode(crate.getKey() + "-k"));
+                crate.getNode("keys", crate.getKey() + "-k").setValue(1);
+            });
             c.getNode("slots").getChildrenList().forEach(s -> {
-                ConfigurationNode reward = rewards.getNode(c.getKey() + "-reward-" + s.getKey());
+                ConfigurationNode reward = rewards.getNode(c.getKey() + "-r" + s.getKey());
                 NodeUtils.ifAttached(s.getNode("displayItem"), n -> convertHuskyItem(n, reward.getNode("display-item")));
                 s.getNode("rewards").getChildrenList().forEach(r -> {
                     if (r.hasMapChildren()) {
-                        convertHuskyReward(r, reward.getNode("prizes"), prizes.getNode(reward.getKey() + "-prize-" + r.getKey()));
+                        convertHuskyReward(r, reward.getNode("prizes"), prizes.getNode(reward.getKey() + "-p" + r.getKey()));
                     } else {
-                        r.getChildrenList().forEach(n -> convertHuskyReward(n, reward.getNode("prizes"), prizes.getNode(reward.getKey() + "-prize-" + r.getKey() + "-" + n.getKey())));
+                        r.getChildrenList().forEach(n -> convertHuskyReward(n, reward.getNode("prizes"), prizes.getNode(reward.getKey() + "-r" + r.getKey() + "-p" + n.getKey())));
                     }
                 });
                 crate.getNode("rewards", reward.getKey()).setValue(s.getNode("chance"));
@@ -251,7 +286,10 @@ public final class Config {
     private static void convertHuskyItem(ConfigurationNode husky, ConfigurationNode tesla) {
         tesla.setValue(husky);
         NodeUtils.move(tesla.getNode("damage"), tesla.getNode("data"));
-        tesla.getNode("quantity").setValue(husky.getNode("count").getInt(1) > 1 ? husky.getNode("count").getInt(1) : null);
+        NodeUtils.ifAttached(tesla.getNode("count"), n -> {
+            tesla.getNode("quantity").setValue(n.getInt(1) > 1 ? n.getInt(1) : null);
+            n.setValue(null);
+        });
     }
 
 }

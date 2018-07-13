@@ -18,7 +18,7 @@ import org.spongepowered.api.text.action.TextActions;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-@Aliases({"give"})
+@Aliases("give")
 @Permission("teslacrate.command.prize.give.base")
 public final class Give extends Command {
 

@@ -22,7 +22,7 @@ public final class Base extends Command {
 
     @Inject
     private Base(Settings settings) {
-        super(settings.usage(CmdUtils.usage("/teslacrate ", "The base command for &eTesla&6Crate&f.", CmdUtils.SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("/teslacrate ", "The base command for &eTesla&6Crate&f.")));
     }
 
     @Override

@@ -10,14 +10,14 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 
-@Aliases({"key"})
+@Aliases("key")
 @Permission("teslacrate.command.key.base")
-@Children({Get.class, Give.class, Take.class})
+@Children({Check.class, Give.class, Take.class})
 public final class Key extends Command {
 
     @Inject
     private Key(Settings settings) {
-        super(settings.usage(CmdUtils.usage("teslacrate key ", "The base command for keys.", CmdUtils.SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("/teslacrate key ", "The base command for keys.")));
     }
 
     @Override

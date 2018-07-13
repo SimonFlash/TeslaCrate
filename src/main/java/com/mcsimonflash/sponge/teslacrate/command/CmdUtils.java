@@ -66,9 +66,9 @@ public final class CmdUtils {
     public static Text usage(String base, String description, Text... args) {
         return Text.builder(base)
                 .color(TextColors.GOLD)
-                .onClick(TextActions.suggestCommand(base))
+                .onClick(args.length == 0 ? TextActions.runCommand(base) : TextActions.suggestCommand(base))
                 .onHover(TextActions.showText(Text.of(TextColors.GRAY, description)))
-                .append(Text.joinWith(Text.of(" "), args))
+                .append(args.length == 0 ? SUBCOMMAND_ARG : Text.joinWith(Text.of(" "), args))
                 .build();
     }
 

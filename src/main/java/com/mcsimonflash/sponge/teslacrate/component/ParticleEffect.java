@@ -2,15 +2,19 @@ package com.mcsimonflash.sponge.teslacrate.component;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
+import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.effect.particle.ParticleType;
 import org.spongepowered.api.effect.particle.ParticleTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -46,8 +50,8 @@ public final class ParticleEffect extends Effect<Vector3d> {
 
     @Override
     public void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
         NodeUtils.ifAttached(node.getNode("offset"), n -> setOffset(Serializers.deserializeVector3d(n)));
+        super.deserialize(node);
     }
 
     @Override
@@ -58,6 +62,11 @@ public final class ParticleEffect extends Effect<Vector3d> {
     @Override
     public Ref createRef(String name) {
         return new Ref(name, this);
+    }
+
+    @Override
+    protected ItemStack.Builder createDisplayItem(Vector3d value) {
+        return Utils.createItem(ItemTypes.REDSTONE, getName(), Lists.newArrayList(getDescription()));
     }
 
     @Override

@@ -41,11 +41,6 @@ public final class PhysicalKey extends Key {
     }
 
     @Override
-    public final boolean check(User user, int quantity) {
-        return get(user) >= quantity;
-    }
-
-    @Override
     public final boolean give(User user, int quantity) {
         ItemStack stack = item.createStack();
         stack.setQuantity(quantity);
@@ -60,11 +55,13 @@ public final class PhysicalKey extends Key {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
         setItem(Serializers.deserializeItem(node.getNode("item")));
-        if (getDisplayItem() == ItemStackSnapshot.NONE) {
-            setDisplayItem(getItem());
-        }
+        super.deserialize(node);
+    }
+
+    @Override
+    protected ItemStack.Builder createDisplayItem(Integer value) {
+        return ItemStack.builder().fromSnapshot(item);
     }
 
     @Override

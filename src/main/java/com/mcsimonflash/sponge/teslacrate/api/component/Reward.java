@@ -2,7 +2,6 @@ package com.mcsimonflash.sponge.teslacrate.api.component;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.internal.Registry;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
@@ -10,21 +9,31 @@ import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class Reward extends Referenceable<Double> {
 
+    private boolean announce = true;
     private boolean repeatable = true;
     private double weight = 0.0;
     private final List<Prize.Ref> prizes = Lists.newArrayList();
 
     protected Reward(String id) {
         super(id);
+    }
+
+    public final boolean isAnnounce() {
+        return announce;
+    }
+
+    public final void setAnnounce(boolean announce) {
+        this.announce = announce;
     }
 
     public final boolean isRepeatable() {
@@ -58,18 +67,15 @@ public abstract class Reward extends Referenceable<Double> {
     @Override
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
         setRepeatable(node.getNode("repeatable").getBoolean(true));
-        setWeight(Serializers.deserializeInt(node.getNode("weight"), Range.atLeast(0)));
+        setWeight(node.getNode("weight").getDouble(0.0));
         node.getNode("prizes").getChildrenMap().values().forEach(n -> {
             String id = getId() + ":prize:" + n.getKey();
             Prize.Ref prize = Serializers.getComponent(id, n, Registry.PRIZES, TeslaCrate.get().getContainer()).createRef(id);
             prize.deserialize(n);
             addPrize(prize);
         });
-        if (getDisplayItem() == ItemStackSnapshot.NONE) {
-            setDisplayItem(Utils.createItem(ItemTypes.BOOK, getName(), prizes.stream().map(Component::getName).collect(Collectors.toList())).build().createSnapshot());
-        }
+        super.deserialize(node);
     }
 
     @Override
@@ -80,6 +86,11 @@ public abstract class Reward extends Referenceable<Double> {
     @Override
     public final Ref createRef(String id) {
         return new Ref(id, this);
+    }
+
+    @Override
+    protected ItemStack.Builder createDisplayItem(Double value) {
+        return Utils.createItem(ItemTypes.BOOK, getName(), Stream.concat(Stream.of(getDescription()), prizes.stream().map(Component::getName)).collect(Collectors.toList()));
     }
 
     @Override
@@ -98,8 +109,8 @@ public abstract class Reward extends Referenceable<Double> {
 
         @Override
         public final void deserialize(ConfigurationNode node) {
+            setValue(node.getDouble(getComponent().getRefValue()));
             super.deserialize(node);
-            setValue(node.getDouble(getValue()));
         }
 
     }

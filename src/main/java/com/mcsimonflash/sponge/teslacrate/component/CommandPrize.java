@@ -11,7 +11,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 public final class CommandPrize extends Prize<String> {
 
@@ -60,13 +60,10 @@ public final class CommandPrize extends Prize<String> {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
         setCommand(node.getNode("command").getString(""));
         setServer(node.getNode("server").getBoolean(true));
         setValue(node.getNode("value").getString("<value>"));
-        if (getDisplayItem() == ItemStackSnapshot.NONE) {
-            setDisplayItem(Utils.createItem(ItemTypes.FILLED_MAP, getName(), Lists.newArrayList(Utils.toText(getCommand().replace("<value>", value)))).build().createSnapshot());
-        }
+        super.deserialize(node);
     }
 
     @Override
@@ -77,6 +74,11 @@ public final class CommandPrize extends Prize<String> {
     @Override
     public final Ref createRef(String id) {
         return new Ref(id, this);
+    }
+
+    @Override
+    protected ItemStack.Builder createDisplayItem(String value) {
+        return Utils.createItem(ItemTypes.FILLED_MAP, getName(), Lists.newArrayList(Utils.toText(getCommand().replace("<value>", value))));
     }
 
     @Override

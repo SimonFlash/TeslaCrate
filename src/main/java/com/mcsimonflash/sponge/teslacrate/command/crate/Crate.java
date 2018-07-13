@@ -10,14 +10,14 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 
-@Aliases({"crate"})
+@Aliases("crate")
 @Permission("teslacrate.command.crate.base")
 @Children(Open.class)
 public final class Crate extends Command {
 
     @Inject
     private Crate(Settings settings) {
-        super(settings.usage(CmdUtils.usage("teslacrate crate ", "The base command for crates.", CmdUtils.SUBCOMMAND_ARG)));
+        super(settings.usage(CmdUtils.usage("/teslacrate crate ", "The base command for crates.")));
     }
 
     @Override

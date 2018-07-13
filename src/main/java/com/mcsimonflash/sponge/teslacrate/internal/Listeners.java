@@ -1,6 +1,8 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Key;
+import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
@@ -10,10 +12,14 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.entity.living.humanoid.HandInteractEvent;
 import org.spongepowered.api.event.filter.cause.Root;
-import org.spongepowered.api.event.item.inventory.*;
-import org.spongepowered.api.world.*;
+import org.spongepowered.api.event.item.inventory.CraftItemEvent;
+import org.spongepowered.api.event.item.inventory.InteractItemEvent;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class Listeners {
 
@@ -32,16 +38,8 @@ public final class Listeners {
     @Listener
     public final void onInteractItem(InteractItemEvent event, @Root Player player) {
         event.getItemStack().toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key")).ifPresent(k -> {
-            Location<World> location = event.getInteractionPoint().map(p -> new Location<>(player.getWorld(), p)).orElse(null);
             if (!Registry.KEYS.get(k).isPresent()) {
-                player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cThis item is registered as a &4" + k + "&c key, but that key doesn't exist!")));
-            } else if (location != null) {
-                Registration registration = preInteract(event, location).orElseGet(() -> preInteract(event, location.add(location.getPosition().getX() % 1 == 0 ? -1 : 0, location.getPosition().getY() % 1 == 0 ? -1 : 0, location.getPosition().getZ() % 1 == 0 ? -1 : 0)).orElse(null));
-                if (registration != null) {
-                    interact(event, player, registration, event instanceof InteractItemEvent.Primary);
-                } else if (event instanceof HandInteractEvent && ((HandInteractEvent) event).getHandType() == HandTypes.MAIN_HAND) {
-                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.key.interact", "key", k));
-                }
+                player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cThis item is registered as a &4" + k + "&c key, but that key doesn't exist.")));
             }
             event.setCancelled(true);
         });
@@ -49,7 +47,23 @@ public final class Listeners {
 
     @Listener
     public final void onInteractBlock(InteractBlockEvent event, @Root Player player) {
-        event.getTargetBlock().getLocation().ifPresent(l -> preInteract(event, l).ifPresent(r -> interact(event, player, r, event instanceof InteractBlockEvent.Primary)));
+        event.getTargetBlock().getLocation().ifPresent(l -> {
+            Registration registration = preInteract(event, l).orElse(null);
+            if (registration != null) {
+                interact(event, player, registration, event instanceof InteractBlockEvent.Primary);
+            } else {
+                player.getItemInHand(HandTypes.MAIN_HAND).flatMap(i -> i.toContainer().getString(DataQuery.of("UnsafeData", "TeslaCrate", "Key"))).ifPresent(k -> {
+                    if (Registry.KEYS.get(k).isPresent()) {
+                        if (event instanceof HandInteractEvent && ((HandInteractEvent) event).getHandType().equals(HandTypes.MAIN_HAND)) {
+                            player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.key.interact", "key", k));
+                        }
+                        event.setCancelled(true);
+                    } else {
+                        player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cThis item is registered as a &4" + k + "&c key, but that key doesn't exist.")));
+                    }
+                });
+            }
+        });
     }
 
     @Listener
@@ -66,15 +80,31 @@ public final class Listeners {
     private void interact(InteractEvent event, Player player, Registration registration, boolean primary) {
         if (event instanceof HandInteractEvent && ((HandInteractEvent) event).getHandType() == HandTypes.MAIN_HAND) {
             if (!player.hasPermission("teslacrate.crates." + registration.getCrate().getId() + ".base")) {
-                player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.no-permission", "player", player.getName()));
+                player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.no-permission", "player", player.getName(), "crate", registration.getCrate().getId()));
             } else if (primary) {
                 if (player.hasPermission("teslacrate.crates." + registration.getCrate().getId() + ".preview")) {
                     registration.getCrate().preview(player, registration.getLocation());
                 } else {
-                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.preview.no-permission", "player", player.getName()));
+                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.preview.no-permission", "player", player.getName(), "crate", registration.getCrate().getId()));
                 }
-            } else if (registration.getCrate().takeKeys(player)) {
-                registration.getCrate().open(player, registration.getLocation());
+            } else {
+                boolean cooldown = !player.hasPermission("teslacrate.crates." + registration.getCrate().getId() + ".no-cooldown");
+                long time = cooldown ? Utils.getCooldown(player, registration.getCrate()) - (System.currentTimeMillis() - Config.getCooldown(player.getUniqueId(), registration.getCrate())) : 0;
+                if (time > 0) {
+                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.cooldown", "crate", registration.getCrate().getId(), "time", String.format("%.1f", time / 1000.0)));
+                } else {
+                    List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> r.getComponent().get(player) < r.getValue()).collect(Collectors.toList());
+                    if (!missing.isEmpty()) {
+                        player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", registration.getCrate().getId(), "keys", String.join(", ", missing.stream()
+                                .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", r.getComponent().getId(), "quantity", r.getValue()).toString())
+                                .collect(Collectors.toList()))));
+                    } else if (cooldown && !Config.resetCooldown(player.getUniqueId(), registration.getCrate())) {
+                        player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cUnable to reset your cooldown.")));
+                    } else {
+                        registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
+                        registration.getCrate().open(player, registration.getLocation());
+                    }
+                }
             }
         }
     }

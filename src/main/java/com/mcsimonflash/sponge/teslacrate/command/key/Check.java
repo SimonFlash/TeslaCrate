@@ -12,21 +12,21 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.User;
 
-@Aliases({"get"})
-@Permission("teslacrate.command.key.get.base")
-public final class Get extends Command {
+@Aliases("check")
+@Permission("teslacrate.command.key.check.base")
+public final class Check extends Command {
 
     @Inject
-    private Get(Settings settings) {
-        super(settings.usage(CmdUtils.usage("/teslacrate key get ", "Gets the number of keys a user has.", CmdUtils.USER_ARG, CmdUtils.KEY_ARG))
-                .elements(CmdUtils.USER_ELEM, CmdUtils.KEY_ELEM));
+    private Check(Settings settings) {
+        super(settings.usage(CmdUtils.usage("/teslacrate key check ", "Gets the number of keys a user has.", CmdUtils.OPT_USER_ARG, CmdUtils.KEY_ARG))
+                .elements(CmdUtils.OPT_USER_ELEM, CmdUtils.KEY_ELEM));
     }
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
         User user = args.<User>getOne("user").get();
         Key key = args.<Key>getOne("key").get();
-        src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.key.get.success", "user", user.getName(), "key", key.getId(), "quantity", key.get(user)));
+        src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.key.check.success", "user", user.getName(), "key", key.getId(), "quantity", key.get(user)));
         return CommandResult.success();
     }
 

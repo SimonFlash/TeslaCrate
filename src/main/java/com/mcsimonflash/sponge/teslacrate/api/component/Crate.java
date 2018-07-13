@@ -6,26 +6,54 @@ import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.internal.Registry;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
+import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class Crate extends Referenceable<Object> {
 
+    private long cooldown = 0;
+    private String message;
+    private String announcement;
     private final List<Effect.Ref> effects = Lists.newArrayList();
     private final List<Key.Ref> keys = Lists.newArrayList();
     private final List<Reward.Ref> rewards = Lists.newArrayList();
 
     protected Crate(String name) {
         super(name);
+    }
+
+    public final long getCooldown() {
+        return cooldown;
+    }
+
+    public final void setCooldown(long cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public final String getMessage() {
+        return message;
+    }
+
+    public final void setMessage(String message) {
+        this.message = message;
+    }
+
+    public final String getAnnouncement() {
+        return announcement;
+    }
+
+    public final void setAnnouncement(String announcement) {
+        this.announcement = announcement;
     }
 
     public final List<Effect.Ref> getEffects() {
@@ -56,6 +84,12 @@ public abstract class Crate extends Referenceable<Object> {
         double rand = Math.random() * getRewards().stream().mapToDouble(Reference::getValue).sum();
         for (Reference<? extends Reward, Double> reward : getRewards()) {
             if ((rand -= reward.getValue()) <= 0) {
+                if (!message.isEmpty()) {
+                    player.sendMessage(Message.of(message).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
+                }
+                if (!announcement.isEmpty() && reward.getComponent().isAnnounce()) {
+                    Sponge.getServer().getBroadcastChannel().send(Message.of(announcement).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
+                }
                 reward.getComponent().give(player);
                 effects.forEach(e -> e.run(player, location));
                 return;
@@ -67,20 +101,12 @@ public abstract class Crate extends Referenceable<Object> {
         //TODO:
     }
 
-    public boolean takeKeys(Player player) {
-        List<Reference<? extends Key, ?>> missing = keys.stream().filter(r -> !r.getComponent().check(player, r.getValue())).collect(Collectors.toList());
-        if (!missing.isEmpty()) {
-            player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", getId(), "keys", String.join(", ", missing.stream().map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).arg("key", r.getComponent().getId()).arg("quantity", r.getValue()).toString()).collect(Collectors.toList()))));
-            return false;
-        }
-        keys.forEach(r -> r.getComponent().take(player, r.getValue()));
-        return true;
-    }
-
     @Override
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
-        super.deserialize(node);
+        setCooldown(node.getNode("cooldown").getLong(0));
+        setMessage(node.getNode("message").getString(""));
+        setAnnouncement(node.getNode("announcement").getString(""));
         node.getNode("effects").getChildrenMap().values().forEach(n -> {
             String name = getId() + ":effect:" + n.getKey();
             Effect.Ref effect = Serializers.getComponent(name, n, Registry.EFFECTS, TeslaCrate.get().getContainer()).createRef(name);
@@ -99,9 +125,7 @@ public abstract class Crate extends Referenceable<Object> {
             reward.deserialize(n);
             addReward(reward);
         });
-        if (getDisplayItem() == ItemStackSnapshot.NONE) {
-            setDisplayItem(Utils.createItem(ItemTypes.CHEST, getName(), Lists.newArrayList()).build().createSnapshot());
-        }
+        super.deserialize(node);
     }
 
     @Override
@@ -115,6 +139,11 @@ public abstract class Crate extends Referenceable<Object> {
     }
 
     @Override
+    protected ItemStack.Builder createDisplayItem(Object value) {
+        return Utils.createItem(ItemTypes.CHEST, getName(), Lists.newArrayList(getDescription()));
+    }
+
+    @Override
     @OverridingMethodsMustInvokeSuper
     protected MoreObjects.ToStringHelper toStringHelper(String indent) {
         return super.toStringHelper(indent)
@@ -123,7 +152,7 @@ public abstract class Crate extends Referenceable<Object> {
                 .add(indent + "rewards", Arrays.toString(rewards.stream().map(r -> r.getComponent().getId() + "=" + r.getValue()).toArray()));
     }
 
-    public static final class Ref extends Reference<Crate, Object> {
+    private static final class Ref extends Reference<Crate, Object> {
 
         private Ref(String id, Crate component) {
             super(id, component);

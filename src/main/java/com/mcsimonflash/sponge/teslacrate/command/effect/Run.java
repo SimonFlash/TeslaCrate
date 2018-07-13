@@ -14,7 +14,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-@Aliases({"run"})
+@Aliases("run")
 @Permission("teslacrate.command.effect.run.base")
 public final class Run extends Command {
 

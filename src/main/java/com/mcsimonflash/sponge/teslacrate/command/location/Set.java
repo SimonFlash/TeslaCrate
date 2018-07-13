@@ -16,7 +16,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-@Aliases({"set"})
+@Aliases("set")
 @Permission("teslacrate.command.location.set.base")
 public final class Set extends Command {
 

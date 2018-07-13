@@ -1,17 +1,17 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
 import com.google.common.base.MoreObjects;
-
-import javax.annotation.Nullable;
+import ninja.leaping.configurate.ConfigurationNode;
 
 public abstract class Reference<T extends Referenceable<V>, V> extends Component {
 
     private final T component;
-    @Nullable private V value;
+    private V value;
 
     Reference(String id, T component) {
         super(id);
         this.component = component;
+        value = component.getRefValue();
         setName(component.getName());
         setDescription(component.getDescription());
         setDisplayItem(component.getDisplayItem());
@@ -22,11 +22,16 @@ public abstract class Reference<T extends Referenceable<V>, V> extends Component
     }
 
     public final V getValue() {
-        return value != null ? value : component.getRefValue();
+        return value;
     }
 
-    public final void setValue(@Nullable V value) {
+    public final void setValue(V value) {
         this.value = value;
+    }
+
+    @Override
+    public void deserialize(ConfigurationNode node) {
+        setDisplayItem(value != null ? component.createDisplayItem(value).build().createSnapshot() : component.getDisplayItem());
     }
 
     @Override

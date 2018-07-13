@@ -14,7 +14,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 
-@Aliases({"take"})
+@Aliases("take")
 @Permission("teslacrate.command.key.take.base")
 public final class Take extends Command {
 
@@ -29,7 +29,7 @@ public final class Take extends Command {
         User user = args.<User>getOne("user").get();
         Key key = args.<Key>getOne("key").get();
         Integer quantity = args.<Integer>getOne("quantity").get();
-        if (!key.check(user, quantity)) {
+        if (key.get(user) < quantity) {
             throw new CommandException(getMessage(src, "not-enough", user, key, quantity));
         } else if (!key.take(user, quantity)) {
             throw new CommandException(getMessage(src, "failure", user, key, quantity));
