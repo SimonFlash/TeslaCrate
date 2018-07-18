@@ -17,7 +17,7 @@ import org.spongepowered.api.command.args.CommandContext;
 
 @Aliases({"teslacrate", "tcrate", "crate", "tc"})
 @Permission("teslacrate.command.base")
-@Children({Crate.class, Effect.class, Key.class, Location.class, Prize.class, Reward.class, Info.class})
+@Children({Crate.class, Effect.class, Key.class, Location.class, Prize.class, Reward.class, Info.class, Menu.class})
 public final class Base extends Command {
 
     @Inject

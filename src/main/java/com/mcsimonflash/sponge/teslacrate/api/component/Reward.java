@@ -15,7 +15,6 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class Reward extends Referenceable<Double> {
 
@@ -90,7 +89,10 @@ public abstract class Reward extends Referenceable<Double> {
 
     @Override
     protected ItemStack.Builder createDisplayItem(Double value) {
-        return Utils.createItem(ItemTypes.BOOK, getName(), Stream.concat(Stream.of(getDescription()), prizes.stream().map(Component::getName)).collect(Collectors.toList()));
+        if (prizes.size() == 1) {
+            return ItemStack.builder().fromSnapshot(prizes.get(0).getDisplayItem());
+        }
+        return Utils.createItem(ItemTypes.BOOK, getName(), prizes.stream().map(Component::getName).collect(Collectors.toList()));
     }
 
     @Override

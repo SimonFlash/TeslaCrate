@@ -3,9 +3,11 @@ package com.mcsimonflash.sponge.teslacrate.api.component;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslacrate.internal.Registry;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
+import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -17,7 +19,9 @@ import org.spongepowered.api.world.World;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class Crate extends Referenceable<Object> {
 
@@ -98,7 +102,7 @@ public abstract class Crate extends Referenceable<Object> {
     }
 
     public void preview(Player player, Location<World> location) {
-        //TODO:
+        Inventory.page(getName(), rewards.stream().map(Component::getDisplayItem).map(Element::of).collect(Collectors.toList()), Inventory.CLOSE).open(player);
     }
 
     @Override
@@ -125,6 +129,7 @@ public abstract class Crate extends Referenceable<Object> {
             reward.deserialize(n);
             addReward(reward);
         });
+        rewards.sort(Comparator.comparing(Reference::getValue));
         super.deserialize(node);
     }
 
