@@ -1,4 +1,4 @@
-package com.mcsimonflash.sponge.teslacrate.component;
+package com.mcsimonflash.sponge.teslacrate.component.prize;
 
 import com.google.common.base.MoreObjects;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
@@ -74,9 +74,8 @@ public final class ItemPrize extends Prize<Integer> {
         }
 
         @Override
-        public final void deserialize(ConfigurationNode node) {
-            super.deserialize(node);
-            setValue(node.getInt(getComponent().getQuantity()));
+        public final Integer deserializeValue(ConfigurationNode node) {
+            return node.getInt(getComponent().getQuantity());
         }
 
     }

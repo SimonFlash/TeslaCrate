@@ -4,6 +4,8 @@ import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.item.inventory.ItemStack;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
+
 public abstract class Referenceable<V> extends Component {
 
     protected Referenceable(String id) {
@@ -11,9 +13,10 @@ public abstract class Referenceable<V> extends Component {
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
-        NodeUtils.ifVirtual(node.getNode("display-item"), n -> setDisplayItem(createDisplayItem(getRefValue()).build().createSnapshot()));
         super.deserialize(node);
+        NodeUtils.ifVirtual(node.getNode("display-item"), n -> setDisplayItem(createDisplayItem(getRefValue()).build().createSnapshot()));
     }
 
     public abstract V getRefValue();

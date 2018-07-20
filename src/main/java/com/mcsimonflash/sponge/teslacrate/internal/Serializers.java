@@ -1,24 +1,36 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
-import com.flowpowered.math.vector.*;
-import com.google.common.collect.*;
+import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3i;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Range;
 import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
-import com.mcsimonflash.sponge.teslalibs.configuration.*;
+import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
+import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.*;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.item.enchantment.*;
-import org.spongepowered.api.item.inventory.*;
+import org.spongepowered.api.item.enchantment.Enchantment;
+import org.spongepowered.api.item.enchantment.EnchantmentType;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
+import org.spongepowered.api.util.Color;
 import org.spongepowered.api.util.Tuple;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 public final class Serializers {
@@ -54,9 +66,12 @@ public final class Serializers {
         return component;
     }
 
+    public static <T extends CatalogType> T deserializeCatalogType(ConfigurationNode node, Class<T> type) throws ConfigurationException {
+        return Sponge.getRegistry().getType(type, node.getString("")).orElseThrow(() -> new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", node.getString()));
+    }
+
     public static ItemStackSnapshot deserializeItem(ConfigurationNode node) throws ConfigurationException {
-        String id = node.getNode("id").getString("undefined");
-        ItemType type = Sponge.getRegistry().getType(ItemType.class, id).orElseThrow(() -> new ConfigurationException(node.getNode("id"), "No item found for id `%s`.", id));
+        ItemType type = deserializeCatalogType(node.getNode("id"), ItemType.class);
         int quantity = node.getNode("quantity").getInt(1);
         if (quantity <= 0 || quantity > type.getMaxStackQuantity()) {
             throw new ConfigurationException(node.getNode("quantity"), "Quantity is out of bounds.");
@@ -91,8 +106,20 @@ public final class Serializers {
         throw new ConfigurationException(node, "Number is not in the allowed range of %s.", range);
     }
 
+    public static <T extends Enum<T>> T deserializeEnum(ConfigurationNode node, Class<T> type) {
+        return Arrays.stream(type.getEnumConstants()).filter(e -> e.name().equalsIgnoreCase(node.getString(""))).findFirst().orElseThrow(() -> new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", node.getString("undefined")));
+    }
+
     public static Text deserializeText(ConfigurationNode node) {
         return TextSerializers.FORMATTING_CODE.deserialize(node.getString(""));
+    }
+
+    public static Color deserializeColor(ConfigurationNode node) throws ConfigurationException {
+        try {
+            return node.hasListChildren() ? Color.of(deserializeVector3i(node)) : Color.ofRgb(Integer.decode(node.getString("undefined")));
+        } catch (NumberFormatException e) {
+            throw new ConfigurationException(node, "Unable to decode " + node.getString("") + " as an integer.");
+        }
     }
 
     public static Vector3i deserializeVector3i(ConfigurationNode node) throws ConfigurationException {

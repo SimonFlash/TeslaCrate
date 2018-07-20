@@ -1,4 +1,4 @@
-package com.mcsimonflash.sponge.teslacrate.component;
+package com.mcsimonflash.sponge.teslacrate.component.key;
 
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;

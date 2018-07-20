@@ -40,16 +40,6 @@ public abstract class Key extends Referenceable<Integer> {
     }
 
     @Override
-    public final Integer getRefValue() {
-        return getQuantity();
-    }
-
-    @Override
-    public final Ref createRef(String id) {
-        return new Ref(id, this);
-    }
-
-    @Override
     protected ItemStack.Builder createDisplayItem(Integer value) {
         return Utils.createItem(ItemTypes.NAME_TAG, getName(), Lists.newArrayList(getDescription(), Utils.toText("&6Quantity&8: &e" + value)));
     }
@@ -60,6 +50,16 @@ public abstract class Key extends Referenceable<Integer> {
         return super.toStringHelper(indent).add(indent + "quantity", quantity);
     }
 
+    @Override
+    public final Integer getRefValue() {
+        return getQuantity();
+    }
+
+    @Override
+    public final Ref createRef(String id) {
+        return new Ref(id, this);
+    }
+
     public final static class Ref extends Reference<Key, Integer> {
 
         private Ref(String id, Key component) {
@@ -67,9 +67,8 @@ public abstract class Key extends Referenceable<Integer> {
         }
 
         @Override
-        public final void deserialize(ConfigurationNode node) {
-            setValue(node.getInt(getComponent().getRefValue()));
-            super.deserialize(node);
+        public final Integer deserializeValue(ConfigurationNode node) {
+            return node.getInt(getComponent().getRefValue());
         }
 
     }

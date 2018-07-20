@@ -3,14 +3,16 @@ package com.mcsimonflash.sponge.teslacrate;
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
 import com.mcsimonflash.sponge.teslacrate.command.Base;
-import com.mcsimonflash.sponge.teslacrate.component.CommandPrize;
-import com.mcsimonflash.sponge.teslacrate.component.ItemPrize;
-import com.mcsimonflash.sponge.teslacrate.component.ParticleEffect;
-import com.mcsimonflash.sponge.teslacrate.component.PhysicalKey;
-import com.mcsimonflash.sponge.teslacrate.component.SoundEffect;
-import com.mcsimonflash.sponge.teslacrate.component.StandardCrate;
-import com.mcsimonflash.sponge.teslacrate.component.StandardReward;
-import com.mcsimonflash.sponge.teslacrate.component.VirtualKey;
+import com.mcsimonflash.sponge.teslacrate.component.prize.CommandPrize;
+import com.mcsimonflash.sponge.teslacrate.component.prize.ItemPrize;
+import com.mcsimonflash.sponge.teslacrate.component.effect.FireworkEffect;
+import com.mcsimonflash.sponge.teslacrate.component.effect.ParticleEffect;
+import com.mcsimonflash.sponge.teslacrate.component.key.PhysicalKey;
+import com.mcsimonflash.sponge.teslacrate.component.effect.PotionEffect;
+import com.mcsimonflash.sponge.teslacrate.component.effect.SoundEffect;
+import com.mcsimonflash.sponge.teslacrate.component.crate.StandardCrate;
+import com.mcsimonflash.sponge.teslacrate.component.reward.StandardReward;
+import com.mcsimonflash.sponge.teslacrate.component.key.VirtualKey;
 import com.mcsimonflash.sponge.teslacrate.internal.Config;
 import com.mcsimonflash.sponge.teslacrate.internal.Listeners;
 import com.mcsimonflash.sponge.teslacrate.internal.Registry;
@@ -39,7 +41,9 @@ public final class TeslaCrate extends Tesla {
     @Listener
     public final void onInit(GameInitializationEvent event) {
         Registry.CRATES.registerType(StandardCrate.TYPE);
+        Registry.EFFECTS.registerType(FireworkEffect.TYPE);
         Registry.EFFECTS.registerType(ParticleEffect.TYPE);
+        Registry.EFFECTS.registerType(PotionEffect.TYPE);
         Registry.EFFECTS.registerType(SoundEffect.TYPE);
         Registry.KEYS.registerType(PhysicalKey.TYPE);
         Registry.KEYS.registerType(VirtualKey.TYPE);

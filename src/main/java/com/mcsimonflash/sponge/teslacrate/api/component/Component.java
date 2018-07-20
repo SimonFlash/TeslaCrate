@@ -2,6 +2,7 @@ package com.mcsimonflash.sponge.teslacrate.api.component;
 
 import com.google.common.base.MoreObjects;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
+import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -51,8 +52,8 @@ public abstract class Component {
 
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("name"), n -> setName(Serializers.deserializeText(n)));
-        NodeUtils.ifAttached(node.getNode("description"), n -> setDescription(Serializers.deserializeText(n)));
+        NodeUtils.ifAttached(node.getNode("name"), n -> setName(Utils.toText(n.getString(""))));
+        NodeUtils.ifAttached(node.getNode("description"), n -> setDescription(Utils.toText(n.getString(""))));
         NodeUtils.ifAttached(node.getNode("display-item"), n -> setDisplayItem(Serializers.deserializeItem(n)));
     }
 

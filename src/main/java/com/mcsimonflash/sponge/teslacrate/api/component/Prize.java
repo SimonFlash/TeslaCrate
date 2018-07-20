@@ -15,16 +15,14 @@ public abstract class Prize<V> extends Referenceable<V> {
     public abstract boolean give(User user, V value);
 
     @Override
-    public Ref<? extends Prize<V>, V> createRef(String id) {
-        return new Ref<>(id, this);
-    }
+    public abstract Ref<? extends Prize<V>, V> createRef(String id);
 
     @Override
     protected ItemStack.Builder createDisplayItem(V value) {
         return Utils.createItem(ItemTypes.NETHER_STAR, getName(), Lists.newArrayList(getDescription()));
     }
 
-    public static class Ref<T extends Prize<V>, V> extends Reference<T, V> {
+    public abstract static class Ref<T extends Prize<V>, V> extends Reference<T, V> {
 
         protected Ref(String id, T component) {
             super(id, component);

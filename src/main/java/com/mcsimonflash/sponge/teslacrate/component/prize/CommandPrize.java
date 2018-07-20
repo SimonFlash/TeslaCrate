@@ -1,4 +1,4 @@
-package com.mcsimonflash.sponge.teslacrate.component;
+package com.mcsimonflash.sponge.teslacrate.component.prize;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
@@ -67,16 +67,6 @@ public final class CommandPrize extends Prize<String> {
     }
 
     @Override
-    public final String getRefValue() {
-        return command;
-    }
-
-    @Override
-    public final Ref createRef(String id) {
-        return new Ref(id, this);
-    }
-
-    @Override
     protected ItemStack.Builder createDisplayItem(String value) {
         return Utils.createItem(ItemTypes.FILLED_MAP, getName(), Lists.newArrayList(Utils.toText(getCommand().replace("<value>", value))));
     }
@@ -89,16 +79,26 @@ public final class CommandPrize extends Prize<String> {
                 .add(indent + "value", String.format("\"%s\"", value));
     }
 
+    @Override
+    public final String getRefValue() {
+        return command;
+    }
+
+    @Override
+    public final Ref createRef(String id) {
+        return new Ref(id, this);
+    }
+
+
     public static final class Ref extends Prize.Ref<CommandPrize, String> {
 
-        protected Ref(String id, CommandPrize component) {
+        private Ref(String id, CommandPrize component) {
             super(id, component);
         }
 
         @Override
-        public final void deserialize(ConfigurationNode node) {
-            super.deserialize(node);
-            setValue(node.getString("").isEmpty() ? getValue() : node.getString(""));
+        public final String deserializeValue(ConfigurationNode node) {
+            return node.getString("").isEmpty() ? getValue() : node.getString("");
         }
 
     }

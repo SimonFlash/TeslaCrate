@@ -78,6 +78,23 @@ public abstract class Reward extends Referenceable<Double> {
     }
 
     @Override
+    protected ItemStack.Builder createDisplayItem(Double value) {
+        if (prizes.size() == 1) {
+            return ItemStack.builder().fromSnapshot(prizes.get(0).getDisplayItem());
+        }
+        return Utils.createItem(ItemTypes.BOOK, getName(), prizes.stream().map(Component::getName).collect(Collectors.toList()));
+    }
+
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
+        return super.toStringHelper(indent)
+                .add(indent + "weight", weight)
+                .add(indent + "repeatable", repeatable)
+                .add(indent + "prizes", Arrays.toString(prizes.stream().map(r -> r.getComponent().getId() + "=" + r.getValue()).toArray()));
+    }
+
+    @Override
     public final Double getRefValue() {
         return weight;
     }
@@ -87,22 +104,6 @@ public abstract class Reward extends Referenceable<Double> {
         return new Ref(id, this);
     }
 
-    @Override
-    protected ItemStack.Builder createDisplayItem(Double value) {
-        if (prizes.size() == 1) {
-            return ItemStack.builder().fromSnapshot(prizes.get(0).getDisplayItem());
-        }
-        return Utils.createItem(ItemTypes.BOOK, getName(), prizes.stream().map(Component::getName).collect(Collectors.toList()));
-    }
-
-    @Override
-    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
-        return super.toStringHelper(indent)
-                .add(indent + "weight", weight)
-                .add(indent + "repeatable", repeatable)
-                .add(indent + "prizes", Arrays.toString(prizes.stream().map(r -> r.getComponent().getId() + "=" + r.getValue()).toArray()));
-    }
-
     public final static class Ref extends Reference<Reward, Double> {
 
         private Ref(String id, Reward component) {
@@ -110,9 +111,8 @@ public abstract class Reward extends Referenceable<Double> {
         }
 
         @Override
-        public final void deserialize(ConfigurationNode node) {
-            setValue(node.getDouble(getComponent().getRefValue()));
-            super.deserialize(node);
+        public final Double deserializeValue(ConfigurationNode node) {
+            return node.getDouble(getComponent().getRefValue());
         }
 
     }

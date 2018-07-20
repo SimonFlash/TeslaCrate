@@ -134,16 +134,6 @@ public abstract class Crate extends Referenceable<Object> {
     }
 
     @Override
-    public final Object getRefValue() {
-        return this;
-    }
-
-    @Override
-    public final Ref createRef(String id) {
-        return new Ref(id, this);
-    }
-
-    @Override
     protected ItemStack.Builder createDisplayItem(Object value) {
         return Utils.createItem(ItemTypes.CHEST, getName(), Lists.newArrayList(getDescription()));
     }
@@ -157,10 +147,25 @@ public abstract class Crate extends Referenceable<Object> {
                 .add(indent + "rewards", Arrays.toString(rewards.stream().map(r -> r.getComponent().getId() + "=" + r.getValue()).toArray()));
     }
 
+    @Override
+    public final Object getRefValue() {
+        return this;
+    }
+
+    @Override
+    public final Ref createRef(String id) {
+        return new Ref(id, this);
+    }
+
     private static final class Ref extends Reference<Crate, Object> {
 
         private Ref(String id, Crate component) {
             super(id, component);
+        }
+
+        @Override
+        public final Object deserializeValue(ConfigurationNode node) {
+            return getComponent();
         }
 
     }
