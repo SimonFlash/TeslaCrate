@@ -35,7 +35,9 @@ public abstract class Reference<T extends Referenceable<V>, V> extends Component
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        setValue(deserializeValue(node));
+        if (!node.hasMapChildren()) {
+            setValue(deserializeValue(node));
+        }
         setDisplayItem(component.createDisplayItem(value).build().createSnapshot());
     }
 

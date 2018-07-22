@@ -17,6 +17,10 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 public abstract class Effect<V> extends Referenceable<V> {
 
+    public enum Trigger {
+        PASSIVE, ON_OPEN, ON_RECEIVE, ON_REJECT, ON_PREVIEW
+    }
+
     protected Effect(String id) {
         super(id);
     }

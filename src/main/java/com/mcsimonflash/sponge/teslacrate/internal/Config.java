@@ -36,6 +36,8 @@ public final class Config {
     public static void load() {
         try {
             Registry.clear();
+            REGISTRATIONS.values().forEach(Registration::stopEffects);
+            REGISTRATIONS.clear();
             TeslaCrate.get().getLogger().info("&aLoading config...");
             Files.createDirectories(configuration);
             Files.createDirectories(storage);
@@ -66,6 +68,7 @@ public final class Config {
             loadComponents(keys, Registry.KEYS, "key");
             loadComponents(crates, Registry.CRATES, "crate");
             loadRegistrations();
+            REGISTRATIONS.values().forEach(Registration::startEffects);
             TeslaCrate.get().getLogger().info("&aSuccessfully loaded config.");
         } catch (IOException | ConfigurationException e) {
             TeslaCrate.get().getLogger().error("&cConfiguration loading has halted.");

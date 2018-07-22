@@ -19,6 +19,7 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.util.List;
+import java.util.Optional;
 
 public final class FireworkEffect extends Effect.Locatable {
 
@@ -88,6 +89,7 @@ public final class FireworkEffect extends Effect.Locatable {
         Entity firework = location.getExtent().createEntity(EntityTypes.FIREWORK, location.getPosition());
         firework.offer(Keys.FIREWORK_EFFECTS, Lists.newArrayList(org.spongepowered.api.item.FireworkEffect.builder()
                 .colors(colors).fades(fades).flicker(flicker).trail(trail).build()));
+        firework.offer(Keys.EXPLOSION_RADIUS, Optional.of(0));
         firework.offer(Keys.FIREWORK_FLIGHT_MODIFIER, strength);
         location.getExtent().spawnEntity(firework);
     }

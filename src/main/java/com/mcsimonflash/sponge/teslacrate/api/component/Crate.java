@@ -1,7 +1,9 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslacrate.internal.Registry;
@@ -21,6 +23,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class Crate extends Referenceable<Object> {
@@ -28,7 +31,7 @@ public abstract class Crate extends Referenceable<Object> {
     private long cooldown = 0;
     private String message;
     private String announcement;
-    private final List<Effect.Ref> effects = Lists.newArrayList();
+    private final Map<Effect.Trigger, List<Effect.Ref>> effects = Maps.newEnumMap(Effect.Trigger.class);
     private final List<Key.Ref> keys = Lists.newArrayList();
     private final List<Reward.Ref> rewards = Lists.newArrayList();
 
@@ -60,12 +63,12 @@ public abstract class Crate extends Referenceable<Object> {
         this.announcement = announcement;
     }
 
-    public final List<Effect.Ref> getEffects() {
+    public final Map<Effect.Trigger, List<Effect.Ref>> getEffects() {
         return effects;
     }
 
-    public final void addEffect(Effect.Ref effect) {
-        effects.add(effect);
+    public final void addEffect(Effect.Trigger trigger, Effect.Ref ref) {
+        effects.computeIfAbsent(trigger, t -> Lists.newArrayList()).add(ref);
     }
 
     public final List<Key.Ref> getKeys() {
@@ -85,6 +88,7 @@ public abstract class Crate extends Referenceable<Object> {
     }
 
     public void open(Player player, Location<World> location) {
+        effects.getOrDefault(Effect.Trigger.ON_OPEN, ImmutableList.of()).forEach(e -> e.run(player, location));
         double rand = Math.random() * getRewards().stream().mapToDouble(Reference::getValue).sum();
         for (Reference<? extends Reward, Double> reward : getRewards()) {
             if ((rand -= reward.getValue()) <= 0) {
@@ -95,13 +99,14 @@ public abstract class Crate extends Referenceable<Object> {
                     Sponge.getServer().getBroadcastChannel().send(Message.of(announcement).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
                 }
                 reward.getComponent().give(player);
-                effects.forEach(e -> e.run(player, location));
+                effects.getOrDefault(Effect.Trigger.ON_RECEIVE, ImmutableList.of()).forEach(e -> e.run(player, location));
                 return;
             }
         }
     }
 
     public void preview(Player player, Location<World> location) {
+        effects.getOrDefault(Effect.Trigger.ON_PREVIEW, ImmutableList.of()).forEach(e -> e.run(player, location));
         Inventory.page(getName(), rewards.stream().map(Component::getDisplayItem).map(Element::of).collect(Collectors.toList()), Inventory.CLOSE).open(player);
     }
 
@@ -111,21 +116,24 @@ public abstract class Crate extends Referenceable<Object> {
         setCooldown(node.getNode("cooldown").getLong(0));
         setMessage(node.getNode("message").getString(""));
         setAnnouncement(node.getNode("announcement").getString(""));
-        node.getNode("effects").getChildrenMap().values().forEach(n -> {
-            String name = getId() + ":effect:" + n.getKey();
-            Effect.Ref effect = Serializers.getComponent(name, n, Registry.EFFECTS, TeslaCrate.get().getContainer()).createRef(name);
-            effect.deserialize(n);
-            addEffect(effect);
-        });
+        for (Effect.Trigger trigger : Effect.Trigger.values()) {
+            String name = trigger.name().toLowerCase().replace("_", "-");
+            node.getNode("effects", name).getChildrenMap().values().forEach(n -> {
+                String id = getId() + ":effect:" + n.getKey();
+                Effect.Ref effect = Serializers.getComponent(id, n, Registry.EFFECTS, TeslaCrate.get().getContainer()).createRef(id);
+                effect.deserialize(n);
+                addEffect(trigger, effect);
+            });
+        }
         node.getNode("keys").getChildrenMap().values().forEach(n -> {
-            String name = getId() + ":key:" + n.getKey();
-            Key.Ref key = Serializers.getComponent(name, n, Registry.KEYS, TeslaCrate.get().getContainer()).createRef(name);
+            String id = getId() + ":key:" + n.getKey();
+            Key.Ref key = Serializers.getComponent(id, n, Registry.KEYS, TeslaCrate.get().getContainer()).createRef(id);
             key.deserialize(n);
             addKey(key);
         });
         node.getNode("rewards").getChildrenMap().values().forEach(n -> {
-            String name = getId() + ":reward:" + n.getKey();
-            Reward.Ref reward = Serializers.getComponent(name, n, Registry.REWARDS, TeslaCrate.get().getContainer()).createRef(name);
+            String id = getId() + ":reward:" + n.getKey();
+            Reward.Ref reward = Serializers.getComponent(id, n, Registry.REWARDS, TeslaCrate.get().getContainer()).createRef(id);
             reward.deserialize(n);
             addReward(reward);
         });
@@ -142,7 +150,10 @@ public abstract class Crate extends Referenceable<Object> {
     @OverridingMethodsMustInvokeSuper
     protected MoreObjects.ToStringHelper toStringHelper(String indent) {
         return super.toStringHelper(indent)
-                .add(indent + "effects", Arrays.toString(effects.stream().map(e -> e.getComponent().getId() + "=" + e.getValue()).toArray()))
+                .add(indent + "effects", "{" + String.join(", ", Arrays.stream(Effect.Trigger.values())
+                        .map(t -> t.name().toLowerCase().replace("_", "-") + "=" + Arrays.toString(effects.get(t).stream()
+                                .map(e -> e.getComponent().getId() + "=" + e.getValue()).toArray()))
+                        .collect(Collectors.toList())) + "}")
                 .add(indent + "keys", Arrays.toString(keys.stream().map(k -> k.getComponent().getId() + "=" + k.getValue()).toArray()))
                 .add(indent + "rewards", Arrays.toString(rewards.stream().map(r -> r.getComponent().getId() + "=" + r.getValue()).toArray()));
     }

@@ -24,7 +24,7 @@ public final class PotionEffect extends Effect<Integer> {
     public static final Type<PotionEffect, Integer> TYPE = new Type<>("Potion", PotionEffect::new, n -> !n.getNode("potion").isVirtual(), TeslaCrate.get().getContainer());
 
     private PotionEffectType type = PotionEffectTypes.SPEED;
-    private int duration = 100;
+    private int duration = 10;
     private int amplifier = 1;
     private boolean ambient = false;
     private boolean particles = false;
@@ -77,7 +77,7 @@ public final class PotionEffect extends Effect<Integer> {
     public final void run(Player player, Location location, Integer duration) {
         List<org.spongepowered.api.effect.potion.PotionEffect> effects = player.get(Keys.POTION_EFFECTS).orElseGet(Lists::newArrayList);
         effects.add(org.spongepowered.api.effect.potion.PotionEffect.builder()
-                .potionType(type).duration(duration).amplifier(amplifier).ambience(ambient).particles(particles).build());
+                .potionType(type).duration(20 * duration).amplifier(amplifier).ambience(ambient).particles(particles).build());
         player.offer(Keys.POTION_EFFECTS, effects);
     }
 

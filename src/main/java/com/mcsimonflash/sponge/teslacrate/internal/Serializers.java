@@ -5,8 +5,14 @@ import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
+import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.component.path.AnimationPath;
+import com.mcsimonflash.sponge.teslacrate.component.path.CirclePath;
+import com.mcsimonflash.sponge.teslacrate.component.path.HelixPath;
+import com.mcsimonflash.sponge.teslacrate.component.path.SpiralPath;
+import com.mcsimonflash.sponge.teslacrate.component.path.VortexPath;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -48,7 +54,8 @@ public final class Serializers {
         if (types.size() == 1) {
             return types.get(0);
         }
-        return registry.getType("Standard").orElseThrow(() -> new ConfigurationException(node, "TypeSense matched %s types and a Standard type does not exist.", types.size()));
+        return types.stream().filter(t -> t.getContainer().equals(TeslaCrate.get().getContainer())).findFirst().orElseGet(() ->
+                registry.getType("Standard").orElseThrow(() -> new ConfigurationException(node, "TypeSense matched %s types and a Standard type does not exist.", types.size())));
     }
 
     public static <T extends Referenceable<?>> T getComponent(String id, ConfigurationNode node, Registry<T> registry, PluginContainer container) {
@@ -120,6 +127,35 @@ public final class Serializers {
         } catch (NumberFormatException e) {
             throw new ConfigurationException(node, "Unable to decode " + node.getString("") + " as an integer.");
         }
+    }
+
+    public static AnimationPath deserializePath(ConfigurationNode node) throws ConfigurationException {
+        AnimationPath path;
+        switch (node.getNode("type").getString("").toLowerCase()) {
+            case "circle":
+                path = new CirclePath();
+                NodeUtils.ifAttached(node.getNode("axis"), n -> ((CirclePath) path).setAxis(deserializeVector3d(n).toFloat()));
+                break;
+            case "helix":
+                path = new HelixPath();
+                break;
+            case "spiral":
+                path = new SpiralPath();
+                break;
+            case "vortex":
+                path = new VortexPath();
+                break;
+            default:
+                throw new ConfigurationException(node.getNode("type"), "No path exists for type " + node.getNode("type").getString("undefined") + ".");
+        }
+        path.setAnimated(node.getNode("animated").getBoolean(false));
+        path.setInterval(node.getNode("interval").getInt(20));
+        path.setPrecision(node.getNode("precision").getInt(120));
+        path.setSegments(node.getNode("segments").getInt(1));
+        path.setShift(node.getNode("shift").getFloat(0));
+        path.setSpeed(node.getNode("speed").getFloat(1));
+        NodeUtils.ifAttached(node.getNode("scale"), n -> path.setScale(deserializeVector3d(n).toFloat()));
+        return path;
     }
 
     public static Vector3i deserializeVector3i(ConfigurationNode node) throws ConfigurationException {
