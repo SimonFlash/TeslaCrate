@@ -10,11 +10,14 @@ import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.profile.property.ProfileProperty;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public enum Utils {;
 
@@ -33,6 +36,14 @@ public enum Utils {;
             TeslaCrate.get().getLogger().warn("User " + user.getName() + " contains a malformed cooldown option for crate " + crate.getId() + ".");
             return crate.getCooldown();
         }
+    }
+
+    public static Task createTask(Consumer<Task> consumer, int delay, int interval, boolean async) {
+        return (async ? Task.builder().async() : Task.builder())
+                .execute(consumer)
+                .delay(delay, TimeUnit.MILLISECONDS)
+                .interval(interval, TimeUnit.MILLISECONDS)
+                .submit(TeslaCrate.get().getContainer());
     }
 
     public static ItemStack.Builder createItem(ItemType type, Text name) {

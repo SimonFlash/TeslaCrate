@@ -5,7 +5,9 @@ import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Prize;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
+import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
@@ -15,11 +17,16 @@ import org.spongepowered.api.item.inventory.ItemStack;
 
 public final class CommandPrize extends Prize<String> {
 
-    public static final Type<CommandPrize, String> TYPE = new Type<>("Command", CommandPrize::new, n -> !n.getNode("command").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<CommandPrize> TYPE = new Type<>("Command", CommandPrize::new, n -> !n.getNode("command").isVirtual(), TeslaCrate.get().getContainer());
+
+    public enum Source {
+        PLAYER, SERVER
+    }
 
     private String command = "";
-    private boolean server = true;
     private String value = "<value>";
+    private Source source = Source.SERVER;
+    private boolean online = true;
 
     private CommandPrize(String id) {
         super(id);
@@ -33,14 +40,6 @@ public final class CommandPrize extends Prize<String> {
         this.command = command;
     }
 
-    public final boolean isServer() {
-        return server;
-    }
-
-    public final void setServer(boolean server) {
-        this.server = server;
-    }
-
     public final String getValue() {
         return value;
     }
@@ -49,10 +48,26 @@ public final class CommandPrize extends Prize<String> {
         this.value = value;
     }
 
+    public final Source getSource() {
+        return source;
+    }
+
+    public final void setSource(Source source) {
+        this.source = source;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
     @Override
     public final boolean give(User user, String value) {
-        if (user.isOnline()) {
-            Sponge.getCommandManager().process(server ? Sponge.getServer().getConsole() : user.getPlayer().get(), Message.of(getCommand()).args("value", value, "player", user.getName()).toString());
+        if (!command.isEmpty() && (user.isOnline() || (!online && source == Source.SERVER))) {
+            Sponge.getCommandManager().process(source == Source.PLAYER ? user.getPlayer().get() : Sponge.getServer().getConsole(), Message.of(getCommand()).args("player", user.getName(), "value", value).toString());
             return true;
         }
         return false;
@@ -60,9 +75,14 @@ public final class CommandPrize extends Prize<String> {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        setCommand(node.getNode("command").getString(""));
-        setServer(node.getNode("server").getBoolean(true));
-        setValue(node.getNode("value").getString("<value>"));
+        if (node.getNode("command").hasMapChildren()) {
+            setCommand(node.getNode("command", "command").getString(""));
+            setValue(node.getNode("command", "value").getString("<value>"));
+            NodeUtils.ifAttached(node.getNode("command", "source"), n -> setSource(Serializers.deserializeEnum(n, Source.class)));
+            setOnline(node.getNode("command", "online").getBoolean(false));
+        } else {
+            setCommand(node.getNode("command").getString(""));
+        }
         super.deserialize(node);
     }
 
@@ -75,8 +95,9 @@ public final class CommandPrize extends Prize<String> {
     protected final MoreObjects.ToStringHelper toStringHelper(String indent) {
         return super.toStringHelper(indent)
                 .add(indent + "command", String.format("\"%s\"", command))
-                .add(indent + "server", server)
-                .add(indent + "value", String.format("\"%s\"", value));
+                .add(indent + "value", String.format("\"%s\"", value))
+                .add(indent + "source", source.name().toLowerCase())
+                .add(indent + "online", online);
     }
 
     @Override

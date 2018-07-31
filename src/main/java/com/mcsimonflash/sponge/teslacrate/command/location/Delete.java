@@ -32,6 +32,7 @@ public final class Delete extends Command {
         if (registration == null) {
             throw new CommandException(TeslaCrate.getMessage(src, "teslacrate.command.location.delete.not-set", "location", location.getExtent().getName() + location.getBlockPosition()));
         }
+        registration.stopEffects();
         Config.removeRegistration(registration);
         src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.location.delete.success", "location", location.getExtent().getName() + location.getBlockPosition(), "crate", registration.getCrate().getId()));
         return CommandResult.success();

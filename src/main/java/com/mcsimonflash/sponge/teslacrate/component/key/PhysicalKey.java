@@ -8,6 +8,7 @@ import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.InventoryTransformations;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -17,7 +18,7 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 
 public final class PhysicalKey extends Key {
 
-    public static final Type<PhysicalKey, Integer> TYPE = new Type<>("Physical", PhysicalKey::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<PhysicalKey> TYPE = new Type<>("Physical", PhysicalKey::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
 
     private ItemStackSnapshot item = ItemStackSnapshot.NONE;
 
@@ -55,7 +56,11 @@ public final class PhysicalKey extends Key {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        setItem(Serializers.deserializeItem(node.getNode("item")));
+        if (node.getNode("item").hasMapChildren()) {
+            setItem(Serializers.deserializeItem(node.getNode("item")));
+        } else {
+            setItem(ItemStack.of(Serializers.deserializeCatalogType(node.getNode("item"), ItemType.class), 1).createSnapshot());
+        }
         super.deserialize(node);
     }
 

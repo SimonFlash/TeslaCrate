@@ -1,6 +1,8 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
 import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
 import org.spongepowered.api.data.DataQuery;
@@ -84,6 +86,7 @@ public final class Listeners {
             } else if (primary) {
                 if (player.hasPermission("teslacrate.crates." + registration.getCrate().getId() + ".preview")) {
                     registration.getCrate().preview(player, registration.getLocation());
+                    return;
                 } else {
                     player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.preview.no-permission", "player", player.getName(), "crate", registration.getCrate().getId()));
                 }
@@ -103,9 +106,11 @@ public final class Listeners {
                     } else {
                         registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
                         registration.getCrate().open(player, registration.getLocation());
+                        return;
                     }
                 }
             }
+            registration.getCrate().getEffects().getOrDefault(Effect.Trigger.ON_REJECT, ImmutableList.of()).forEach(e -> e.run(player, registration.getLocation()));
         }
     }
 

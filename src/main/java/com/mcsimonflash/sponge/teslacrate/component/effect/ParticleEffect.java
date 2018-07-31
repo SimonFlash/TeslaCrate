@@ -24,12 +24,11 @@ import org.spongepowered.api.util.Color;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public final class ParticleEffect extends Effect.Locatable {
 
-    public static final Type<ParticleEffect, Vector3d> TYPE = new Type<>("Particle", ParticleEffect::new, n -> !n.getNode("particle").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<ParticleEffect> TYPE = new Type<>("Particle", ParticleEffect::new, n -> !n.getNode("particle").isVirtual(), TeslaCrate.get().getContainer());
 
     private ParticleType type = ParticleTypes.REDSTONE_DUST;
     private Color color = Color.BLACK;
@@ -64,55 +63,53 @@ public final class ParticleEffect extends Effect.Locatable {
         this.rainbow = rainbow;
     }
 
-    public AnimationPath getPath() {
+    public final AnimationPath getPath() {
         return path;
     }
 
-    public void setPath(AnimationPath path) {
+    public final void setPath(AnimationPath path) {
         this.path = path;
     }
 
     @Override
     public final void run(Location<World> location) {
         Task runner = start(location);
-        Task.builder()
-                .execute(t -> runner.cancel())
-                .async()
-                .delay(path.getInterval() * path.getPrecision(), TimeUnit.MILLISECONDS)
-                .submit(TeslaCrate.get().getContainer());
+        Utils.createTask(t -> runner.cancel(), path.getInterval() * path.getPrecision(), 0, true);
     }
 
     public final Task start(Location<World> location) {
         float increment = path.getSpeed() * AnimUtils.shift(path.getPrecision());
-        return Task.builder()
-                .execute(new Consumer<Task>() {
+        return Utils.createTask(new Consumer<Task>() {
 
-                    private float radians = path.getShift();
+            private float radians = path.getShift();
 
-                    @Override
-                    public void accept(Task task) {
-                        org.spongepowered.api.effect.particle.ParticleEffect effect = rainbow ? AnimUtils.particle(AnimUtils.rainbow(radians)) : org.spongepowered.api.effect.particle.ParticleEffect.builder()
-                                .type(type).option(ParticleOptions.COLOR, color).build();
-                        for (Vector3f vec : path.getPositions(radians)) {
-                            AnimUtils.spawn(location, effect, vec.mul(path.getScale()).add(getOffset().toFloat()));
-                        }
-                        radians += increment;
-                    }
+            @Override
+            public void accept(Task task) {
+                org.spongepowered.api.effect.particle.ParticleEffect effect = rainbow ? AnimUtils.particle(AnimUtils.rainbow(6 * radians / 7)) : org.spongepowered.api.effect.particle.ParticleEffect.builder()
+                        .type(type).option(ParticleOptions.COLOR, color).build();
+                for (Vector3f vec : path.getPositions(radians)) {
+                    AnimUtils.spawn(location, effect, vec.mul(path.getScale()).add(getOffset().toFloat()));
+                }
+                radians += increment;
+            }
 
-                })
-                .async()
-                .interval(path.getInterval(), TimeUnit.MILLISECONDS)
-                .submit(TeslaCrate.get().getContainer());
+        }, 0, path.getInterval(), true);
     }
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("particle"), p -> {
-            NodeUtils.ifAttached(p.getNode("type"), n -> setType(Serializers.deserializeCatalogType(n, ParticleType.class)));
-            NodeUtils.ifAttached(p.getNode("color"), n -> setColor(Serializers.deserializeColor(n)));
-            setRainbow(p.getNode("rainbow").getBoolean(false));
-        });
-        NodeUtils.ifAttached(node.getNode("path"), p -> setPath(Serializers.deserializePath(p)));
+        if (node.getNode("particle").hasMapChildren()) {
+            NodeUtils.ifAttached(node.getNode("particle", "type"), n -> setType(Serializers.deserializeCatalogType(n, ParticleType.class)));
+            NodeUtils.ifAttached(node.getNode("particle", "color"), n -> setColor(Serializers.deserializeColor(n)));
+            setRainbow(node.getNode("particle", "rainbow").getBoolean(false));
+        } else {
+            NodeUtils.ifAttached(node.getNode("particle"), n -> setType(Serializers.deserializeCatalogType(n, ParticleType.class)));
+        }
+        if (node.getNode("path").hasMapChildren()) {
+            setPath(Serializers.deserializePath(node.getNode("path")));
+        } else {
+            NodeUtils.ifAttached(node.getNode("path"), n -> setPath(Serializers.deserializePathType(n)));
+        }
         super.deserialize(node);
     }
 
@@ -126,7 +123,15 @@ public final class ParticleEffect extends Effect.Locatable {
         return super.toStringHelper(indent)
                 .add(indent + "type", type.getId())
                 .add(indent + "color", Integer.toHexString(color.getRgb()))
-                .add(indent + "rainbow", rainbow);
+                .add(indent + "rainbow", rainbow)
+                .add(indent + "path", path.getClass().getSimpleName().replace("Path", ""))
+                .add(indent + "animated", path.isAnimated())
+                .add(indent + "interval", path.getInterval())
+                .add(indent + "precision", path.getPrecision())
+                .add(indent + "segments", path.getSegments())
+                .add(indent + "shift", path.getShift())
+                .add(indent + "speed", path.getSpeed())
+                .add(indent + "scale", path.getScale());
     }
 
 }

@@ -6,6 +6,8 @@ import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
 import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
+import com.mcsimonflash.sponge.teslacrate.component.prize.CommandPrize;
+import com.mcsimonflash.sponge.teslacrate.component.prize.ItemPrize;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigHolder;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
@@ -24,7 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public final class Config {
+public enum Config {;
 
     private static final Path directory = TeslaCrate.get().getDirectory();
     private static final Path configuration = directory.resolve("configuration");
@@ -49,19 +51,9 @@ public final class Config {
             rewards = loadConfig(configuration, "rewards.conf", true);
             registrations = loadConfig(storage, "registrations.conf", false);
             users = loadConfig(storage, "users.conf", false);
-            if (config.getNode("converters", "teslacrate-v2").getBoolean(false)) {
-                TeslaCrate.get().getLogger().info("&aStarting conversion from v2 to v3.");
-                convertTeslaV2();
-                config.getNode("converters", "teslacrate-v2").setValue(null);
-                config.save();
-                TeslaCrate.get().getLogger().info("&aConversion has completed successfully.");
-            } else if (config.getNode("converters", "huskycrates-v2").getBoolean(false)) {
-                TeslaCrate.get().getLogger().info("&aStarting conversion from HuskyCrates v2 to TeslaCrate v3.");
-                convertHuskyV2();
-                config.getNode("converters", "huskycrates-v2").setValue(null);
-                config.save();
-                TeslaCrate.get().getLogger().info("&aConversion has completed successfully.");
-            }
+            convert("teslacrate-v2", "TeslaCrate v2", Config::convertTeslaV2);
+            convert("teslacrate-v3-pr2", "TeslaCrate v3-pr2", Config::convertTeslaV3PR2);
+            convert("huskycrates-v2", "HuskyCrates v2", Config::convertHuskyV2);
             loadComponents(prizes, Registry.PRIZES, "prize");
             loadComponents(rewards, Registry.REWARDS, "reward");
             loadComponents(effects, Registry.EFFECTS, "effect");
@@ -73,6 +65,31 @@ public final class Config {
         } catch (IOException | ConfigurationException e) {
             TeslaCrate.get().getLogger().error("&cConfiguration loading has halted.");
         }
+    }
+
+    private interface Converter {
+
+        void convert() throws IOException, ConfigurationException;
+
+    }
+
+    private static void convert(String id, String name, Converter converter) throws IOException {
+        if (config.getNode("converters", id).getBoolean(false)) {
+            TeslaCrate.get().getLogger().info("&aStarting conversion from " + name + " to TeslaCrate v3-pr3");
+            converter.convert();
+            config.getNode("converters", id).setValue(false);
+            saveAll();
+            TeslaCrate.get().getLogger().info("&aConversion has completed successfully.");
+        }
+    }
+
+    private static void saveAll() {
+        config.save();
+        crates.save();
+        effects.save();
+        keys.save();
+        prizes.save();
+        rewards.save();
     }
 
     private static ConfigHolder loadConfig(Path dir, String name, boolean asset) throws IOException {
@@ -94,7 +111,7 @@ public final class Config {
     private static <T extends Referenceable<?>> void loadComponents(ConfigHolder config, Registry<T> registry, String type) throws ConfigurationException {
         config.getNode().getChildrenMap().values().forEach(n -> {
             try {
-                T component = Serializers.<T>getType(n, registry).create((String) n.getKey());
+                T component = Serializers.getType(n, registry).create((String) n.getKey());
                 component.deserialize(n);
                 registry.register(component, TeslaCrate.get().getContainer());
             } catch (ConfigurationException e) {
@@ -166,67 +183,149 @@ public final class Config {
         ConfigHolder commands = loadConfig(configuration, "commands.conf", false);
         ConfigHolder items = loadConfig(configuration, "items.conf", false);
         ConfigHolder particles = loadConfig(configuration, "particles.conf", false);
-        commands.getNode().getChildrenMap().values().forEach(command -> {
-            ConfigurationNode prize = prizes.getNode((String) command.getKey()).setValue(command);
-            convertComponent(prize);
-            NodeUtils.ifAttached(prize.getNode("source"), n -> {
-                prize.getNode("server").setValue(!n.getString("").equalsIgnoreCase("player"));
-                n.setValue(null);
-            });
-        });
-        items.getNode().getChildrenMap().values().forEach(item -> {
-            ConfigurationNode prize = prizes.getNode((String) item.getKey()).setValue(item);
-            convertComponent(prize);
-            NodeUtils.ifAttached(prize.getNode("id"), n -> NodeUtils.move(n, prize.getNode("item", "id")));
-            NodeUtils.ifAttached(prize.getNode("data"), n -> NodeUtils.move(n, prize.getNode("item", "data")));
-            NodeUtils.ifAttached(prize.getNode("keys"), n -> {
-                NodeUtils.move(n, prize.getNode("item", "keys"));
-                convertItemKeys(prize.getNode("item"));
-            });
-            NodeUtils.ifAttached(prize.getNode("enchantments"), n -> NodeUtils.move(n, prize.getNode("item", "enchantments")));
-            NodeUtils.ifAttached(prize.getNode("nbt"), n -> NodeUtils.move(n, prize.getNode("item", "nbt")));
-            NodeUtils.ifAttached(prize.getNode("quantity"), n -> NodeUtils.move(n, prize.getNode("item", "quantity")));
-        });
-        particles.getNode().getChildrenMap().values().forEach(particle -> {
-            ConfigurationNode effect = effects.getNode((String) particle.getKey()).setValue(particle);
-            convertComponent(effect);
-        });
-        rewards.getNode().getChildrenMap().values().forEach(reward -> {
-            convertComponent(reward);
-            reward.getNode("commands").getChildrenMap().values().forEach(n -> reward.getNode("prizes", n.getKey()).setValue(n));
-            reward.getNode("commands").setValue(null);
-            reward.getNode("items").getChildrenMap().values().forEach(n -> reward.getNode("prizes", n.getKey()).setValue(n));
-            reward.getNode("items").setValue(null);
-        });
-        keys.getNode().getChildrenMap().values().forEach(key -> {
-            convertComponent(key);
-            NodeUtils.ifAttached(key.getNode("item"), Config::convertItemKeys);
-            NodeUtils.ifVirtual(key.getNode("item"), n -> key.getNode("virtual").setValue(true));
-        });
+        commands.getNode().getChildrenMap().values().forEach(n -> convertCommand(prizes.getNode((String) n.getKey()).setValue(n)));
+        items.getNode().getChildrenMap().values().forEach(n -> convertItem(prizes.getNode((String) n.getKey()).setValue(n)));
+        particles.getNode().getChildrenMap().values().forEach(n -> convertParticle(effects.getNode((String) n.getKey()).setValue(n)));
+        rewards.getNode().getChildrenMap().values().forEach(Config::convertReward);
+        keys.getNode().getChildrenMap().values().forEach(Config::convertKey);
         crates.getNode().getChildrenMap().values().forEach(crate -> {
             Config.convertComponent(crate);
             NodeUtils.ifAttached(crate.getNode("cooldown"), n -> n.setValue(1000 * n.getLong(0)));
+            NodeUtils.ifAttached(crate.getNode("gui"), n -> {
+                crate.getNode("opener").setValue(n.getString("").equalsIgnoreCase("instant") ? "InstantGui" : n.getString("").equalsIgnoreCase("roulette") ? "RouletteGui" : null);
+                n.setValue(null);
+            });
+            crate.getNode("keys").getChildrenMap().values().forEach(n -> {
+                if (n.hasMapChildren()) {
+                    convertKey(n);
+                }
+            });
+            crate.getNode("particles").getChildrenMap().values().forEach(n -> {
+                if (n.hasMapChildren()) {
+                    convertParticle(n);
+                }
+                crate.getNode("effects", "passive", n.getKey()).setValue(n);
+            });
+            crate.getNode("particles").setValue(null);
         });
-        crates.save();
-        effects.save();
-        keys.save();
-        prizes.save();
-        rewards.save();
     }
 
     private static void convertComponent(ConfigurationNode node) {
         NodeUtils.ifAttached(node.getNode("display-name"), n -> NodeUtils.move(n, node.getNode("name")));
-        NodeUtils.ifAttached(node.getNode("display-item"), Config::convertItemKeys);
+        NodeUtils.ifAttached(node.getNode("display-item"), Config::convertItemStack);
     }
 
-    private static void convertItemKeys(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("keys", "display-name"), n -> NodeUtils.move(n, node.getNode("name")));
-        NodeUtils.ifAttached(node.getNode("keys", "item-lore"), n -> {
-            node.getNode("lore").setValue(n.getChildrenList().isEmpty() ? null : n.getChildrenList().size() == 1 ? n.getNode(0) : n);
+    private static void convertItemStack(ConfigurationNode node) {
+        if (node.getChildrenMap().size() == 1 && !node.getNode("id").isVirtual()) {
+            node.setValue(node.getNode("id"));
+        } else {
+            NodeUtils.ifAttached(node.getNode("id"), n -> NodeUtils.move(n, node.getNode("type")));
+            NodeUtils.ifAttached(node.getNode("keys", "display-name"), n -> NodeUtils.move(n, node.getNode("name")));
+            NodeUtils.ifAttached(node.getNode("keys", "item-lore"), n -> {
+                node.getNode("lore").setValue(n.getChildrenList().isEmpty() ? null : n.getChildrenList().size() == 1 ? n.getNode(0) : n);
+                n.setValue(null);
+            });
+            if (node.getNode("keys").getChildrenMap().isEmpty()) {
+                node.getNode("keys").setValue(null);
+            }
+        }
+    }
+
+    private static void convertCommand(ConfigurationNode node) {
+        convertComponent(node);
+        if (!node.getNode("value").isVirtual() || !node.getNode("source").isVirtual()) {
+            node.getNode("command", "command").setValue(node.getNode("command"));
+            NodeUtils.move(node.getNode("value"), node.getNode("command", "value"));
+            NodeUtils.move(node.getNode("source"), node.getNode("command", "source"));
+        }
+    }
+
+    private static void convertItem(ConfigurationNode node) {
+        convertComponent(node);
+        NodeUtils.ifAttached(node.getNode("id"), n -> NodeUtils.move(n, node.getNode("item", "type")));
+        NodeUtils.ifAttached(node.getNode("data"), n -> NodeUtils.move(n, node.getNode("item", "data")));
+        NodeUtils.ifAttached(node.getNode("keys"), n -> NodeUtils.move(n, node.getNode("item", "keys")));
+        NodeUtils.ifAttached(node.getNode("enchantments"), n -> NodeUtils.move(n, node.getNode("item", "enchantments")));
+        NodeUtils.ifAttached(node.getNode("nbt"), n -> NodeUtils.move(n, node.getNode("item", "nbt")));
+        NodeUtils.ifAttached(node.getNode("quantity"), n -> NodeUtils.move(n, node.getNode("item", "quantity")));
+        convertItemStack(node.getNode("item"));
+    }
+
+    private static void convertParticle(ConfigurationNode node) {
+        convertComponent(node);
+        NodeUtils.ifAttached(node.getNode("particle"), n -> node.getNode("particle", "type").setValue(n));
+        NodeUtils.ifAttached(node.getNode("color"), n -> {
+            node.getNode("particle", "color").setValue(Integer.toHexString(n.getInt(0)));
             n.setValue(null);
         });
-        if (node.getNode("keys").getChildrenMap().isEmpty()) {
-            node.getNode("keys").setValue(null);
+        NodeUtils.ifAttached(node.getNode("rainbow"), n -> NodeUtils.move(n, node.getNode("particle", "rainbow")));
+        NodeUtils.ifAttached(node.getNode("type"), n -> NodeUtils.move(n, node.getNode("path", "type")));
+        NodeUtils.ifAttached(node.getNode("animated"), n -> NodeUtils.move(n, node.getNode("path", "animated")));
+        NodeUtils.ifAttached(node.getNode("precision"), n -> NodeUtils.move(n, node.getNode("path", "precision")));
+        NodeUtils.ifAttached(node.getNode("segments"), n -> NodeUtils.move(n, node.getNode("path", "segments")));
+        NodeUtils.ifAttached(node.getNode("shift"), n -> NodeUtils.move(n, node.getNode("path", "shift")));
+        NodeUtils.ifAttached(node.getNode("speed"), n -> NodeUtils.move(n, node.getNode("path", "speed")));
+        NodeUtils.ifAttached(node.getNode("scale"), n -> NodeUtils.move(n, node.getNode("path", "scale")));
+    }
+
+    private static void convertReward(ConfigurationNode node) {
+        convertComponent(node);
+        node.getNode("commands").getChildrenMap().values().forEach(n -> {
+            if (n.hasMapChildren()) {
+                convertCommand(n);
+            }
+            node.getNode("prizes", n.getKey()).setValue(n);
+        });
+        node.getNode("commands").setValue(null);
+        node.getNode("items").getChildrenMap().values().forEach(n -> {
+            if (n.hasMapChildren()) {
+                convertItem(n);
+            }
+            node.getNode("prizes", n.getKey()).setValue(n);
+        });
+        node.getNode("items").setValue(null);
+    }
+
+    private static void convertKey(ConfigurationNode key) {
+        convertComponent(key);
+        NodeUtils.ifAttached(key.getNode("item"), Config::convertItemStack);
+        NodeUtils.ifVirtual(key.getNode("item"), n -> key.getNode("virtual").setValue(true));
+    }
+
+    private static void convertTeslaV3PR2() {
+        prizes.getNode().getChildrenMap().values().forEach(Config::convertPrize);
+        rewards.getNode().getChildrenMap().values().forEach(r -> {
+            convertComponent(r);
+            r.getNode("prizes").getChildrenMap().values().forEach(Config::convertPrize);
+        });
+        keys.getNode().getChildrenMap().values().forEach(k -> {
+            convertComponent(k);
+            NodeUtils.ifAttached(k.getNode("item"), Config::convertItemStack);
+        });
+        effects.getNode().getChildrenMap().values().forEach(Config::convertComponent);
+        crates.getNode().getChildrenMap().values().forEach(c -> {
+            convertComponent(c);
+            c.getNode("rewards").getChildrenMap().values().forEach(r -> {
+                convertComponent(r);
+                r.getNode("prizes").getChildrenMap().values().forEach(Config::convertPrize);
+            });
+        });
+    }
+
+    private static void convertPrize(ConfigurationNode node) {
+        convertComponent(node);
+        if (CommandPrize.TYPE.matches(node) || node.getNode("type").getString("").equalsIgnoreCase("command")) {
+            NodeUtils.ifAttached(node.getNode("server"), n -> {
+                node.getNode("source").setValue(n.getBoolean(true) ? null : "player");
+                n.setValue(null);
+            });
+            convertCommand(node);
+        } else if (ItemPrize.TYPE.matches(node) || node.getNode("type").getString("").equalsIgnoreCase("item")) {
+            if (node.getNode("item").getChildrenMap().size() == 1 && !node.getNode("item", "id").isVirtual()) {
+                node.getNode("item").setValue(node.getNode("item", "id"));
+            } else {
+                node.getNode("item", "type").setValue(node.getNode("item", "id"));
+            }
         }
     }
 
@@ -259,11 +358,6 @@ public final class Config {
                 crate.getNode("rewards", reward.getKey()).setValue(s.getNode("chance"));
             });
         });
-        crates.save();
-        effects.save();
-        keys.save();
-        prizes.save();
-        rewards.save();
     }
 
     private static void convertHuskyReward(ConfigurationNode husky, ConfigurationNode reference, ConfigurationNode tesla) {
@@ -288,6 +382,7 @@ public final class Config {
 
     private static void convertHuskyItem(ConfigurationNode husky, ConfigurationNode tesla) {
         tesla.setValue(husky);
+        NodeUtils.move(tesla.getNode("id"), tesla.getNode("type"));
         NodeUtils.move(tesla.getNode("damage"), tesla.getNode("data"));
         NodeUtils.ifAttached(tesla.getNode("count"), n -> {
             tesla.getNode("quantity").setValue(n.getInt(1) > 1 ? n.getInt(1) : null);

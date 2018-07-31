@@ -11,11 +11,11 @@ repositories {
 
 group 'com.mcsimonflash.sponge.teslacrate'
 version '3.0.0-pr3'
-ext.teslaversion = '1.1.4'
+ext.teslaversion = '1.1.5'
 ext.spongeversion = '7.1.0-SNAPSHOT'
 
 dependencies {
-    compile "com.github.SimonFlash:TeslaPowered:v${teslaversion}"
+    compile "com.github.SimonFlash:TeslaPowered:master-SNAPSHOT"//v${teslaversion}"
     compile "org.spongepowered:spongeapi:${spongeversion}"
 }
 

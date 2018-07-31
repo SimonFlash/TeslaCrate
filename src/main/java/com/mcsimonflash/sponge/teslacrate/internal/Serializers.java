@@ -4,10 +4,13 @@ import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Range;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.component.opener.InstantGuiOpener;
+import com.mcsimonflash.sponge.teslacrate.component.opener.Opener;
+import com.mcsimonflash.sponge.teslacrate.component.opener.RouletteGuiOpener;
+import com.mcsimonflash.sponge.teslacrate.component.opener.StandardOpener;
 import com.mcsimonflash.sponge.teslacrate.component.path.AnimationPath;
 import com.mcsimonflash.sponge.teslacrate.component.path.CirclePath;
 import com.mcsimonflash.sponge.teslacrate.component.path.HelixPath;
@@ -16,10 +19,12 @@ import com.mcsimonflash.sponge.teslacrate.component.path.VortexPath;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.enchantment.Enchantment;
@@ -27,8 +32,6 @@ import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.util.Color;
 import org.spongepowered.api.util.Tuple;
 
@@ -39,14 +42,14 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
-public final class Serializers {
+public enum Serializers {;
 
-    public static <T extends Referenceable<?>> Type<? extends T, ?> getType(ConfigurationNode node, Registry<T> registry) throws ConfigurationException {
+    public static <T extends Referenceable<?>> Type<? extends T> getType(ConfigurationNode node, Registry<T> registry) throws ConfigurationException {
         ConfigurationNode typeNode = node.getNode("type");
         if (!typeNode.isVirtual()) {
             return registry.getType(typeNode.getString("")).orElseThrow(() -> new ConfigurationException(typeNode, "No type found for %s.", typeNode.getString("undefined")));
         }
-        List<Type<? extends T, ?>> types = registry.getTypes().getDistinct()
+        List<Type<? extends T>> types = registry.getTypes().getDistinct()
                 .stream()
                 .map(Tuple::getFirst)
                 .filter(t -> t.matches(node))
@@ -61,7 +64,7 @@ public final class Serializers {
     public static <T extends Referenceable<?>> T getComponent(String id, ConfigurationNode node, Registry<T> registry, PluginContainer container) {
         T component;
         if (node.hasMapChildren()) {
-            Type<? extends T, ?> type = Serializers.<T>getType(node, registry);
+            Type<? extends T> type = Serializers.getType(node, registry);
             component = type.create(id);
             component.deserialize(node);
             registry.register(component, container);
@@ -74,11 +77,16 @@ public final class Serializers {
     }
 
     public static <T extends CatalogType> T deserializeCatalogType(ConfigurationNode node, Class<T> type) throws ConfigurationException {
-        return Sponge.getRegistry().getType(type, node.getString("")).orElseThrow(() -> new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", node.getString()));
+        return deserializeCatalogType(node, node.getString("undefined"), "minecraft", type);
+    }
+
+    public static <T extends CatalogType> T deserializeCatalogType(ConfigurationNode node, String id, String namespace, Class<T> type) throws ConfigurationException {
+        return Sponge.getRegistry().getType(type, id).orElseGet(() -> Sponge.getRegistry().getType(type, id.contains(":") ? id.substring(id.indexOf(":") + 1) : namespace + ":" + id).orElseThrow(() ->
+                new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", id)));
     }
 
     public static ItemStackSnapshot deserializeItem(ConfigurationNode node) throws ConfigurationException {
-        ItemType type = deserializeCatalogType(node.getNode("id"), ItemType.class);
+        ItemType type = deserializeCatalogType(node.getNode("type"), ItemType.class);
         int quantity = node.getNode("quantity").getInt(1);
         if (quantity <= 0 || quantity > type.getMaxStackQuantity()) {
             throw new ConfigurationException(node.getNode("quantity"), "Quantity is out of bounds.");
@@ -97,28 +105,22 @@ public final class Serializers {
         ItemStack.Builder builder = ItemStack.builder().fromContainer(container);
         NodeUtils.ifAttached(node.getNode("name"), n -> builder.add(Keys.DISPLAY_NAME, Utils.toText(n.getString(""))));
         NodeUtils.ifAttached(node.getNode("lore"), n -> builder.add(Keys.ITEM_LORE, n.hasListChildren() ? n.getChildrenList().stream().map(l -> Utils.toText(l.getString(""))).collect(Collectors.toList()) : Lists.newArrayList(Utils.toText(n.getString("")))));
-        NodeUtils.ifAttached(node.getNode("enchantments"), n -> builder.add(Keys.ITEM_ENCHANTMENTS, n.getChildrenMap().values().stream().map(e -> {
-            String name = ((String) e.getKey()).replace("-", "_");
-            EnchantmentType enchantment = Sponge.getRegistry().getType(EnchantmentType.class, name.contains(":") ? name : "minecraft:" + name).orElseThrow(() -> new ConfigurationException(e, "No enchantment found for id %s.", name));
-            return Enchantment.of(enchantment, e.getInt(0));
-        }).collect(Collectors.toList())));
+        node.getNode("keys").getChildrenMap().values().forEach(c -> {
+            Key key = deserializeCatalogType(c, ((String) c.getKey()).replace("-", "_"), "sponge", Key.class);
+            try {
+                builder.add(key, c.getValue(key.getElementToken()));
+            } catch (ObjectMappingException e) {
+                throw new ConfigurationException(c, e.getMessage());
+            }
+        });
+        NodeUtils.ifAttached(node.getNode("enchantments"), n -> builder.add(Keys.ITEM_ENCHANTMENTS, n.getChildrenMap().values().stream()
+                .map(e -> Enchantment.of(deserializeCatalogType(e, ((String) e.getKey()).replace("-", "_"), "minecraft", EnchantmentType.class), e.getInt(0)))
+                .collect(Collectors.toList())));
         return builder.build().createSnapshot();
-    }
-
-    public static int deserializeInt(ConfigurationNode node, Range<Integer> range) {
-        Integer number = ((Function<ConfigurationNode, Integer>) ConfigurationNode::getInt).apply(node);
-        if (range.contains(number)) {
-            return number;
-        }
-        throw new ConfigurationException(node, "Number is not in the allowed range of %s.", range);
     }
 
     public static <T extends Enum<T>> T deserializeEnum(ConfigurationNode node, Class<T> type) {
         return Arrays.stream(type.getEnumConstants()).filter(e -> e.name().equalsIgnoreCase(node.getString(""))).findFirst().orElseThrow(() -> new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", node.getString("undefined")));
-    }
-
-    public static Text deserializeText(ConfigurationNode node) {
-        return TextSerializers.FORMATTING_CODE.deserialize(node.getString(""));
     }
 
     public static Color deserializeColor(ConfigurationNode node) throws ConfigurationException {
@@ -129,24 +131,29 @@ public final class Serializers {
         }
     }
 
+    public static Opener deserializeOpener(ConfigurationNode node) throws ConfigurationException {
+        switch (node.getString("").toLowerCase()) {
+            case "instantgui": return InstantGuiOpener.INSTANCE;
+            case "roulettegui": return RouletteGuiOpener.INSTANCE;
+            case "standard": return StandardOpener.INSTANCE;
+            default: throw new ConfigurationException(node, "No opener of type " + node.getString("") + ".");
+        }
+    }
+
+    public static AnimationPath deserializePathType(ConfigurationNode node) throws ConfigurationException {
+        switch (node.getString("").toLowerCase()) {
+            case "circle": return new CirclePath();
+            case "helix": return new HelixPath();
+            case "spiral": return new SpiralPath();
+            case "vortex": return new VortexPath();
+            default: throw new ConfigurationException(node.getNode("type"), "No path exists for type " + node.getNode("type").getString("undefined") + ".");
+        }
+    }
+
     public static AnimationPath deserializePath(ConfigurationNode node) throws ConfigurationException {
-        AnimationPath path;
-        switch (node.getNode("type").getString("").toLowerCase()) {
-            case "circle":
-                path = new CirclePath();
-                NodeUtils.ifAttached(node.getNode("axis"), n -> ((CirclePath) path).setAxis(deserializeVector3d(n).toFloat()));
-                break;
-            case "helix":
-                path = new HelixPath();
-                break;
-            case "spiral":
-                path = new SpiralPath();
-                break;
-            case "vortex":
-                path = new VortexPath();
-                break;
-            default:
-                throw new ConfigurationException(node.getNode("type"), "No path exists for type " + node.getNode("type").getString("undefined") + ".");
+        AnimationPath path = deserializePathType(node.getNode("type"));
+        if (!node.getNode("axis").isVirtual() && path instanceof CirclePath) {
+            ((CirclePath) path).setAxis(deserializeVector3d(node.getNode("axis")).toFloat());
         }
         path.setAnimated(node.getNode("animated").getBoolean(false));
         path.setInterval(node.getNode("interval").getInt(20));

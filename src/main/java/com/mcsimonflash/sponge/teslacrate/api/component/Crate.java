@@ -5,10 +5,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.component.opener.Opener;
+import com.mcsimonflash.sponge.teslacrate.component.opener.StandardOpener;
 import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslacrate.internal.Registry;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
+import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -29,8 +32,9 @@ import java.util.stream.Collectors;
 public abstract class Crate extends Referenceable<Object> {
 
     private long cooldown = 0;
-    private String message;
-    private String announcement;
+    private String message = "";
+    private String announcement = "";
+    private Opener opener = StandardOpener.INSTANCE;
     private final Map<Effect.Trigger, List<Effect.Ref>> effects = Maps.newEnumMap(Effect.Trigger.class);
     private final List<Key.Ref> keys = Lists.newArrayList();
     private final List<Reward.Ref> rewards = Lists.newArrayList();
@@ -63,6 +67,14 @@ public abstract class Crate extends Referenceable<Object> {
         this.announcement = announcement;
     }
 
+    public final Opener getOpener() {
+        return opener;
+    }
+
+    public final void setOpener(Opener opener) {
+        this.opener = opener;
+    }
+
     public final Map<Effect.Trigger, List<Effect.Ref>> getEffects() {
         return effects;
     }
@@ -89,20 +101,28 @@ public abstract class Crate extends Referenceable<Object> {
 
     public void open(Player player, Location<World> location) {
         effects.getOrDefault(Effect.Trigger.ON_OPEN, ImmutableList.of()).forEach(e -> e.run(player, location));
+        opener.open(player, location, this);
+    }
+
+    public Reward.Ref selectReward(Player player) {
         double rand = Math.random() * getRewards().stream().mapToDouble(Reference::getValue).sum();
-        for (Reference<? extends Reward, Double> reward : getRewards()) {
+        for (Reward.Ref reward : getRewards()) {
             if ((rand -= reward.getValue()) <= 0) {
-                if (!message.isEmpty()) {
-                    player.sendMessage(Message.of(message).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
-                }
-                if (!announcement.isEmpty() && reward.getComponent().isAnnounce()) {
-                    Sponge.getServer().getBroadcastChannel().send(Message.of(announcement).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
-                }
-                reward.getComponent().give(player);
-                effects.getOrDefault(Effect.Trigger.ON_RECEIVE, ImmutableList.of()).forEach(e -> e.run(player, location));
-                return;
+                return reward;
             }
         }
+        throw new IllegalStateException("Attempted to retrieve a reward from a crate without any rewards.");
+    }
+
+    public void give(Player player, Location<World> location, Reward.Ref reward) {
+        if (!message.isEmpty()) {
+            player.sendMessage(Message.of(message).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
+        }
+        if (!announcement.isEmpty() && reward.getComponent().isAnnounce()) {
+            Sponge.getServer().getBroadcastChannel().send(Message.of(announcement).args("player", player.getName(), "crate", Utils.toString(getName()), "reward", Utils.toString(reward.getComponent().getName())).toText());
+        }
+        reward.getComponent().give(player);
+        effects.getOrDefault(Effect.Trigger.ON_RECEIVE, ImmutableList.of()).forEach(e -> e.run(player, location));
     }
 
     public void preview(Player player, Location<World> location) {
@@ -116,9 +136,9 @@ public abstract class Crate extends Referenceable<Object> {
         setCooldown(node.getNode("cooldown").getLong(0));
         setMessage(node.getNode("message").getString(""));
         setAnnouncement(node.getNode("announcement").getString(""));
+        NodeUtils.ifAttached(node.getNode("opener"), n -> setOpener(Serializers.deserializeOpener(n)));
         for (Effect.Trigger trigger : Effect.Trigger.values()) {
-            String name = trigger.name().toLowerCase().replace("_", "-");
-            node.getNode("effects", name).getChildrenMap().values().forEach(n -> {
+            node.getNode("effects", trigger.name().toLowerCase().replace("_", "-")).getChildrenMap().values().forEach(n -> {
                 String id = getId() + ":effect:" + n.getKey();
                 Effect.Ref effect = Serializers.getComponent(id, n, Registry.EFFECTS, TeslaCrate.get().getContainer()).createRef(id);
                 effect.deserialize(n);
@@ -151,6 +171,7 @@ public abstract class Crate extends Referenceable<Object> {
     protected MoreObjects.ToStringHelper toStringHelper(String indent) {
         return super.toStringHelper(indent)
                 .add(indent + "effects", "{" + String.join(", ", Arrays.stream(Effect.Trigger.values())
+                        .filter(effects::containsKey)
                         .map(t -> t.name().toLowerCase().replace("_", "-") + "=" + Arrays.toString(effects.get(t).stream()
                                 .map(e -> e.getComponent().getId() + "=" + e.getValue()).toArray()))
                         .collect(Collectors.toList())) + "}")

@@ -21,7 +21,7 @@ import java.util.List;
 
 public final class PotionEffect extends Effect<Integer> {
 
-    public static final Type<PotionEffect, Integer> TYPE = new Type<>("Potion", PotionEffect::new, n -> !n.getNode("potion").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<PotionEffect> TYPE = new Type<>("Potion", PotionEffect::new, n -> !n.getNode("potion").isVirtual(), TeslaCrate.get().getContainer());
 
     private PotionEffectType type = PotionEffectTypes.SPEED;
     private int duration = 10;
@@ -83,13 +83,15 @@ public final class PotionEffect extends Effect<Integer> {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("potion"), p -> {
-            NodeUtils.ifAttached(node.getNode("type"), n -> setType(Serializers.deserializeCatalogType(n, PotionEffectType.class)));
-            setDuration(p.getNode("duration").getInt(100));
-            setAmplifier(p.getNode("amplifier").getInt(1));
-            setAmbient(p.getNode("ambient").getBoolean(false));
-            setParticles(p.getNode("particles").getBoolean(false));
-        });
+       if (node.getNode("potion").hasMapChildren()) {
+            NodeUtils.ifAttached(node.getNode("potion", "type"), n -> setType(Serializers.deserializeCatalogType(n, PotionEffectType.class)));
+            setDuration(node.getNode("potion", "duration").getInt(100));
+            setAmplifier(node.getNode("potion", "amplifier").getInt(1));
+            setAmbient(node.getNode("potion", "ambient").getBoolean(false));
+            setParticles(node.getNode("potion", "particles").getBoolean(false));
+        } else {
+           NodeUtils.ifAttached(node.getNode("potion", "type"), n -> setType(Serializers.deserializeCatalogType(n, PotionEffectType.class)));
+       }
         super.deserialize(node);
     }
 

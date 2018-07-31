@@ -1,6 +1,5 @@
 package com.mcsimonflash.sponge.teslacrate.component.effect;
 
-import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
@@ -23,7 +22,7 @@ import java.util.Optional;
 
 public final class FireworkEffect extends Effect.Locatable {
 
-    public static final Type<FireworkEffect, Vector3d> TYPE = new Type<>("Firework", FireworkEffect::new, n -> !n.getNode("firework").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<FireworkEffect> TYPE = new Type<>("Firework", FireworkEffect::new, n -> !n.getNode("firework").isVirtual(), TeslaCrate.get().getContainer());
 
     private FireworkShape shape = FireworkShapes.BALL;
     private final List<Color> colors = Lists.newArrayList();
@@ -96,14 +95,16 @@ public final class FireworkEffect extends Effect.Locatable {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("firework"), f -> {
-            NodeUtils.ifAttached(f.getNode("shape"), n -> setShape(Serializers.deserializeCatalogType(n, FireworkShape.class)));
-            NodeUtils.ifAttached(f.getNode("color"), n -> addColor(Serializers.deserializeColor(n)));
-            NodeUtils.ifAttached(f.getNode("fade"), n -> addFade(Serializers.deserializeColor(n)));
-            setFlicker(f.getNode("flicker").getBoolean(false));
-            setTrail(f.getNode("trail").getBoolean(false));
-            setStrength(f.getNode("strength").getInt(0));
-        });
+        if (node.getNode("firework").hasMapChildren()) {
+            NodeUtils.ifAttached(node.getNode("firework", "shape"), n -> setShape(Serializers.deserializeCatalogType(n, FireworkShape.class)));
+            NodeUtils.ifAttached(node.getNode("firework", "color"), n -> addColor(Serializers.deserializeColor(n)));
+            NodeUtils.ifAttached(node.getNode("firework", "fade"), n -> addFade(Serializers.deserializeColor(n)));
+            setFlicker(node.getNode("firework", "flicker").getBoolean(false));
+            setTrail(node.getNode("firework", "trail").getBoolean(false));
+            setStrength(node.getNode("firework", "strength").getInt(0));
+        } else {
+            NodeUtils.ifAttached(node.getNode("firework"), n -> setShape(Serializers.deserializeCatalogType(n, FireworkShape.class)));
+        }
         super.deserialize(node);
     }
 

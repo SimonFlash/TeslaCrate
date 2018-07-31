@@ -6,7 +6,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public final class Type<T extends Referenceable<V>, V> {
+public final class Type<T extends Component> {
 
     private final String name;
     private final Function<String, T> creator;

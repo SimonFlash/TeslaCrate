@@ -19,7 +19,7 @@ import org.spongepowered.api.world.World;
 
 public final class SoundEffect extends Effect.Locatable {
 
-    public static final Type<SoundEffect, Vector3d> TYPE = new Type<>("Sound", SoundEffect::new, n -> !n.getNode("sound").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<SoundEffect> TYPE = new Type<>("Sound", SoundEffect::new, n -> !n.getNode("sound").isVirtual(), TeslaCrate.get().getContainer());
 
     private SoundType type = SoundTypes.ENTITY_SLIME_SQUISH;
     private double volume = 1.0;
@@ -60,11 +60,13 @@ public final class SoundEffect extends Effect.Locatable {
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("sound"), s -> {
-            NodeUtils.ifAttached(s.getNode("type"), n -> setType(Serializers.deserializeCatalogType(n, SoundType.class)));
-            setVolume(s.getNode("volume").getDouble(1.0));
-            setPitch(s.getNode("pitch").getDouble(1.0));
-        });
+        if (node.getNode("sound").hasMapChildren()) {
+            NodeUtils.ifAttached(node.getNode("sound", "type"), n -> setType(Serializers.deserializeCatalogType(n, SoundType.class)));
+            setVolume(node.getNode("sound", "volume").getDouble(1.0));
+            setPitch(node.getNode("sound", "pitch").getDouble(1.0));
+        } else {
+            NodeUtils.ifAttached(node.getNode("sound"), n -> setType(Serializers.deserializeCatalogType(n, SoundType.class)));
+        }
         super.deserialize(node);
     }
 

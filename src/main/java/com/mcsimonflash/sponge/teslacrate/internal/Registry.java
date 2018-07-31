@@ -20,39 +20,41 @@ public final class Registry<T extends Referenceable<?>> {
     public static final Registry<Prize<?>> PRIZES = new Registry<>();
     public static final Registry<Reward> REWARDS = new Registry<>();
 
-    private final com.mcsimonflash.sponge.teslalibs.registry.Registry<T> components = com.mcsimonflash.sponge.teslalibs.registry.Registry.of();
-    private final com.mcsimonflash.sponge.teslalibs.registry.Registry<Type<? extends T, ?>> types = com.mcsimonflash.sponge.teslalibs.registry.Registry.of();
+    private final com.mcsimonflash.sponge.teslalibs.registry.Registry<T> componentRegistry = com.mcsimonflash.sponge.teslalibs.registry.Registry.of();
+    private final com.mcsimonflash.sponge.teslalibs.registry.Registry<Type<? extends T>> typeRegistry = com.mcsimonflash.sponge.teslalibs.registry.Registry.of();
+    private final RegistryService<T> components = RegistryService.of(componentRegistry);
+    private final RegistryService<Type<? extends T>> types = RegistryService.of(typeRegistry);
 
     public final Optional<T> get(String id) {
         return components.getValue(id);
     }
 
-    public final Optional<Type<? extends T, ?>> getType(String id) {
+    public final Optional<Type<? extends T>> getType(String id) {
         return types.getValue(id);
     }
 
     public final RegistryService<T> getComponents() {
-        return RegistryService.of(components);
+        return components;
     }
 
-    public final RegistryService<Type<? extends T, ?>> getTypes() {
-        return RegistryService.of(types);
+    public final RegistryService<Type<? extends T>> getTypes() {
+        return types;
     }
 
     public final boolean register(T component, PluginContainer container) {
-        return components.register(component.getId(), component, container);
+        return componentRegistry.register(component.getId(), component, container);
     }
 
-    public final boolean registerType(Type<? extends T, ?> type) {
-        return types.register(type.getName(), type, type.getContainer());
+    public final boolean registerType(Type<? extends T> type) {
+        return typeRegistry.register(type.getName(), type, type.getContainer());
     }
 
     static void clear() {
-        CRATES.components.clear();
-        EFFECTS.components.clear();
-        KEYS.components.clear();
-        PRIZES.components.clear();
-        REWARDS.components.clear();
+        CRATES.componentRegistry.clear();
+        EFFECTS.componentRegistry.clear();
+        KEYS.componentRegistry.clear();
+        PRIZES.componentRegistry.clear();
+        REWARDS.componentRegistry.clear();
     }
 
 }

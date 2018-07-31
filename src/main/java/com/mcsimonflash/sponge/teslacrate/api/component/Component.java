@@ -5,6 +5,8 @@ import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 
@@ -30,8 +32,8 @@ public abstract class Component {
         return name;
     }
 
-    public final void setName(Text displayName) {
-        this.name = displayName;
+    public final void setName(Text name) {
+        this.name = name;
     }
 
     public final Text getDescription() {
@@ -54,7 +56,13 @@ public abstract class Component {
     public void deserialize(ConfigurationNode node) {
         NodeUtils.ifAttached(node.getNode("name"), n -> setName(Utils.toText(n.getString(""))));
         NodeUtils.ifAttached(node.getNode("description"), n -> setDescription(Utils.toText(n.getString(""))));
-        NodeUtils.ifAttached(node.getNode("display-item"), n -> setDisplayItem(Serializers.deserializeItem(n)));
+        NodeUtils.ifAttached(node.getNode("display-item"), n -> {
+            if (n.hasMapChildren()) {
+                setDisplayItem(Serializers.deserializeItem(n));
+            } else {
+                setDisplayItem(ItemStack.of(Serializers.deserializeCatalogType(n, ItemType.class), 1).createSnapshot());
+            }
+        });
     }
 
     @OverridingMethodsMustInvokeSuper

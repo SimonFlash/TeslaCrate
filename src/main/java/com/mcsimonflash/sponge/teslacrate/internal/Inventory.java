@@ -3,6 +3,7 @@ package com.mcsimonflash.sponge.teslacrate.internal;
 import com.google.common.collect.ImmutableList;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Component;
+import com.mcsimonflash.sponge.teslalibs.inventory.Displayable;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
 import com.mcsimonflash.sponge.teslalibs.inventory.Page;
@@ -11,6 +12,8 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.DyeColors;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.InventoryArchetype;
+import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.scheduler.Task;
@@ -21,26 +24,33 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Inventory {
+public enum Inventory {;
 
+    public static final ImmutableList<Element> PANES = ImmutableList.of(
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.RED).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.ORANGE).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.YELLOW).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.LIME).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.LIGHT_BLUE).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.BLUE).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.PURPLE).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.MAGENTA).build()),
+            Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.PINK).build()));
     public static final Element
             BACK = Element.builder().build(),
             CLOSE = Element.of(Utils.createItem(ItemTypes.BARRIER, Utils.toText("&4Close"), ImmutableList.of(Utils.toText("&cClose the menu"))).build(), a -> inTask(a.getPlayer()::closeInventory));
     private static final Element
-            YELLOW = Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.YELLOW).build()),
-            ORANGE = Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.ORANGE).build()),
             CRATES = createMenuIcon(Registry.CRATES, "Crates", "They're Crrreat!", "ZjYyNGM5MjdjZmVhMzEzNTU0Mjc5OTNkOGI3OTcxMmU4NmY5NGQ1OTUzNDMzZjg0ODg0OWEzOWE2ODc5In19fQ=="),
             EFFECTS = createMenuIcon(Registry.EFFECTS, "Effects", "It's super effective!", "YzJiMGEyNzA5YWQyN2M1NzgzYmE3YWNiZGFlODc4N2QxNzY3M2YwODg4ZjFiNmQ0ZTI0ZWUxMzI5OGQ0In19fQ=="),
             KEYS = createMenuIcon(Registry.KEYS, "Keys", "Confused?", "NjBjZTQzZTBjZGNlYTk4ZGNjNmYwYmUzN2IwZjc3NDVkYWFmMmE3ZGMyOWJmMTNiM2U3OGE2NWM2ZSJ9fX0="),
             PRIZES = createMenuIcon(Registry.PRIZES, "Prizes", "Sur-prize!", "ZWM3MDA3ZDE2YWJjZmFjOWM2ODMwYzc0ZDM3Y2ZkNDM5YTI2MzczNDU3ZDkxNDUyYzFhOTZiOGUwNGE2ZCJ9fX0="),
             REWARDS = createMenuIcon(Registry.REWARDS, "Rewards", "Oohh, shiny!", "NmNlZjlhYTE0ZTg4NDc3M2VhYzEzNGE0ZWU4OTcyMDYzZjQ2NmRlNjc4MzYzY2Y3YjFhMjFhODViNyJ9fX0="),
             HOME = Element.of(Utils.createSkull(Utils.toText("&6Home"), ImmutableList.of(Utils.toText("&ePlease do not live in crate.")), "ZTM0YTM2MTlkYzY2ZmM1Zjk0MGY2OWFhMzMxZTU4OGI1Mjg1ZjZlMmU5OTgxYjhmOTNiOTk5MTZjMjk0YjQ4In19fQ==").build(), a -> inTask(() -> openMenu(a.getPlayer())));
-    private static final View MENU = View.builder()
-            .property(InventoryTitle.of(Utils.toText("&eTesla&6Crate &7Menu")))
+    private static final View MENU = displayable(View.builder(), InventoryArchetypes.CHEST, Utils.toText("&eTesla&6Crate &7Menu"))
             .build(TeslaCrate.get().getContainer())
             .define(Layout.builder()
                     .dimension(InventoryDimension.of(9, 3))
-                    .checker(ORANGE, YELLOW)
+                    .checker(PANES.get(2), PANES.get(1))
                     .set(CRATES, 11)
                     .set(KEYS, 12)
                     .set(EFFECTS, 13)
@@ -48,8 +58,8 @@ public class Inventory {
                     .set(PRIZES, 15)
                     .build());
     private static final Layout TEMPLATE = Layout.builder()
-            .set(YELLOW, 0, 2, 4, 6, 8, 18, 26, 36, 38, 40, 42, 44, 46, 52)
-            .set(ORANGE, 1, 3, 5, 7, 9, 17, 27, 35, 37, 39, 41, 43)
+            .set(PANES.get(2), 0, 2, 4, 6, 8, 18, 26, 36, 38, 40, 42, 44, 46, 52)
+            .set(PANES.get(1), 1, 3, 5, 7, 9, 17, 27, 35, 37, 39, 41, 43)
             .set(BACK, 45)
             .set(Page.FIRST, 47)
             .set(Page.PREVIOUS, 48)
@@ -67,13 +77,16 @@ public class Inventory {
         Task.builder().execute(action).submit(TeslaCrate.get().getContainer());
     }
 
+    public static <T extends Displayable.Builder> T displayable(T builder, InventoryArchetype archetype, Text name) {
+        return (T) builder.archetype(archetype).property(InventoryTitle.of(name));
+    }
+
     public static Page page(Text name, List<Element> elements, Element back) {
-        return Page.builder()
+        return displayable(Page.builder(), InventoryArchetypes.DOUBLE_CHEST, name)
                 .layout(Layout.builder()
                         .from(TEMPLATE)
                         .replace(BACK, back)
                         .build())
-                .property(InventoryTitle.of(name))
                 .build(TeslaCrate.get().getContainer())
                 .define(elements);
     }

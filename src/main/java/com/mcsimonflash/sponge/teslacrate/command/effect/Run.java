@@ -20,8 +20,8 @@ public final class Run extends Command {
 
     @Inject
     private Run(Settings settings) {
-        super(settings.usage(CmdUtils.usage("/teslacrate effect run ", "Runs an effect for a player", CmdUtils.PLAYER_ARG, CmdUtils.EFFECT_ARG, CmdUtils.LOCATION_ARG))
-                .elements(CmdUtils.PLAYER_ELEM, CmdUtils.EFFECT_ELEM, CmdUtils.LOCATION_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate effect run ", "Runs an effect for a player", CmdUtils.PLAYER_ARG, CmdUtils.EFFECT_ARG, CmdUtils.OPT_LOCATION_ARG))
+                .elements(CmdUtils.PLAYER_ELEM, CmdUtils.EFFECT_ELEM, CmdUtils.OPT_LOCATION_ELEM));
     }
 
     @Override

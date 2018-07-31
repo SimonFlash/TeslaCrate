@@ -33,9 +33,11 @@ public final class Set extends Command {
         Crate crate = args.<Crate> getOne("crate").get();
         Registration registration = Config.getRegistration(location).orElse(null);
         if (registration != null) {
-            throw new CommandException(TeslaCrate.getMessage(src, "teslacrate.command.location.set.already-set", "location", location.getExtent().getName() + location.getPosition().toInt().toString(), "crate", registration.getCrate().getId()));
+            throw new CommandException(TeslaCrate.getMessage(src, "teslacrate.command.location.set.already-set", "location", location.getExtent().getName() + location.getBlockPosition(), "crate", registration.getCrate().getId()));
         }
-        Config.addRegistration(new Registration(location.getExtent().getName() + location.getBlockPosition(), location.add(0.5, 0.5, 0.5), crate));
+        registration = new Registration(location.getExtent().getName() + location.getBlockPosition(), location.add(0.5, 0.5, 0.5), crate);
+        registration.startEffects();
+        Config.addRegistration(registration);
         src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.location.set.success", "location", location.getExtent().getName() + location.getBlockPosition(), "crate", crate.getId()));
         return CommandResult.success();
     }

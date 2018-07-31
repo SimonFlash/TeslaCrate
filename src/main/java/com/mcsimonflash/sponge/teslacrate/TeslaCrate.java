@@ -27,7 +27,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
-@Plugin(id = "teslacrate", name = "TeslaCrate", version = "3.0.0-pr2", dependencies = @Dependency(id = "teslacore"), url = "https://ore.spongepowered.org/Simon_Flash/TeslaCrate", authors = "Simon_Flash")
+@Plugin(id = "teslacrate", name = "TeslaCrate", version = "3.0.0-pr3", dependencies = @Dependency(id = "teslacore"), url = "https://ore.spongepowered.org/Simon_Flash/TeslaCrate", authors = "Simon_Flash")
 public final class TeslaCrate extends Tesla {
 
     private static TeslaCrate instance;

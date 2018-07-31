@@ -8,7 +8,7 @@ import org.spongepowered.api.entity.living.player.User;
 
 public final class VirtualKey extends Key {
 
-    public static final Type<VirtualKey, Integer> TYPE = new Type<>("Virtual", VirtualKey::new, n -> !n.getNode("virtual").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<VirtualKey> TYPE = new Type<>("Virtual", VirtualKey::new, n -> !n.getNode("virtual").isVirtual(), TeslaCrate.get().getContainer());
 
     private VirtualKey(String id) {
         super(id);
