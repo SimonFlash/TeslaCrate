@@ -54,10 +54,7 @@ public enum Serializers {;
                 .map(Tuple::getFirst)
                 .filter(t -> t.matches(node))
                 .collect(Collectors.toList());
-        if (types.size() == 1) {
-            return types.get(0);
-        }
-        return types.stream().filter(t -> t.getContainer().equals(TeslaCrate.get().getContainer())).findFirst().orElseGet(() ->
+        return types.size() == 1 ? types.get(0) : types.stream().filter(t -> t.getContainer().equals(TeslaCrate.get().getContainer())).findFirst().orElseGet(() ->
                 registry.getType("Standard").orElseThrow(() -> new ConfigurationException(node, "TypeSense matched %s types and a Standard type does not exist.", types.size())));
     }
 

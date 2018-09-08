@@ -24,7 +24,7 @@ public final class Give extends Command {
 
     @Inject
     private Give(Settings settings) {
-        super(settings.usage(CmdUtils.usage("/teslacrate reward give ", "Gives a reward to a set of users.", CmdUtils.USERS_ARG, CmdUtils.REWARD_ARG)).elements(CmdUtils.USERS_ELEM, CmdUtils.REWARD_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate reward give ", "Gives a reward to a set of users.", CmdUtils.USER_SELECTOR_ARG, CmdUtils.REWARD_ARG)).elements(CmdUtils.USER_SELECTOR_ELEM, CmdUtils.REWARD_ELEM));
     }
 
     @Override

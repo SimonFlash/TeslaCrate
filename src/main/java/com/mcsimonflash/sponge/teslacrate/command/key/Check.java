@@ -18,8 +18,8 @@ public final class Check extends Command {
 
     @Inject
     private Check(Settings settings) {
-        super(settings.usage(CmdUtils.usage("/teslacrate key check ", "Gets the number of keys a user has.", CmdUtils.OPT_USER_ARG, CmdUtils.KEY_ARG))
-                .elements(CmdUtils.OPT_USER_ELEM, CmdUtils.KEY_ELEM));
+        super(settings.usage(CmdUtils.usage("/teslacrate key check ", "Gets the number of keys a user has.", CmdUtils.USER_OR_SOURCE_ARG, CmdUtils.KEY_ARG))
+                .elements(CmdUtils.USER_OR_SOURCE_ELEM, CmdUtils.KEY_ELEM));
     }
 
     @Override

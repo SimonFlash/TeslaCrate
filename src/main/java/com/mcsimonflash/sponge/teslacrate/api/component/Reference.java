@@ -16,7 +16,9 @@ public abstract class Reference<T extends Referenceable<V>, V> extends Component
         value = component.getRefValue();
         setName(component.getName());
         setDescription(component.getDescription());
-        setDisplayItem(component.getDisplayItem());
+        if (component.defaultDisplayItem) {
+            setDisplayItem(component.getDisplayItem());
+        }
     }
 
     public final T getComponent() {
@@ -35,10 +37,10 @@ public abstract class Reference<T extends Referenceable<V>, V> extends Component
 
     @Override
     public final void deserialize(ConfigurationNode node) {
-        if (!node.hasMapChildren()) {
-            setValue(deserializeValue(node));
+        setValue(deserializeValue(node));
+        if (!component.defaultDisplayItem) {
+            setDisplayItem(component.createDisplayItem(value).build().createSnapshot());
         }
-        setDisplayItem(component.createDisplayItem(value).build().createSnapshot());
     }
 
     @Override

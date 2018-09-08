@@ -34,10 +34,10 @@ public final class CmdUtils {
             REWARD_ELEM = Arguments.choices(Registry.REWARDS.getComponents().getAll(), ImmutableMap.of("no-choice", "Input <arg> is not the id of a reward.")).map(Tuple::getFirst).toElement("reward"),
             PLAYER_ELEM = Arguments.player().toElement("player"),
             USER_ELEM = Arguments.user().toElement("user"),
-            USERS_ELEM = Arguments.userSelector().toElement("users"),
-            OPT_USER_ELEM = Arguments.user().orSource().toElement("user"),
+            USER_SELECTOR_ELEM = Arguments.userSelector().toElement("users"),
+            USER_OR_SOURCE_ELEM = Arguments.user().orSource().toElement("user"),
             LOCATION_ELEM = Arguments.location().toElement("location"),
-            OPT_LOCATION_ELEM = Arguments.location().orSource().toElement("location"),
+            OPT_LOCATION_ELEM = Arguments.location().optional().toElement("location"),
             QUANTITY_ELEM = Arguments.intObj().inRange(Range.atLeast(1)).toElement("quantity");
     public static final Text
             SUBCOMMAND_ARG = arg(true, "...", "A subcommand."),
@@ -48,11 +48,11 @@ public final class CmdUtils {
             REWARD_ARG = arg(true, "reward", "Id of a reward component."),
             PLAYER_ARG = arg(true, "player", "Name of an online player."),
             USER_ARG = arg(true, "user", "Name of a user."),
-            USERS_ARG = arg(true, "users", "User selector."),
-            OPT_USER_ARG = arg(false, "user", "Name of a user. Defaults to the source if the source is a user."),
-            QUANTITY_ARG = arg(true, "quantity", "An integer between 1 and 64 inclusive."),
+            USER_SELECTOR_ARG = arg(true, "users", "User selector."),
+            USER_OR_SOURCE_ARG = arg(false, "user", "Name of a user. Defaults to the source if the source is a user."),
             LOCATION_ARG = arg(true, "location", "A location (world and position). The world is taken from the source if possible, the position must be provided."),
-            OPT_LOCATION_ARG = arg(true, "position", "A location (world and position). The location is taken from the source if possible.");
+            OPT_LOCATION_ARG = arg(false, "position", "A location (world and position). If undefined, the location is taken from the source or given player where applicable."),
+            QUANTITY_ARG = arg(true, "quantity", "An integer between 1 and 64 inclusive.");
 
     private static final Text LINKS = Text.of("                      ", link("Ore Project", TeslaCrate.get().getContainer().getUrl().flatMap(TeslaUtils::parseURL)), TextColors.GRAY, " | ", link("Support Discord", Tesla.DISCORD));
 
