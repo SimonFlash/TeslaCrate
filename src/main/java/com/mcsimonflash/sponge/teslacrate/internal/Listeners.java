@@ -104,8 +104,10 @@ public final class Listeners {
                     } else if (cooldown && !Config.resetCooldown(player.getUniqueId(), registration.getCrate())) {
                         player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cUnable to reset your cooldown.")));
                     } else {
-                        registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
-                        registration.getCrate().open(player, registration.getLocation());
+                        Inventory.confirmation(registration.getCrate().getName(), "&2Open this crate.", registration.getCrate().getDisplayItem(), a -> {
+                            registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
+                            registration.getCrate().open(player, registration.getLocation());
+                        }).open(player);
                         return;
                     }
                 }

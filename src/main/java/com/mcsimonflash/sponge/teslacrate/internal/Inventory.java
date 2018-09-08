@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Component;
+import com.mcsimonflash.sponge.teslalibs.inventory.Action;
 import com.mcsimonflash.sponge.teslalibs.inventory.Displayable;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
 import com.mcsimonflash.sponge.teslalibs.inventory.Layout;
@@ -16,6 +17,7 @@ import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.InventoryArchetype;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.scheduler.Task;
@@ -24,6 +26,7 @@ import org.spongepowered.api.util.Tuple;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public enum Inventory {;
@@ -79,6 +82,17 @@ public enum Inventory {;
 
     private static void inTask(Runnable action) {
         Task.builder().execute(action).submit(TeslaCrate.get().getContainer());
+    }
+
+    public static View confirmation(Text name, String description, ItemStackSnapshot center, Consumer<Action> action) {
+        return displayable(View.builder(), InventoryArchetypes.CHEST, name)
+                .build(TeslaCrate.get().getContainer())
+                .define(Layout.builder()
+                        .checker(PANES.get(2), PANES.get(1))
+                        .set(Element.of(center), 13)
+                        .set(Element.of(Utils.createItem(ItemTypes.SLIME_BALL, Utils.toText("&aConfirm"), ImmutableList.of(Utils.toText(description))).build(), a -> inTask(() -> action.accept(a))), 10)
+                        .set(Element.of(Utils.createItem(ItemTypes.MAGMA_CREAM, Utils.toText("&cCancel"), ImmutableList.of(Utils.toText("&4Do not open this crate."))).build(), a -> inTask(a.getPlayer()::closeInventory)), 16)
+                        .build());
     }
 
     public static <T extends Displayable.Builder> T displayable(T builder, InventoryArchetype archetype, Text name) {
