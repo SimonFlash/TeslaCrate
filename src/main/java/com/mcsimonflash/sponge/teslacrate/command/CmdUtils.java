@@ -9,6 +9,7 @@ import com.mcsimonflash.sponge.teslacrate.internal.Registry;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.argument.Arguments;
 import com.mcsimonflash.sponge.teslalibs.argument.CommandElement;
+import com.mcsimonflash.sponge.teslalibs.argument.FlagsElement;
 import com.mcsimonflash.sponge.teslalibs.command.Command;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandSource;
@@ -39,6 +40,8 @@ public final class CmdUtils {
             LOCATION_ELEM = Arguments.location().toElement("location"),
             OPT_LOCATION_ELEM = Arguments.location().optional().toElement("location"),
             QUANTITY_ELEM = Arguments.intObj().inRange(Range.atLeast(1)).toElement("quantity");
+    public static final FlagsElement
+            NO_GUI_FLAG = Arguments.flags().flag("nogui").build();
     public static final Text
             SUBCOMMAND_ARG = arg(true, "...", "A subcommand."),
             CRATE_ARG = arg(true, "crate", "Id of a crate component."),
@@ -52,7 +55,8 @@ public final class CmdUtils {
             USER_OR_SOURCE_ARG = arg(false, "user", "Name of a user. Defaults to the source if the source is a user."),
             LOCATION_ARG = arg(true, "location", "A location (world and position). The world is taken from the source if possible, the position must be provided."),
             OPT_LOCATION_ARG = arg(false, "position", "A location (world and position). If undefined, the location is taken from the source or given player where applicable."),
-            QUANTITY_ARG = arg(true, "quantity", "An integer between 1 and 64 inclusive.");
+            QUANTITY_ARG = arg(true, "quantity", "An integer between 1 and 64 inclusive."),
+            NO_GUI_ARG = arg(false, "-nogui", "If defined, a text display will be shown instead of the gui.");
 
     private static final Text LINKS = Text.of("                      ", link("Ore Project", TeslaCrate.get().getContainer().getUrl().flatMap(TeslaUtils::parseURL)), TextColors.GRAY, " | ", link("Support Discord", Tesla.DISCORD));
 

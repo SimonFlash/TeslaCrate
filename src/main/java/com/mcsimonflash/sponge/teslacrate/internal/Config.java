@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -159,6 +160,10 @@ public enum Config {;
             return registrations.save();
         }
         return false;
+    }
+
+    public static Map<Location<World>, Registration> getAllRegistrations() {
+        return Collections.unmodifiableMap(REGISTRATIONS);
     }
 
     public static long getCooldown(UUID uuid, Crate crate) {

@@ -1,6 +1,7 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Component;
 import com.mcsimonflash.sponge.teslalibs.inventory.Displayable;
@@ -14,6 +15,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.InventoryArchetype;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.scheduler.Task;
@@ -38,24 +40,26 @@ public enum Inventory {;
             Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.PINK).build()));
     public static final Element
             BACK = Element.builder().build(),
-            CLOSE = Element.of(Utils.createItem(ItemTypes.BARRIER, Utils.toText("&4Close"), ImmutableList.of(Utils.toText("&cClose the menu"))).build(), a -> inTask(a.getPlayer()::closeInventory));
+            CLOSE = Element.of(Utils.createItem(ItemTypes.BARRIER, Utils.toText("&4Close"), ImmutableList.of(Utils.toText("&cClose the componentMenu"))).build(), a -> inTask(a.getPlayer()::closeInventory));
     private static final Element
             CRATES = createMenuIcon(Registry.CRATES, "Crates", "They're Crrreat!", "ZjYyNGM5MjdjZmVhMzEzNTU0Mjc5OTNkOGI3OTcxMmU4NmY5NGQ1OTUzNDMzZjg0ODg0OWEzOWE2ODc5In19fQ=="),
             EFFECTS = createMenuIcon(Registry.EFFECTS, "Effects", "It's super effective!", "YzJiMGEyNzA5YWQyN2M1NzgzYmE3YWNiZGFlODc4N2QxNzY3M2YwODg4ZjFiNmQ0ZTI0ZWUxMzI5OGQ0In19fQ=="),
             KEYS = createMenuIcon(Registry.KEYS, "Keys", "Confused?", "NjBjZTQzZTBjZGNlYTk4ZGNjNmYwYmUzN2IwZjc3NDVkYWFmMmE3ZGMyOWJmMTNiM2U3OGE2NWM2ZSJ9fX0="),
             PRIZES = createMenuIcon(Registry.PRIZES, "Prizes", "Sur-prize!", "ZWM3MDA3ZDE2YWJjZmFjOWM2ODMwYzc0ZDM3Y2ZkNDM5YTI2MzczNDU3ZDkxNDUyYzFhOTZiOGUwNGE2ZCJ9fX0="),
             REWARDS = createMenuIcon(Registry.REWARDS, "Rewards", "Oohh, shiny!", "NmNlZjlhYTE0ZTg4NDc3M2VhYzEzNGE0ZWU4OTcyMDYzZjQ2NmRlNjc4MzYzY2Y3YjFhMjFhODViNyJ9fX0="),
-            HOME = Element.of(Utils.createSkull(Utils.toText("&6Home"), ImmutableList.of(Utils.toText("&ePlease do not live in crate.")), "ZTM0YTM2MTlkYzY2ZmM1Zjk0MGY2OWFhMzMxZTU4OGI1Mjg1ZjZlMmU5OTgxYjhmOTNiOTk5MTZjMjk0YjQ4In19fQ==").build(), a -> inTask(() -> openMenu(a.getPlayer())));
+            LOCATIONS = Element.of(Utils.createSkull(Utils.toText("&eLocations"), ImmutableList.of(Utils.toText("&6'Tis a cube land...")), "Y2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=").build(), a -> inTask(() -> locationMenu().open(a.getPlayer()))),
+            HOME = Element.of(Utils.createSkull(Utils.toText("&eHome"), ImmutableList.of(Utils.toText("&6Please do not live in crate.")), "ZTM0YTM2MTlkYzY2ZmM1Zjk0MGY2OWFhMzMxZTU4OGI1Mjg1ZjZlMmU5OTgxYjhmOTNiOTk5MTZjMjk0YjQ4In19fQ==").build(), a -> inTask(() -> openMenu(a.getPlayer())));
     private static final View MENU = displayable(View.builder(), InventoryArchetypes.CHEST, Utils.toText("&eTesla&6Crate &7Menu"))
             .build(TeslaCrate.get().getContainer())
             .define(Layout.builder()
                     .dimension(InventoryDimension.of(9, 3))
                     .checker(PANES.get(2), PANES.get(1))
-                    .set(CRATES, 11)
-                    .set(KEYS, 12)
-                    .set(EFFECTS, 13)
-                    .set(REWARDS, 14)
-                    .set(PRIZES, 15)
+                    .set(CRATES, 10)
+                    .set(KEYS, 11)
+                    .set(EFFECTS, 12)
+                    .set(REWARDS, 13)
+                    .set(PRIZES, 14)
+                    .set(LOCATIONS, 16)
                     .build());
     private static final Layout TEMPLATE = Layout.builder()
             .set(PANES.get(2), 0, 2, 4, 6, 8, 18, 26, 36, 38, 40, 42, 44, 46, 52)
@@ -91,7 +95,7 @@ public enum Inventory {;
                 .define(elements);
     }
 
-    private static Page menu(Registry<? extends Component> registry, String name, Element back) {
+    private static Page componentMenu(Registry<? extends Component> registry, String name, Element back) {
         return page(Utils.toText("&e" + name), registry.getComponents().getDistinct().stream()
                 .map(Tuple::getFirst)
                 .sorted((Comparator.comparing(Component::getId)))
@@ -99,8 +103,16 @@ public enum Inventory {;
                 .collect(Collectors.toList()), HOME);
     }
 
+    private static Page locationMenu() {
+        return page(Utils.toText("&eLocations"), Config.getAllRegistrations().values().stream()
+                .map(r -> Element.of(ItemStack.builder().fromSnapshot(r.getCrate().getDisplayItem())
+                        .add(Keys.ITEM_LORE, Lists.newArrayList(Utils.toText("&e" + r.getId())))
+                        .build(), a -> Utils.teleport(a.getPlayer(), r.getLocation())))
+                .collect(Collectors.toList()), Inventory.CLOSE);
+    }
+
     private static Element createMenuIcon(Registry<? extends Component> registry, String name, String lore, String texture) {
-        return Element.of(Utils.createSkull(Utils.toText("&e" + name), ImmutableList.of(Utils.toText("&6" + lore)), texture).build(), a -> menu(registry, name, a.getElement()).open(a.getPlayer()));
+        return Element.of(Utils.createSkull(Utils.toText("&e" + name), ImmutableList.of(Utils.toText("&6" + lore)), texture).build(), a -> componentMenu(registry, name, a.getElement()).open(a.getPlayer()));
     }
 
     private static Element createComponentIcon(Component component, Element back) {

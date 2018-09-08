@@ -3,6 +3,7 @@ package com.mcsimonflash.sponge.teslacrate;
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
 import com.mcsimonflash.sponge.teslacrate.command.Base;
+import com.mcsimonflash.sponge.teslacrate.command.key.List;
 import com.mcsimonflash.sponge.teslacrate.component.crate.StandardCrate;
 import com.mcsimonflash.sponge.teslacrate.component.effect.FireworkEffect;
 import com.mcsimonflash.sponge.teslacrate.component.effect.ParticleEffect;
@@ -51,6 +52,7 @@ public final class TeslaCrate extends Tesla {
         Registry.PRIZES.registerType(ItemPrize.TYPE);
         Registry.REWARDS.registerType(StandardReward.TYPE);
         getCommands().register(Base.class);
+        Sponge.getCommandManager().register(getContainer(), getCommands().getInstance(List.class).getSpec(), "keys");
         Sponge.getEventManager().registerListeners(getContainer(), new Listeners());
     }
 
