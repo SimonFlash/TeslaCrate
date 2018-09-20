@@ -16,6 +16,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.List;
 
@@ -74,7 +75,7 @@ public final class PotionEffect extends Effect<Integer> {
     }
 
     @Override
-    public final void run(Player player, Location location, Integer duration) {
+    public final void run(Player player, Location<World> location, Integer duration) {
         List<org.spongepowered.api.effect.potion.PotionEffect> effects = player.get(Keys.POTION_EFFECTS).orElseGet(Lists::newArrayList);
         effects.add(org.spongepowered.api.effect.potion.PotionEffect.builder()
                 .potionType(type).duration(20 * duration).amplifier(amplifier).ambience(ambient).particles(particles).build());

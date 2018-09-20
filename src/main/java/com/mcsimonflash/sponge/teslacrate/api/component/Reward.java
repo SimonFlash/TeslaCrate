@@ -66,6 +66,7 @@ public abstract class Reward extends Referenceable<Double> {
     @Override
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
+        setAnnounce(node.getNode("announce").getBoolean(true));
         setRepeatable(node.getNode("repeatable").getBoolean(true));
         setWeight(node.getNode("weight").getDouble(0.0));
         node.getNode("prizes").getChildrenMap().values().forEach(n -> {

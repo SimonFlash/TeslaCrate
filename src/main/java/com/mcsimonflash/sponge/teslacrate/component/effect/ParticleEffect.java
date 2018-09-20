@@ -88,7 +88,7 @@ public final class ParticleEffect extends Effect.Locatable {
                 org.spongepowered.api.effect.particle.ParticleEffect effect = rainbow ? AnimUtils.particle(AnimUtils.rainbow(6 * radians / 7)) : org.spongepowered.api.effect.particle.ParticleEffect.builder()
                         .type(type).option(ParticleOptions.COLOR, color).build();
                 for (Vector3f vec : path.getPositions(radians)) {
-                    AnimUtils.spawn(location, effect, vec.mul(path.getScale()).add(getOffset().toFloat()));
+                    AnimUtils.spawn(location, effect, vec.mul(path.getScale()));
                 }
                 radians += increment;
             }

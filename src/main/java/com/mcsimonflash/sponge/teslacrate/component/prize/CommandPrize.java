@@ -67,7 +67,7 @@ public final class CommandPrize extends Prize<String> {
     @Override
     public final boolean give(User user, String value) {
         if (!command.isEmpty() && (user.isOnline() || (!online && source == Source.SERVER))) {
-            Sponge.getCommandManager().process(source == Source.PLAYER ? user.getPlayer().get() : Sponge.getServer().getConsole(), Message.of(getCommand()).args("player", user.getName(), "value", value).toString());
+            Sponge.getCommandManager().process(source == Source.PLAYER ? user.getPlayer().get() : Sponge.getServer().getConsole(), Message.of(getCommand()).args("value", value, "player", user.getName()).toString());
             return true;
         }
         return false;
