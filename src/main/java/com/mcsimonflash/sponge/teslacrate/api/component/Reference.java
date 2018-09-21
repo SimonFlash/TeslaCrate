@@ -1,54 +1,35 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-import com.google.common.base.MoreObjects;
-import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
+public class Reference<T extends Component<T, V>, V> {
 
-public abstract class Reference<T extends Referenceable<V>, V> extends Component {
-
+    private final String id;
     private final T component;
     private V value;
+    private ItemStackSnapshot displayItem;
 
-    Reference(String id, T component) {
-        super(id);
+    protected Reference(String id, T component, V value) {
+        this.id = id;
         this.component = component;
-        value = component.getRefValue();
-        setName(component.getName());
-        setDescription(component.getDescription());
-        if (component.defaultDisplayItem) {
-            setDisplayItem(component.getDisplayItem());
-        }
+        this.value = value;
+        this.displayItem = component.defaultItem ? component.createDisplayItem(value) : component.getDisplayItem();
+    }
+
+    public final String getId() {
+        return id;
     }
 
     public final T getComponent() {
         return component;
     }
 
-    public final V getValue() {
+    public V getValue() {
         return value;
     }
 
-    public final void setValue(V value) {
-        this.value = value;
-    }
-
-    public abstract V deserializeValue(ConfigurationNode node);
-
-    @Override
-    public final void deserialize(ConfigurationNode node) {
-        setValue(deserializeValue(node));
-        if (!component.defaultDisplayItem) {
-            setDisplayItem(component.createDisplayItem(value).build().createSnapshot());
-        }
-    }
-
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
-        return super.toStringHelper(indent)
-                .add(indent + "component", component.getId())
-                .add(indent + "value", getValue());
+    public ItemStackSnapshot getDisplayItem() {
+        return displayItem;
     }
 
 }

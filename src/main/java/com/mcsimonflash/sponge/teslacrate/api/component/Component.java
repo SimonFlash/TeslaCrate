@@ -1,6 +1,5 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-import com.google.common.base.MoreObjects;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
@@ -12,12 +11,13 @@ import org.spongepowered.api.text.Text;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 
-public abstract class Component {
+public abstract class Component<T extends Component<T, V>, V> {
 
     private final String id;
     private Text name;
     private Text description = Text.EMPTY;
     private ItemStackSnapshot displayItem = ItemStackSnapshot.NONE;
+    boolean defaultItem = true;
 
     Component(String id) {
         this.id = id;
@@ -28,59 +28,36 @@ public abstract class Component {
         return id;
     }
 
-    public final Text getName() {
+    public Text getName() {
         return name;
     }
 
-    public final void setName(Text name) {
-        this.name = name;
-    }
-
-    public final Text getDescription() {
+    public Text getDescription() {
         return description;
     }
 
-    public final void setDescription(Text description) {
-        this.description = description;
-    }
-
-    public final ItemStackSnapshot getDisplayItem() {
+    public ItemStackSnapshot getDisplayItem() {
         return displayItem;
     }
 
-    public final void setDisplayItem(ItemStackSnapshot displayItem) {
-        this.displayItem = displayItem;
-    }
+    protected abstract V getValue();
 
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {
-        NodeUtils.ifAttached(node.getNode("name"), n -> setName(Utils.toText(n.getString(""))));
-        NodeUtils.ifAttached(node.getNode("description"), n -> setDescription(Utils.toText(n.getString(""))));
-        NodeUtils.ifAttached(node.getNode("display-item"), n -> {
-            if (n.hasMapChildren()) {
-                setDisplayItem(Serializers.deserializeItem(n));
-            } else {
-                setDisplayItem(ItemStack.of(Serializers.deserializeCatalogType(n, ItemType.class), 1).createSnapshot());
-            }
-        });
+        NodeUtils.ifAttached(node.getNode("name"), n -> name = (Utils.toText(n.getString(""))));
+        NodeUtils.ifAttached(node.getNode("description"), n -> description = (Utils.toText(n.getString(""))));
+        ConfigurationNode diNode = node.getNode("display-item");
+        if (defaultItem = diNode.isVirtual()) {
+            displayItem = createDisplayItem(getValue());
+        } else if (diNode.hasMapChildren()) {
+            displayItem = (Serializers.deserializeItem(diNode));
+        } else {
+            displayItem = (ItemStack.of(Serializers.deserializeCatalogType(diNode, ItemType.class), 1).createSnapshot());
+        }
     }
 
-    @OverridingMethodsMustInvokeSuper
-    public void serialize(ConfigurationNode node) {
-        //TODO: serialization
-    }
+    protected abstract V deserializeValue(ConfigurationNode node);
 
-    @OverridingMethodsMustInvokeSuper
-    protected MoreObjects.ToStringHelper toStringHelper(String indent) {
-        return MoreObjects.toStringHelper(this)
-                .add(indent + "id", id)
-                .add(indent + "name", name)
-                .add(indent + "description", description)
-                .add(indent + "display-item", displayItem);
-    }
-
-    public final String toString() {
-        return toStringHelper("\n    ").addValue("\n").toString();
-    }
+    protected abstract ItemStackSnapshot createDisplayItem(V value);
 
 }

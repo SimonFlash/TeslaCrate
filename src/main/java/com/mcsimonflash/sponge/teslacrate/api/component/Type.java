@@ -1,22 +1,18 @@
 package com.mcsimonflash.sponge.teslacrate.api.component;
 
-import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.plugin.PluginContainer;
 
 import java.util.function.Function;
-import java.util.function.Predicate;
 
-public final class Type<T extends Component> {
+public final class Type<T extends Component<T, V>, V> {
 
     private final String name;
-    private final Function<String, T> creator;
-    private final Predicate<ConfigurationNode> predicate;
+    private final Function<String, T> constructor;
     private final PluginContainer container;
 
-    public Type(String name, Function<String, T> creator, Predicate<ConfigurationNode> predicate, PluginContainer container) {
+    public Type(String name, Function<String, T> constructor, PluginContainer container) {
         this.name = name;
-        this.creator = creator;
-        this.predicate = predicate;
+        this.constructor = constructor;
         this.container = container;
     }
 
@@ -29,11 +25,7 @@ public final class Type<T extends Component> {
     }
 
     public final T create(String id) {
-        return creator.apply(id);
-    }
-
-    public final boolean matches(ConfigurationNode node) {
-        return predicate.test(node);
+        return constructor.apply(id);
     }
 
 }
