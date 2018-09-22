@@ -49,13 +49,13 @@ public abstract class Effect<T extends Effect<T, V>, V> extends Component<T, V> 
 
         @Override @OverridingMethodsMustInvokeSuper
         public void deserialize(ConfigurationNode node) {
-            NodeUtils.ifAttached(node.getNode("offset"), n -> offset = Serializers.deserializeVector3d(n));
-            NodeUtils.ifAttached(node.getNode("target"), n -> target = Serializers.deserializeEnum(n, Target.class));
+            NodeUtils.ifAttached(node.getNode("offset"), n -> offset = Serializers.vector3d(n));
+            NodeUtils.ifAttached(node.getNode("target"), n -> target = Serializers.enumeration(n, Target.class));
             super.deserialize(node);
         }
 
         public Vector3d deserializeValue(ConfigurationNode node) {
-            return Serializers.deserializeVector3d(node);
+            return Serializers.vector3d(node);
         }
 
     }

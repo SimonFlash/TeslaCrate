@@ -38,9 +38,9 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
     @Override
     public final void deserialize(ConfigurationNode node) {
         if (node.getNode("item").hasMapChildren()) {
-            item = Serializers.deserializeItem(node.getNode("item"));
+            item = Serializers.itemStack(node.getNode("item"));
         } else {
-            item = ItemStack.of(Serializers.deserializeCatalogType(node.getNode("item"), ItemType.class), 1).createSnapshot();
+            item = ItemStack.of(Serializers.catalogType(node.getNode("item"), ItemType.class), 1).createSnapshot();
         }
         super.deserialize(node);
     }

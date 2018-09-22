@@ -51,14 +51,14 @@ public final class FireworkEffect extends Effect.Locatable<FireworkEffect> {
     @Override
     public final void deserialize(ConfigurationNode node) {
         if (node.getNode("firework").hasMapChildren()) {
-            NodeUtils.ifAttached(node.getNode("firework", "shape"), n -> shape = Serializers.deserializeCatalogType(n, FireworkShape.class));
-            NodeUtils.ifAttached(node.getNode("firework", "color"), n -> colors.add(Serializers.deserializeColor(n)));
-            NodeUtils.ifAttached(node.getNode("firework", "fade"), n -> fades.add(Serializers.deserializeColor(n)));
+            NodeUtils.ifAttached(node.getNode("firework", "shape"), n -> shape = Serializers.catalogType(n, FireworkShape.class));
+            NodeUtils.ifAttached(node.getNode("firework", "color"), n -> colors.add(Serializers.color(n)));
+            NodeUtils.ifAttached(node.getNode("firework", "fade"), n -> fades.add(Serializers.color(n)));
             flicker = node.getNode("firework", "flicker").getBoolean(false);
             trail = node.getNode("firework", "trail").getBoolean(false);
             strength = node.getNode("firework", "strength").getInt(0);
         } else {
-            NodeUtils.ifAttached(node.getNode("firework"), n -> shape = Serializers.deserializeCatalogType(n, FireworkShape.class));
+            NodeUtils.ifAttached(node.getNode("firework"), n -> shape = Serializers.catalogType(n, FireworkShape.class));
         }
         super.deserialize(node);
     }

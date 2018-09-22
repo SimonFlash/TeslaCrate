@@ -3,11 +3,9 @@ package com.mcsimonflash.sponge.teslacrate.internal;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Component;
 import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
-import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
-import com.mcsimonflash.sponge.teslacrate.component.prize.CommandPrize;
-import com.mcsimonflash.sponge.teslacrate.component.prize.ItemPrize;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigHolder;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
@@ -109,7 +107,7 @@ public enum Config {;
         }
     }
 
-    private static <T extends Referenceable<?>> void loadComponents(ConfigHolder config, Registry<T> registry, String type) throws ConfigurationException {
+    private static <T extends Component<T, ?>> void loadComponents(ConfigHolder config, Registry<T> registry, String type) throws ConfigurationException {
         config.getNode().getChildrenMap().values().forEach(n -> {
             try {
                 T component = Serializers.getType(n, registry).create((String) n.getKey());
@@ -126,7 +124,7 @@ public enum Config {;
         registrations.getNode().getChildrenMap().values().forEach(n -> {
             try {
                 World world = Sponge.getServer().getWorld(n.getNode("world").getString(Sponge.getServer().getDefaultWorldName())).orElseThrow(() -> new ConfigurationException(n.getNode("world"), "No world found for name " + n.getNode("world").getString("undefined") + "."));
-                Vector3i position = Serializers.deserializeVector3i(n.getNode("position"));
+                Vector3i position = Serializers.vector3i(n.getNode("position"));
                 Crate crate = Registry.CRATES.get(n.getNode("crate").getString("")).orElseThrow(() -> new ConfigurationException(n.getNode("crate"), "No crate found for id " + n.getNode("crate").getString("undefined") + "."));
                 REGISTRATIONS.put(new Location<>(world, position), new Registration((String) n.getKey(), new Location<>(world, position.toDouble().add(0.5, 0.5, 0.5)), crate));
             } catch (ConfigurationException e) {
@@ -319,13 +317,13 @@ public enum Config {;
 
     private static void convertPrize(ConfigurationNode node) {
         convertComponent(node);
-        if (CommandPrize.TYPE.matches(node) || node.getNode("type").getString("").equalsIgnoreCase("command")) {
+        if (!node.getNode("command").isVirtual() || node.getNode("type").getString("").equalsIgnoreCase("command")) {
             NodeUtils.ifAttached(node.getNode("server"), n -> {
                 node.getNode("source").setValue(n.getBoolean(true) ? null : "player");
                 n.setValue(null);
             });
             convertCommand(node);
-        } else if (ItemPrize.TYPE.matches(node) || node.getNode("type").getString("").equalsIgnoreCase("item")) {
+        } else if (!node.getNode("item").isVirtual() || node.getNode("type").getString("").equalsIgnoreCase("item")) {
             if (node.getNode("item").getChildrenMap().size() == 1 && !node.getNode("item", "id").isVirtual()) {
                 node.getNode("item").setValue(node.getNode("item", "id"));
             } else {

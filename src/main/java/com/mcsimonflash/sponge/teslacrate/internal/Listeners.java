@@ -1,6 +1,5 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
@@ -91,28 +90,21 @@ public final class Listeners {
                     player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.preview.no-permission", "player", player.getName(), "crate", registration.getCrate().getId()));
                 }
             } else {
-                boolean cooldown = !player.hasPermission("teslacrate.crates." + registration.getCrate().getId() + ".no-cooldown");
-                long time = cooldown ? Utils.getCooldown(player, registration.getCrate()) - (System.currentTimeMillis() - Config.getCooldown(player.getUniqueId(), registration.getCrate())) : 0;
-                if (time > 0) {
-                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.cooldown", "crate", registration.getCrate().getId(), "time", String.format("%.1f", time / 1000.0)));
+                //TODO: Cooldown
+                List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> r.getComponent().get(player) < r.getValue()).collect(Collectors.toList());
+                if (!missing.isEmpty()) {
+                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", registration.getCrate().getId(), "keys", String.join(", ", missing.stream()
+                            .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", r.getComponent().getId(), "quantity", r.getValue()).toString())
+                            .collect(Collectors.toList()))));
                 } else {
-                    List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> r.getComponent().get(player) < r.getValue()).collect(Collectors.toList());
-                    if (!missing.isEmpty()) {
-                        player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", registration.getCrate().getId(), "keys", String.join(", ", missing.stream()
-                                .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", r.getComponent().getId(), "quantity", r.getValue()).toString())
-                                .collect(Collectors.toList()))));
-                    } else if (cooldown && !Config.resetCooldown(player.getUniqueId(), registration.getCrate())) {
-                        player.sendMessage(TeslaCrate.get().getPrefix().concat(Utils.toText("&cUnable to reset your cooldown.")));
-                    } else {
-                        Inventory.confirmation(registration.getCrate().getName(), "&2Open this crate.", registration.getCrate().getDisplayItem(), a -> {
-                            registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
-                            registration.getCrate().open(player, registration.getLocation());
-                        }).open(player);
-                        return;
-                    }
+                    Inventory.confirmation(registration.getCrate().getName(), "&2Open this crate.", registration.getCrate().getDisplayItem(), a -> {
+                        registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
+                        registration.getCrate().open(player, registration.getLocation());
+                    }).open(player);
+                    return;
                 }
             }
-            registration.getCrate().getEffects().getOrDefault(Effect.Trigger.ON_REJECT, ImmutableList.of()).forEach(e -> e.run(player, registration.getLocation()));
+            List<Reference<? extends Effect, ?>> effects = registration.getCrate().getEffects(Effect.Action.ON_REJECT);
         }
     }
 

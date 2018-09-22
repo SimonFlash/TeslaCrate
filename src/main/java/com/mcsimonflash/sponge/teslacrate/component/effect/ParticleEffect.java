@@ -65,16 +65,16 @@ public final class ParticleEffect extends Effect.Locatable<ParticleEffect> {
     @Override
     public final void deserialize(ConfigurationNode node) {
         if (node.getNode("particle").hasMapChildren()) {
-            NodeUtils.ifAttached(node.getNode("particle", "type"), n -> type = Serializers.deserializeCatalogType(n, ParticleType.class));
-            NodeUtils.ifAttached(node.getNode("particle", "color"), n -> color = Serializers.deserializeColor(n));
+            NodeUtils.ifAttached(node.getNode("particle", "type"), n -> type = Serializers.catalogType(n, ParticleType.class));
+            NodeUtils.ifAttached(node.getNode("particle", "color"), n -> color = Serializers.color(n));
             rainbow = node.getNode("particle", "rainbow").getBoolean(false);
         } else {
-            NodeUtils.ifAttached(node.getNode("particle"), n -> type = Serializers.deserializeCatalogType(n, ParticleType.class));
+            NodeUtils.ifAttached(node.getNode("particle"), n -> type = Serializers.catalogType(n, ParticleType.class));
         }
         if (node.getNode("path").hasMapChildren()) {
-            path = Serializers.deserializePath(node.getNode("path"));
+            path = Serializers.path(node.getNode("path"));
         } else {
-            NodeUtils.ifAttached(node.getNode("path"), n -> path = Serializers.deserializePathType(n));
+            NodeUtils.ifAttached(node.getNode("path"), n -> path = Serializers.pathType(n));
         }
         super.deserialize(node);
     }

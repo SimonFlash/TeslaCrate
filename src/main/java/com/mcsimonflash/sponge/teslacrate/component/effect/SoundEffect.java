@@ -35,11 +35,11 @@ public final class SoundEffect extends Effect.Locatable<SoundEffect> {
     @Override
     public final void deserialize(ConfigurationNode node) {
         if (node.getNode("sound").hasMapChildren()) {
-            NodeUtils.ifAttached(node.getNode("sound", "type"), n -> type = Serializers.deserializeCatalogType(n, SoundType.class));
+            NodeUtils.ifAttached(node.getNode("sound", "type"), n -> type = Serializers.catalogType(n, SoundType.class));
             volume = node.getNode("sound", "volume").getDouble(1.0);
             pitch = node.getNode("sound", "pitch").getDouble(1.0);
         } else {
-            NodeUtils.ifAttached(node.getNode("sound"), n -> type = Serializers.deserializeCatalogType(n, SoundType.class));
+            NodeUtils.ifAttached(node.getNode("sound"), n -> type = Serializers.catalogType(n, SoundType.class));
         }
         super.deserialize(node);
     }

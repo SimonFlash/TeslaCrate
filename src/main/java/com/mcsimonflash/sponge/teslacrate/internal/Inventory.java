@@ -43,15 +43,15 @@ public enum Inventory {;
             Element.of(Utils.createItem(ItemTypes.STAINED_GLASS_PANE, Text.EMPTY).add(Keys.DYE_COLOR, DyeColors.PINK).build()));
     public static final Element
             BACK = Element.builder().build(),
-            CLOSE = Element.of(Utils.createItem(ItemTypes.BARRIER, Utils.toText("&4Close"), ImmutableList.of(Utils.toText("&cClose the componentMenu"))).build(), a -> inTask(a.getPlayer()::closeInventory));
+            CLOSE = Element.of(Utils.createItem(ItemTypes.BARRIER, Utils.toText("&4Close"), Utils.toText("&cClose the componentMenu")).build(), a -> inTask(a.getPlayer()::closeInventory));
     private static final Element
             CRATES = createMenuIcon(Registry.CRATES, "Crates", "They're Crrreat!", "ZjYyNGM5MjdjZmVhMzEzNTU0Mjc5OTNkOGI3OTcxMmU4NmY5NGQ1OTUzNDMzZjg0ODg0OWEzOWE2ODc5In19fQ=="),
             EFFECTS = createMenuIcon(Registry.EFFECTS, "Effects", "It's super effective!", "YzJiMGEyNzA5YWQyN2M1NzgzYmE3YWNiZGFlODc4N2QxNzY3M2YwODg4ZjFiNmQ0ZTI0ZWUxMzI5OGQ0In19fQ=="),
             KEYS = createMenuIcon(Registry.KEYS, "Keys", "Confused?", "NjBjZTQzZTBjZGNlYTk4ZGNjNmYwYmUzN2IwZjc3NDVkYWFmMmE3ZGMyOWJmMTNiM2U3OGE2NWM2ZSJ9fX0="),
             PRIZES = createMenuIcon(Registry.PRIZES, "Prizes", "Sur-prize!", "ZWM3MDA3ZDE2YWJjZmFjOWM2ODMwYzc0ZDM3Y2ZkNDM5YTI2MzczNDU3ZDkxNDUyYzFhOTZiOGUwNGE2ZCJ9fX0="),
             REWARDS = createMenuIcon(Registry.REWARDS, "Rewards", "Oohh, shiny!", "NmNlZjlhYTE0ZTg4NDc3M2VhYzEzNGE0ZWU4OTcyMDYzZjQ2NmRlNjc4MzYzY2Y3YjFhMjFhODViNyJ9fX0="),
-            LOCATIONS = Element.of(Utils.createSkull(Utils.toText("&eLocations"), ImmutableList.of(Utils.toText("&6'Tis a cube land...")), "Y2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=").build(), a -> inTask(() -> locationMenu().open(a.getPlayer()))),
-            HOME = Element.of(Utils.createSkull(Utils.toText("&eHome"), ImmutableList.of(Utils.toText("&6Please do not live in crate.")), "ZTM0YTM2MTlkYzY2ZmM1Zjk0MGY2OWFhMzMxZTU4OGI1Mjg1ZjZlMmU5OTgxYjhmOTNiOTk5MTZjMjk0YjQ4In19fQ==").build(), a -> inTask(() -> openMenu(a.getPlayer())));
+            LOCATIONS = Element.of(Utils.createSkull(Utils.toText("&eLocations"), Utils.toText("&6'Tis a cube land..."), "Y2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=").build(), a -> inTask(() -> locationMenu().open(a.getPlayer()))),
+            HOME = Element.of(Utils.createSkull(Utils.toText("&eHome"), Utils.toText("&6Please do not live in crate."), "ZTM0YTM2MTlkYzY2ZmM1Zjk0MGY2OWFhMzMxZTU4OGI1Mjg1ZjZlMmU5OTgxYjhmOTNiOTk5MTZjMjk0YjQ4In19fQ==").build(), a -> inTask(() -> openMenu(a.getPlayer())));
     private static final View MENU = displayable(View.builder(), InventoryArchetypes.CHEST, Utils.toText("&eTesla&6Crate &7Menu"))
             .build(TeslaCrate.get().getContainer())
             .define(Layout.builder()
@@ -90,8 +90,8 @@ public enum Inventory {;
                 .define(Layout.builder()
                         .checker(PANES.get(2), PANES.get(1))
                         .set(Element.of(center), 13)
-                        .set(Element.of(Utils.createItem(ItemTypes.SLIME_BALL, Utils.toText("&aConfirm"), ImmutableList.of(Utils.toText(description))).build(), a -> inTask(() -> action.accept(a))), 10)
-                        .set(Element.of(Utils.createItem(ItemTypes.MAGMA_CREAM, Utils.toText("&cCancel"), ImmutableList.of(Utils.toText("&4Do not open this crate."))).build(), a -> inTask(a.getPlayer()::closeInventory)), 16)
+                        .set(Element.of(Utils.createItem(ItemTypes.SLIME_BALL, Utils.toText("&aConfirm"), Utils.toText(description)).build(), a -> inTask(() -> action.accept(a))), 10)
+                        .set(Element.of(Utils.createItem(ItemTypes.MAGMA_CREAM, Utils.toText("&cCancel"), Utils.toText("&4Do not open this crate.")).build(), a -> inTask(a.getPlayer()::closeInventory)), 16)
                         .build());
     }
 
@@ -126,7 +126,7 @@ public enum Inventory {;
     }
 
     private static Element createMenuIcon(Registry<? extends Component> registry, String name, String lore, String texture) {
-        return Element.of(Utils.createSkull(Utils.toText("&e" + name), ImmutableList.of(Utils.toText("&6" + lore)), texture).build(), a -> componentMenu(registry, name, a.getElement()).open(a.getPlayer()));
+        return Element.of(Utils.createSkull(Utils.toText("&e" + name), Utils.toText("&6" + lore), texture).build(), a -> componentMenu(registry, name, a.getElement()).open(a.getPlayer()));
     }
 
     private static Element createComponentIcon(Component component, Element back) {

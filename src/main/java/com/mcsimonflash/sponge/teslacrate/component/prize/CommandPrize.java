@@ -49,7 +49,7 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
         if (node.getNode("command").hasMapChildren()) {
             command = node.getNode("command", "command").getString("");
             value = node.getNode("command", "value").getString("<value>");
-            NodeUtils.ifAttached(node.getNode("command", "source"), n -> source = Serializers.deserializeEnum(n, Source.class));
+            NodeUtils.ifAttached(node.getNode("command", "source"), n -> source = Serializers.enumeration(n, Source.class));
             online = node.getNode("command", "online").getBoolean(false);
         } else {
             command = node.getNode("command").getString("");

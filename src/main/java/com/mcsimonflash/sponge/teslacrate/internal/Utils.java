@@ -1,13 +1,12 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
+import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.SkullTypes;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -43,15 +42,6 @@ public enum Utils {;
                 .sendTo(src);
     }
 
-    public static long getCooldown(User user, Crate crate) {
-        try {
-            return user.getOption("teslacrate.crates." + crate.getId() + ".cooldown").map(Long::parseLong).orElse(crate.getCooldown());
-        } catch (NumberFormatException e) {
-            TeslaCrate.get().getLogger().warn("User " + user.getName() + " contains a malformed cooldown option for crate " + crate.getId() + ".");
-            return crate.getCooldown();
-        }
-    }
-
     public static Task createTask(Consumer<Task> consumer, int delay, int interval, boolean async) {
         return (async ? Task.builder().async() : Task.builder())
                 .execute(consumer)
@@ -66,11 +56,11 @@ public enum Utils {;
                 .add(Keys.DISPLAY_NAME, name);
     }
 
-    public static ItemStack.Builder createItem(ItemType type, Text name, List<Text> lore) {
-        return createItem(type, name).add(Keys.ITEM_LORE, lore);
+    public static ItemStack.Builder createItem(ItemType type, Text name, Text... lore) {
+        return createItem(type, name).add(Keys.ITEM_LORE, Lists.newArrayList(lore));
     }
 
-    public static ItemStack.Builder createSkull(Text name, List<Text> lore, String texture) {
+    public static ItemStack.Builder createSkull(Text name, Text lore, String texture) {
         GameProfile profile = GameProfile.of(UUID.randomUUID(), null);
         profile.addProperty(ProfileProperty.of("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUv" + texture));
         return createItem(ItemTypes.SKULL, name, lore)

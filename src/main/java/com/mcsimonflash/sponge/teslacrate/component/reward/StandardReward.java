@@ -6,6 +6,8 @@ import com.mcsimonflash.sponge.teslacrate.api.component.Prize;
 import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
 import com.mcsimonflash.sponge.teslacrate.api.component.Reward;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
+import com.mcsimonflash.sponge.teslacrate.internal.Registry;
+import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.User;
@@ -31,7 +33,11 @@ public final class StandardReward extends Reward<StandardReward> {
 
     @Override
     public void deserialize(ConfigurationNode node) {
-        //TODO: Prizes
+        node.getNode("prizes").getChildrenMap().values().forEach(n -> {
+            String id = getId() + ":prize:" + n.getKey();
+            Prize<?, ?> prize = Serializers.getComponent(id, n, Registry.PRIZES, TeslaCrate.get().getContainer());
+            prizes.add(prize.createReference(id, n));
+        });
         super.deserialize(node);
     }
 

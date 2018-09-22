@@ -49,13 +49,13 @@ public final class PotionEffect extends Effect<PotionEffect, Integer> {
     @Override
     public final void deserialize(ConfigurationNode node) {
        if (node.getNode("potion").hasMapChildren()) {
-            NodeUtils.ifAttached(node.getNode("potion", "type"), n -> type = Serializers.deserializeCatalogType(n, PotionEffectType.class));
+            NodeUtils.ifAttached(node.getNode("potion", "type"), n -> type = Serializers.catalogType(n, PotionEffectType.class));
             duration = node.getNode("potion", "duration").getInt(100);
             amplifier = node.getNode("potion", "amplifier").getInt(1);
             ambient = node.getNode("potion", "ambient").getBoolean(false);
             particles = node.getNode("potion", "particles").getBoolean(false);
         } else {
-           NodeUtils.ifAttached(node.getNode("potion", "type"), n -> type = Serializers.deserializeCatalogType(n, PotionEffectType.class));
+           NodeUtils.ifAttached(node.getNode("potion", "type"), n -> type = Serializers.catalogType(n, PotionEffectType.class));
        }
         super.deserialize(node);
     }

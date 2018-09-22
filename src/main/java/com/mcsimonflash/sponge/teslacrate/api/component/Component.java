@@ -50,14 +50,18 @@ public abstract class Component<T extends Component<T, V>, V> {
         if (defaultItem = diNode.isVirtual()) {
             displayItem = createDisplayItem(getValue());
         } else if (diNode.hasMapChildren()) {
-            displayItem = (Serializers.deserializeItem(diNode));
+            displayItem = Serializers.itemStack(diNode);
         } else {
-            displayItem = (ItemStack.of(Serializers.deserializeCatalogType(diNode, ItemType.class), 1).createSnapshot());
+            displayItem = ItemStack.of(Serializers.catalogType(diNode, ItemType.class), 1).createSnapshot();
         }
     }
 
     protected abstract V deserializeValue(ConfigurationNode node);
 
     protected abstract ItemStackSnapshot createDisplayItem(V value);
+
+    public final Reference<T, V> createReference(String id, ConfigurationNode node) {
+        return new Reference<>(id, (T) this, node.hasMapChildren() ? getValue() : deserializeValue(node));
+    }
 
 }

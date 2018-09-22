@@ -3,9 +3,11 @@ package com.mcsimonflash.sponge.teslacrate.api.component;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.component.opener.Opener;
 import com.mcsimonflash.sponge.teslacrate.component.opener.StandardOpener;
 import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
+import com.mcsimonflash.sponge.teslacrate.internal.Registry;
 import com.mcsimonflash.sponge.teslacrate.internal.Serializers;
 import com.mcsimonflash.sponge.teslacrate.internal.Utils;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
@@ -37,6 +39,14 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
 
     protected Crate(String name) {
         super(name);
+    }
+
+    public List<Reference<? extends Effect, ?>> getEffects(Effect.Action action) {
+        return effects.getOrDefault(action, ImmutableList.of());
+    }
+
+    public List<Reference<? extends Key, Integer>> getKeys() {
+        return keys;
     }
 
     @Override @Nullable
@@ -84,27 +94,24 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
     public void deserialize(ConfigurationNode node) {
         message = node.getNode("message").getString("");
         announcement = node.getNode("announcement").getString("");
-        NodeUtils.ifAttached(node.getNode("opener"), n -> opener = Serializers.deserializeOpener(n));
-        /*for (Effect.Action action : Effect.Action.values()) {
+        NodeUtils.ifAttached(node.getNode("opener"), n -> opener = Serializers.opener(n));
+        for (Effect.Action action : Effect.Action.values()) {
             node.getNode("effects", action.name().toLowerCase().replace("_", "-")).getChildrenMap().values().forEach(n -> {
                 String id = getId() + ":effect:" + n.getKey();
-                Effect.Ref effect = Serializers.getComponent(id, n, Registry.EFFECTS, TeslaCrate.get().getContainer()).createRef(id);
-                effect.deserialize(n);
-                addEffect(action, effect);
+                Effect<?, ?> effect = Serializers.getComponent(id, n, Registry.EFFECTS, TeslaCrate.get().getContainer());
+                effects.putIfAbsent(action, Lists.newArrayList()).add(effect.createReference(id, n));
             });
         }
         node.getNode("keys").getChildrenMap().values().forEach(n -> {
             String id = getId() + ":key:" + n.getKey();
-            Key.Ref key = Serializers.getComponent(id, n, Registry.KEYS, TeslaCrate.get().getContainer()).createRef(id);
-            key.deserialize(n);
-            addKey(key);
+            Key<?> key = Serializers.getComponent(id, n, Registry.KEYS, TeslaCrate.get().getContainer());
+            keys.add(key.createReference(id, n));
         });
         node.getNode("rewards").getChildrenMap().values().forEach(n -> {
             String id = getId() + ":reward:" + n.getKey();
-            Reward.Ref reward = Serializers.getComponent(id, n, Registry.REWARDS, TeslaCrate.get().getContainer()).createRef(id);
-            reward.deserialize(n);
-            addReward(reward);
-        });*/
+            Reward<?> reward = Serializers.getComponent(id, n, Registry.REWARDS, TeslaCrate.get().getContainer());
+            rewards.add(reward.createReference(id, n));
+        });
         rewards.sort(Comparator.comparing(Reference::getValue));
         super.deserialize(node);
     }

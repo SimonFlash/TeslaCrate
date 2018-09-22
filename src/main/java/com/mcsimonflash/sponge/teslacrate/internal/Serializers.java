@@ -5,7 +5,7 @@ import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
-import com.mcsimonflash.sponge.teslacrate.api.component.Referenceable;
+import com.mcsimonflash.sponge.teslacrate.api.component.Component;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
 import com.mcsimonflash.sponge.teslacrate.component.opener.InstantGuiOpener;
 import com.mcsimonflash.sponge.teslacrate.component.opener.Opener;
@@ -44,24 +44,24 @@ import java.util.stream.Collectors;
 
 public enum Serializers {;
 
-    public static <T extends Referenceable<?>> Type<? extends T> getType(ConfigurationNode node, Registry<T> registry) throws ConfigurationException {
+    public static <T extends Component<T, ?>> Type<? extends T, ?> getType(ConfigurationNode node, Registry<T> registry) throws ConfigurationException {
         ConfigurationNode typeNode = node.getNode("type");
         if (!typeNode.isVirtual()) {
             return registry.getType(typeNode.getString("")).orElseThrow(() -> new ConfigurationException(typeNode, "No type found for %s.", typeNode.getString("undefined")));
         }
-        List<Type<? extends T>> types = registry.getTypes().getDistinct()
+        List<Type<? extends T, ?>> types = registry.getTypes().getDistinct()
                 .stream()
                 .map(Tuple::getFirst)
-                .filter(t -> t.matches(node))
+                //TODO: .filter(t -> t.matches(node))
                 .collect(Collectors.toList());
         return types.size() == 1 ? types.get(0) : types.stream().filter(t -> t.getContainer().equals(TeslaCrate.get().getContainer())).findFirst().orElseGet(() ->
                 registry.getType("Standard").orElseThrow(() -> new ConfigurationException(node, "TypeSense matched %s types and a Standard type does not exist.", types.size())));
     }
 
-    public static <T extends Referenceable<?>> T getComponent(String id, ConfigurationNode node, Registry<T> registry, PluginContainer container) {
+    public static <T extends Component<T, ?>> T getComponent(String id, ConfigurationNode node, Registry<T> registry, PluginContainer container) {
         T component;
         if (node.hasMapChildren()) {
-            Type<? extends T> type = Serializers.getType(node, registry);
+            Type<? extends T, ?> type = Serializers.<T>getType(node, registry);
             component = type.create(id);
             component.deserialize(node);
             registry.register(component, container);
@@ -73,17 +73,17 @@ public enum Serializers {;
         return component;
     }
 
-    public static <T extends CatalogType> T deserializeCatalogType(ConfigurationNode node, Class<T> type) throws ConfigurationException {
-        return deserializeCatalogType(node, node.getString("undefined"), "minecraft", type);
+    public static <T extends CatalogType> T catalogType(ConfigurationNode node, Class<T> type) throws ConfigurationException {
+        return catalogType(node, node.getString("undefined"), "minecraft", type);
     }
 
-    public static <T extends CatalogType> T deserializeCatalogType(ConfigurationNode node, String id, String namespace, Class<T> type) throws ConfigurationException {
+    public static <T extends CatalogType> T catalogType(ConfigurationNode node, String id, String namespace, Class<T> type) throws ConfigurationException {
         return Sponge.getRegistry().getType(type, id).orElseGet(() -> Sponge.getRegistry().getType(type, id.contains(":") ? id.substring(id.indexOf(":") + 1) : namespace + ":" + id).orElseThrow(() ->
                 new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", id)));
     }
 
-    public static ItemStackSnapshot deserializeItem(ConfigurationNode node) throws ConfigurationException {
-        ItemType type = deserializeCatalogType(node.getNode("type"), ItemType.class);
+    public static ItemStackSnapshot itemStack(ConfigurationNode node) throws ConfigurationException {
+        ItemType type = catalogType(node.getNode("type"), ItemType.class);
         int quantity = node.getNode("quantity").getInt(1);
         if (quantity <= 0 || quantity > type.getMaxStackQuantity()) {
             throw new ConfigurationException(node.getNode("quantity"), "Quantity is out of bounds.");
@@ -103,7 +103,7 @@ public enum Serializers {;
         NodeUtils.ifAttached(node.getNode("name"), n -> builder.add(Keys.DISPLAY_NAME, Utils.toText(n.getString(""))));
         NodeUtils.ifAttached(node.getNode("lore"), n -> builder.add(Keys.ITEM_LORE, n.hasListChildren() ? n.getChildrenList().stream().map(l -> Utils.toText(l.getString(""))).collect(Collectors.toList()) : Lists.newArrayList(Utils.toText(n.getString("")))));
         node.getNode("keys").getChildrenMap().values().forEach(c -> {
-            Key key = deserializeCatalogType(c, ((String) c.getKey()).replace("-", "_"), "sponge", Key.class);
+            Key key = catalogType(c, ((String) c.getKey()).replace("-", "_"), "sponge", Key.class);
             try {
                 builder.add(key, c.getValue(key.getElementToken()));
             } catch (ObjectMappingException e) {
@@ -111,24 +111,24 @@ public enum Serializers {;
             }
         });
         NodeUtils.ifAttached(node.getNode("enchantments"), n -> builder.add(Keys.ITEM_ENCHANTMENTS, n.getChildrenMap().values().stream()
-                .map(e -> Enchantment.of(deserializeCatalogType(e, ((String) e.getKey()).replace("-", "_"), "minecraft", EnchantmentType.class), e.getInt(0)))
+                .map(e -> Enchantment.of(catalogType(e, ((String) e.getKey()).replace("-", "_"), "minecraft", EnchantmentType.class), e.getInt(0)))
                 .collect(Collectors.toList())));
         return builder.build().createSnapshot();
     }
 
-    public static <T extends Enum<T>> T deserializeEnum(ConfigurationNode node, Class<T> type) {
+    public static <T extends Enum<T>> T enumeration(ConfigurationNode node, Class<T> type) {
         return Arrays.stream(type.getEnumConstants()).filter(e -> e.name().equalsIgnoreCase(node.getString(""))).findFirst().orElseThrow(() -> new ConfigurationException(node, "No " + type.getSimpleName() + " found for id %s", node.getString("undefined")));
     }
 
-    public static Color deserializeColor(ConfigurationNode node) throws ConfigurationException {
+    public static Color color(ConfigurationNode node) throws ConfigurationException {
         try {
-            return node.hasListChildren() ? Color.of(deserializeVector3i(node)) : Color.ofRgb(Integer.decode(node.getString("undefined")));
+            return node.hasListChildren() ? Color.of(vector3i(node)) : Color.ofRgb(Integer.decode(node.getString("undefined")));
         } catch (NumberFormatException e) {
             throw new ConfigurationException(node, "Unable to decode " + node.getString("") + " as an integer.");
         }
     }
 
-    public static Opener deserializeOpener(ConfigurationNode node) throws ConfigurationException {
+    public static Opener opener(ConfigurationNode node) throws ConfigurationException {
         switch (node.getString("").toLowerCase()) {
             case "instantgui": return InstantGuiOpener.INSTANCE;
             case "roulettegui": return RouletteGuiOpener.INSTANCE;
@@ -137,7 +137,7 @@ public enum Serializers {;
         }
     }
 
-    public static AnimationPath deserializePathType(ConfigurationNode node) throws ConfigurationException {
+    public static AnimationPath pathType(ConfigurationNode node) throws ConfigurationException {
         switch (node.getString("").toLowerCase()) {
             case "circle": return new CirclePath();
             case "helix": return new HelixPath();
@@ -147,10 +147,10 @@ public enum Serializers {;
         }
     }
 
-    public static AnimationPath deserializePath(ConfigurationNode node) throws ConfigurationException {
-        AnimationPath path = deserializePathType(node.getNode("type"));
+    public static AnimationPath path(ConfigurationNode node) throws ConfigurationException {
+        AnimationPath path = pathType(node.getNode("type"));
         if (!node.getNode("axis").isVirtual() && path instanceof CirclePath) {
-            ((CirclePath) path).setAxis(deserializeVector3d(node.getNode("axis")).toFloat());
+            ((CirclePath) path).setAxis(vector3d(node.getNode("axis")).toFloat());
         }
         path.setAnimated(node.getNode("animated").getBoolean(false));
         path.setInterval(node.getNode("interval").getInt(20));
@@ -158,21 +158,21 @@ public enum Serializers {;
         path.setSegments(node.getNode("segments").getInt(1));
         path.setShift(node.getNode("shift").getFloat(0));
         path.setSpeed(node.getNode("speed").getFloat(1));
-        NodeUtils.ifAttached(node.getNode("scale"), n -> path.setScale(deserializeVector3d(n).toFloat()));
+        NodeUtils.ifAttached(node.getNode("scale"), n -> path.setScale(vector3d(n).toFloat()));
         return path;
     }
 
-    public static Vector3i deserializeVector3i(ConfigurationNode node) throws ConfigurationException {
-        Integer[] components = deserializeComponents(node, Integer::parseInt, Integer[]::new);
+    public static Vector3i vector3i(ConfigurationNode node) throws ConfigurationException {
+        Integer[] components = vectorComponents(node, Integer::parseInt, Integer[]::new);
         return Vector3i.from(components[0], components[1], components[2]);
     }
 
-    public static Vector3d deserializeVector3d(ConfigurationNode node) throws ConfigurationException {
-        Double[] components = deserializeComponents(node, Double::parseDouble, Double[]::new);
+    public static Vector3d vector3d(ConfigurationNode node) throws ConfigurationException {
+        Double[] components = vectorComponents(node, Double::parseDouble, Double[]::new);
         return Vector3d.from(components[0], components[1], components[2]);
     }
 
-    private static <T> T[] deserializeComponents(ConfigurationNode node, Function<String, T> parser, IntFunction<T[]> array) {
+    private static <T> T[] vectorComponents(ConfigurationNode node, Function<String, T> parser, IntFunction<T[]> array) {
         T[] components;
         if (node.hasListChildren()) {
             components = node.getChildrenList().stream().map(n -> n.getString("")).map(parser).toArray(array);
