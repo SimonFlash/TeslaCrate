@@ -1,6 +1,5 @@
 package com.mcsimonflash.sponge.teslacrate.component.prize;
 
-import com.google.common.base.MoreObjects;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Prize;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
@@ -13,9 +12,9 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 
-public final class ItemPrize extends Prize<Integer> {
+public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
-    public static final Type<ItemPrize> TYPE = new Type<>("Item", ItemPrize::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<ItemPrize, Integer> TYPE = new Type<>("Item", ItemPrize::new, TeslaCrate.get().getContainer());
 
     private ItemStackSnapshot item = ItemStackSnapshot.NONE;
 
@@ -23,70 +22,37 @@ public final class ItemPrize extends Prize<Integer> {
         super(id);
     }
 
-    public final ItemStackSnapshot getItem() {
-        return item;
-    }
-
-    public final void setItem(ItemStackSnapshot item) {
-        this.item = item;
-    }
-
-    public final int getQuantity() {
+    @Override
+    protected final Integer getValue() {
         return item.getQuantity();
-    }
-
-    public final void setQuantity(int quantity) {
-        setItem(ItemStack.builder().fromSnapshot(item).quantity(quantity).build().createSnapshot());
     }
 
     @Override
     public final boolean give(User user, Integer value) {
-        ItemStack item = getItem().createStack();
-        item.setQuantity(value);
-        return user.getInventory().transform(InventoryTransformations.PLAYER_MAIN_HOTBAR_FIRST).offer(item).getType() == InventoryTransactionResult.Type.SUCCESS;
+        return user.getInventory()
+                .transform(InventoryTransformations.PLAYER_MAIN_HOTBAR_FIRST)
+                .offer(ItemStack.builder().fromSnapshot(item).quantity(value).build())
+                .getType() == InventoryTransactionResult.Type.SUCCESS;
     }
 
     @Override
-    public void deserialize(ConfigurationNode node) {
+    public final void deserialize(ConfigurationNode node) {
         if (node.getNode("item").hasMapChildren()) {
-            setItem(Serializers.deserializeItem(node.getNode("item")));
+            item = Serializers.deserializeItem(node.getNode("item"));
         } else {
-            setItem(ItemStack.of(Serializers.deserializeCatalogType(node.getNode("item"), ItemType.class), 1).createSnapshot());
+            item = ItemStack.of(Serializers.deserializeCatalogType(node.getNode("item"), ItemType.class), 1).createSnapshot();
         }
         super.deserialize(node);
     }
 
     @Override
-    public final Integer getRefValue() {
-        return item.getQuantity();
+    protected final Integer deserializeValue(ConfigurationNode node) {
+        return node.getInt(item.getQuantity());
     }
 
     @Override
-    public final Ref createRef(String id) {
-        return new Ref(id, this);
-    }
-
-    @Override
-    protected ItemStack.Builder createDisplayItem(Integer value) {
-        return ItemStack.builder().fromSnapshot(item);
-    }
-
-    @Override
-    protected final MoreObjects.ToStringHelper toStringHelper(String indent) {
-        return super.toStringHelper(indent).add(indent + "item", item);
-    }
-
-    public final static class Ref extends Prize.Ref<ItemPrize, Integer> {
-
-        private Ref(String id, ItemPrize component) {
-            super(id, component);
-        }
-
-        @Override
-        public final Integer deserializeValue(ConfigurationNode node) {
-            return node.getInt(getComponent().getQuantity());
-        }
-
+    protected final ItemStackSnapshot createDisplayItem(Integer value) {
+        return value == item.getQuantity() ? item : ItemStack.builder().fromSnapshot(item).quantity(value).build().createSnapshot();
     }
 
 }

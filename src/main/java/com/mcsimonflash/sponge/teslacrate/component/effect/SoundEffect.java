@@ -1,8 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.component.effect;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
@@ -13,13 +11,13 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.effect.sound.SoundType;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-public final class SoundEffect extends Effect.Locatable {
+public final class SoundEffect extends Effect.Locatable<SoundEffect> {
 
-    public static final Type<SoundEffect> TYPE = new Type<>("Sound", SoundEffect::new, n -> !n.getNode("sound").isVirtual(), TeslaCrate.get().getContainer());
+    public static final Type<SoundEffect, Vector3d> TYPE = new Type<>("Sound", SoundEffect::new, TeslaCrate.get().getContainer());
 
     private SoundType type = SoundTypes.ENTITY_SLIME_SQUISH;
     private double volume = 1.0;
@@ -27,30 +25,6 @@ public final class SoundEffect extends Effect.Locatable {
 
     private SoundEffect(String name) {
         super(name);
-    }
-
-    public final SoundType getType() {
-        return type;
-    }
-
-    public final void setType(SoundType type) {
-        this.type = type;
-    }
-
-    public final double getVolume() {
-        return volume;
-    }
-
-    public final void setVolume(double volume) {
-        this.volume = volume;
-    }
-
-    public final double getPitch() {
-        return pitch;
-    }
-
-    public final void setPitch(double pitch) {
-        this.pitch = pitch;
     }
 
     @Override
@@ -61,26 +35,18 @@ public final class SoundEffect extends Effect.Locatable {
     @Override
     public final void deserialize(ConfigurationNode node) {
         if (node.getNode("sound").hasMapChildren()) {
-            NodeUtils.ifAttached(node.getNode("sound", "type"), n -> setType(Serializers.deserializeCatalogType(n, SoundType.class)));
-            setVolume(node.getNode("sound", "volume").getDouble(1.0));
-            setPitch(node.getNode("sound", "pitch").getDouble(1.0));
+            NodeUtils.ifAttached(node.getNode("sound", "type"), n -> type = Serializers.deserializeCatalogType(n, SoundType.class));
+            volume = node.getNode("sound", "volume").getDouble(1.0);
+            pitch = node.getNode("sound", "pitch").getDouble(1.0);
         } else {
-            NodeUtils.ifAttached(node.getNode("sound"), n -> setType(Serializers.deserializeCatalogType(n, SoundType.class)));
+            NodeUtils.ifAttached(node.getNode("sound"), n -> type = Serializers.deserializeCatalogType(n, SoundType.class));
         }
         super.deserialize(node);
     }
 
     @Override
-    protected final ItemStack.Builder createDisplayItem(Vector3d offset) {
-        return Utils.createItem(ItemTypes.RECORD_13, getName(), Lists.newArrayList(getDescription()));
-    }
-
-    @Override
-    protected final MoreObjects.ToStringHelper toStringHelper(String indent) {
-        return super.toStringHelper(indent)
-                .add(indent + "type", type.getId())
-                .add(indent + "volume", volume)
-                .add(indent + "pitch", pitch);
+    protected final ItemStackSnapshot createDisplayItem(Vector3d offset) {
+        return Utils.createItem(ItemTypes.RECORD_13, getName()).build().createSnapshot();
     }
 
 }

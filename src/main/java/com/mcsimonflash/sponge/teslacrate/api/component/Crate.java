@@ -14,6 +14,8 @@ import com.mcsimonflash.sponge.teslalibs.message.Message;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -35,30 +37,6 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
 
     protected Crate(String name) {
         super(name);
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getAnnouncement() {
-        return announcement;
-    }
-
-    public Opener getOpener() {
-        return opener;
-    }
-
-    public Map<Effect.Action, List<Reference<? extends Effect, ?>>> getEffects() {
-        return effects;
-    }
-
-    public List<Reference<? extends Key, Integer>> getKeys() {
-        return keys;
-    }
-
-    public List<Reference<? extends Reward, Double>> getRewards() {
-        return rewards;
     }
 
     @Override @Nullable
@@ -88,8 +66,8 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
     }
 
     public Reference<? extends Reward, Double> selectReward(Player player) {
-        double rand = Math.random() * getRewards().stream().mapToDouble(Reference::getValue).sum();
-        for (Reference<? extends Reward, Double> reward : getRewards()) {
+        double rand = Math.random() * rewards.stream().mapToDouble(Reference::getValue).sum();
+        for (Reference<? extends Reward, Double> reward : rewards) {
             if ((rand -= reward.getValue()) <= 0) {
                 return reward;
             }
@@ -129,6 +107,16 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
         });*/
         rewards.sort(Comparator.comparing(Reference::getValue));
         super.deserialize(node);
+    }
+
+    @Override
+    protected Void deserializeValue(ConfigurationNode node) {
+        return null;
+    }
+
+    @Override
+    protected ItemStackSnapshot createDisplayItem(Void value) {
+        return Utils.createItem(ItemTypes.CHEST, getName()).build().createSnapshot();
     }
 
 }

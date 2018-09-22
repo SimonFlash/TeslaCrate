@@ -3,6 +3,7 @@ package com.mcsimonflash.sponge.teslacrate.component.opener;
 import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
 import com.mcsimonflash.sponge.teslacrate.api.component.Reward;
 import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslalibs.animation.Animator;
@@ -33,7 +34,7 @@ public final class RouletteGuiOpener extends Opener {
     @Override
     public final void open(Player player, Location<World> location, Crate crate) {
         int selection = (int) (9 * Math.random()), slow = 0;
-        List<Reward.Ref> rewards = IntStream.range(0, 9).mapToObj(i -> crate.selectReward(player)).collect(Collectors.toList());
+        List<Reference<? extends Reward, Double>> rewards = IntStream.range(0, 9).mapToObj(i -> crate.selectReward(player)).collect(Collectors.toList());
         List<Element> panes = Lists.newArrayList(Inventory.PANES);
         List<Integer> times = Lists.newArrayList(0, 2, 4, 6, 8, 10, 13, 16, 20, 24, 29, 34, 40, 47, 55, 64);
         List<Frame<Layout>> frames = new ArrayList<>(76 + selection);

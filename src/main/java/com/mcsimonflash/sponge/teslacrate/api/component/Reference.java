@@ -9,7 +9,7 @@ public class Reference<T extends Component<T, V>, V> {
     private V value;
     private ItemStackSnapshot displayItem;
 
-    protected Reference(String id, T component, V value) {
+    public Reference(String id, T component, V value) {
         this.id = id;
         this.component = component;
         this.value = value;

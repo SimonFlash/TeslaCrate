@@ -13,7 +13,8 @@ public abstract class Key<T extends Key<T>> extends Component<T, Integer> {
         super(id);
     }
 
-    public int getQuantity() {
+    @Override
+    protected Integer getValue() {
         return quantity;
     }
 
@@ -32,6 +33,11 @@ public abstract class Key<T extends Key<T>> extends Component<T, Integer> {
     public void deserialize(ConfigurationNode node) {
         quantity = node.getNode("quantity").getInt(1);
         super.deserialize(node);
+    }
+
+    @Override
+    protected Integer deserializeValue(ConfigurationNode node) {
+        return node.getInt(quantity);
     }
 
 }

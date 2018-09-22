@@ -2,6 +2,7 @@ package com.mcsimonflash.sponge.teslacrate.component.opener;
 
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
 import com.mcsimonflash.sponge.teslacrate.api.component.Reward;
 import com.mcsimonflash.sponge.teslacrate.internal.Inventory;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
@@ -19,7 +20,7 @@ public final class InstantGuiOpener extends Opener {
 
     @Override
     public final void open(Player player, Location<World> location, Crate crate) {
-        Reward.Ref reward = crate.selectReward(player);
+        Reference<? extends Reward, Double> reward = crate.selectReward(player);
         Inventory.displayable(View.builder(), InventoryArchetypes.DISPENSER, crate.getName())
                 .build(TeslaCrate.get().getContainer())
                 .define(Layout.builder()

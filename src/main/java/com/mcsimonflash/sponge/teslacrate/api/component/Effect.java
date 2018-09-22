@@ -35,19 +35,16 @@ public abstract class Effect<T extends Effect<T, V>, V> extends Component<T, V> 
             super(id);
         }
 
-        public Vector3d getOffset() {
+        @Override
+        protected Vector3d getValue() {
             return offset;
-        }
-
-        public Target getTarget() {
-            return target;
         }
 
         public abstract void run(Location<World> location);
 
         @Override
         public final void run(Player player, Location<World> location, Vector3d offset) {
-            run((getTarget() == Locatable.Target.PLAYER ? player.getLocation() : location).add(offset));
+            run((target == Locatable.Target.PLAYER ? player.getLocation() : location).add(offset));
         }
 
         @Override @OverridingMethodsMustInvokeSuper

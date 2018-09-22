@@ -15,6 +15,15 @@ public abstract class Reward<T extends Reward<T>> extends Component<T, Double> {
         super(id);
     }
 
+    public boolean isAnnounce() {
+        return announce;
+    }
+
+    @Override
+    protected Double getValue() {
+        return weight;
+    }
+
     public abstract void give(User user);
 
     @Override
@@ -26,16 +35,9 @@ public abstract class Reward<T extends Reward<T>> extends Component<T, Double> {
         super.deserialize(node);
     }
 
-    public boolean isAnnounce() {
-        return announce;
-    }
-
-    public boolean isRepeatable() {
-        return repeatable;
-    }
-
-    public double getWeight() {
-        return weight;
+    @Override
+    protected Double deserializeValue(ConfigurationNode node) {
+        return node.getDouble(weight);
     }
 
 }
