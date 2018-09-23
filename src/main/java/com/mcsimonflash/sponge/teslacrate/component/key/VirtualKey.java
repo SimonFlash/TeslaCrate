@@ -11,7 +11,7 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 public final class VirtualKey extends Key<VirtualKey> {
 
-    public static final Type<VirtualKey, Integer> TYPE = new Type<>("Virtual", VirtualKey::new, TeslaCrate.get().getContainer());
+    public static final Type<VirtualKey, Integer> TYPE = new Type<>("Virtual", VirtualKey::new, n -> !n.getNode("virtual").isVirtual(), TeslaCrate.get().getContainer());
 
     private VirtualKey(String id) {
         super(id);

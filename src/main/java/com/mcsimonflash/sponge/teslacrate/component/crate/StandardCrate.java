@@ -6,7 +6,7 @@ import com.mcsimonflash.sponge.teslacrate.api.component.Type;
 
 public final class StandardCrate extends Crate<StandardCrate> {
 
-    public static final Type<StandardCrate, Void> TYPE = new Type<>("Standard", StandardCrate::new, TeslaCrate.get().getContainer());
+    public static final Type<StandardCrate, Void> TYPE = new Type<>("Standard", StandardCrate::new, n -> false, TeslaCrate.get().getContainer());
 
     private StandardCrate(String id) {
         super(id);

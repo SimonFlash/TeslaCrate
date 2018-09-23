@@ -29,7 +29,7 @@ public final class Run extends Command {
         Player player = args.<Player>getOne("player").get();
         Effect effect = args.<Effect>getOne("effect").get();
         Location<World> location = args.<Location<World>>getOne("location").orElse(player.getLocation());
-        effect.run(player, location, effect.getRefValue());
+        effect.run(player, location, effect.getValue());
         src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.effect.run.success", "player", player.getName(), "effect", effect.getId(), "location", location.getExtent().getName() + location.getPosition()));
         return CommandResult.success();
     }

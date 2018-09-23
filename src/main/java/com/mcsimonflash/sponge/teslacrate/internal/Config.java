@@ -110,7 +110,7 @@ public enum Config {;
     private static <T extends Component<T, ?>> void loadComponents(ConfigHolder config, Registry<T> registry, String type) throws ConfigurationException {
         config.getNode().getChildrenMap().values().forEach(n -> {
             try {
-                T component = Serializers.getType(n, registry).create((String) n.getKey());
+                T component = Serializers.<T>getType(n, registry).create((String) n.getKey());
                 component.deserialize(n);
                 registry.register(component, TeslaCrate.get().getContainer());
             } catch (ConfigurationException e) {

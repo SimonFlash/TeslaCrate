@@ -25,7 +25,7 @@ import java.util.Optional;
 
 public final class FireworkEffect extends Effect.Locatable<FireworkEffect> {
 
-    public static final Type<FireworkEffect, Vector3d> TYPE = new Type<>("Firework", FireworkEffect::new, TeslaCrate.get().getContainer());
+    public static final Type<FireworkEffect, Vector3d> TYPE = new Type<>("Firework", FireworkEffect::new, n -> !n.getNode("firework").isVirtual(), TeslaCrate.get().getContainer());
 
     private FireworkShape shape = FireworkShapes.BALL;
     private final List<Color> colors = Lists.newArrayList();

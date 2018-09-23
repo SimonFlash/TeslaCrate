@@ -19,7 +19,7 @@ public final class InstantGuiOpener extends Opener {
     public static final InstantGuiOpener INSTANCE = new InstantGuiOpener();
 
     @Override
-    public final void open(Player player, Location<World> location, Crate crate) {
+    public final void open(Player player, Location<World> location, Crate<?> crate) {
         Reference<? extends Reward, Double> reward = crate.selectReward(player);
         Inventory.displayable(View.builder(), InventoryArchetypes.DISPENSER, crate.getName())
                 .build(TeslaCrate.get().getContainer())

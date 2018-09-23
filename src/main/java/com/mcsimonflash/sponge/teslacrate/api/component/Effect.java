@@ -36,7 +36,7 @@ public abstract class Effect<T extends Effect<T, V>, V> extends Component<T, V> 
         }
 
         @Override
-        protected Vector3d getValue() {
+        public Vector3d getValue() {
             return offset;
         }
 

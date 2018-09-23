@@ -7,6 +7,6 @@ import org.spongepowered.api.world.World;
 
 public abstract class Opener {
 
-    public abstract void open(Player player, Location<World> location, Crate crate);
+    public abstract void open(Player player, Location<World> location, Crate<?> crate);
 
 }

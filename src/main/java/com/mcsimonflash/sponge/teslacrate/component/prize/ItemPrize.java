@@ -14,7 +14,7 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 
 public final class ItemPrize extends Prize<ItemPrize, Integer> {
 
-    public static final Type<ItemPrize, Integer> TYPE = new Type<>("Item", ItemPrize::new, TeslaCrate.get().getContainer());
+    public static final Type<ItemPrize, Integer> TYPE = new Type<>("Item", ItemPrize::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
 
     private ItemStackSnapshot item = ItemStackSnapshot.NONE;
 
@@ -23,7 +23,7 @@ public final class ItemPrize extends Prize<ItemPrize, Integer> {
     }
 
     @Override
-    protected final Integer getValue() {
+    public final Integer getValue() {
         return item.getQuantity();
     }
 

@@ -35,10 +35,10 @@ public final class Give extends Command {
             throw new CommandException(TeslaCrate.getMessage(src, "teslacrate.command.no-users"));
         }
         Prize prize = args.<Prize>getOne("prize").get();
-        users.forEach(u -> prize.give(u, prize.getRefValue()));
+        users.forEach(u -> prize.give(u, prize.getValue()));
         src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.prize.give.success", "user", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
                 .onHover(TextActions.showText(Text.of(users.stream().map(User::getName).collect(Collectors.toList()))))
-                .build(), "prize", prize.getId(), "value", prize.getRefValue()));
+                .build(), "prize", prize.getId(), "value", prize.getValue()));
         return CommandResult.successCount(users.size());
     }
 

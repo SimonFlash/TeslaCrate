@@ -18,7 +18,7 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 
 public final class PhysicalKey extends Key<PhysicalKey> {
 
-    public static final Type<PhysicalKey, Integer> TYPE = new Type<>("Physical", PhysicalKey::new, TeslaCrate.get().getContainer());
+    public static final Type<PhysicalKey, Integer> TYPE = new Type<>("Physical", PhysicalKey::new, n -> !n.getNode("item").isVirtual(), TeslaCrate.get().getContainer());
 
     private ItemStackSnapshot item = ItemStackSnapshot.NONE;
 

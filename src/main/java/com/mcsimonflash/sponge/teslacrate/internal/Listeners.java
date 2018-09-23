@@ -104,7 +104,7 @@ public final class Listeners {
                     return;
                 }
             }
-            List<Reference<? extends Effect, ?>> effects = registration.getCrate().getEffects(Effect.Action.ON_REJECT);
+            registration.getCrate().getEffects(Effect.Action.ON_REJECT).forEach(e -> e.getComponent().run(player, registration.getLocation(), e.getValue()));
         }
     }
 

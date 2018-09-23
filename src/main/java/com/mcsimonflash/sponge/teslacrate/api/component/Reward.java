@@ -20,7 +20,7 @@ public abstract class Reward<T extends Reward<T>> extends Component<T, Double> {
     }
 
     @Override
-    protected Double getValue() {
+    public Double getValue() {
         return weight;
     }
 

@@ -10,7 +10,7 @@ public final class StandardOpener extends Opener {
     public static final StandardOpener INSTANCE = new StandardOpener();
 
     @Override
-    public final void open(Player player, Location<World> location, Crate crate) {
+    public final void open(Player player, Location<World> location, Crate<?> crate) {
         crate.give(player, location, crate.selectReward(player));
     }
 

@@ -32,7 +32,7 @@ public final class RouletteGuiOpener extends Opener {
     public static final RouletteGuiOpener INSTANCE = new RouletteGuiOpener();
 
     @Override
-    public final void open(Player player, Location<World> location, Crate crate) {
+    public final void open(Player player, Location<World> location, Crate<?> crate) {
         int selection = (int) (9 * Math.random()), slow = 0;
         List<Reference<? extends Reward, Double>> rewards = IntStream.range(0, 9).mapToObj(i -> crate.selectReward(player)).collect(Collectors.toList());
         List<Element> panes = Lists.newArrayList(Inventory.PANES);

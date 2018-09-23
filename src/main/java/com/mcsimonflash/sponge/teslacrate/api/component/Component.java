@@ -40,7 +40,7 @@ public abstract class Component<T extends Component<T, V>, V> {
         return displayItem;
     }
 
-    protected abstract V getValue();
+    public abstract V getValue();
 
     @OverridingMethodsMustInvokeSuper
     public void deserialize(ConfigurationNode node) {

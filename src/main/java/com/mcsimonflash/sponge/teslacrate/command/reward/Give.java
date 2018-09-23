@@ -37,7 +37,7 @@ public final class Give extends Command {
         users.forEach(reward::give);
         src.sendMessage(TeslaCrate.getMessage(src, "teslacrate.command.reward.give.success", "user", users.size() == 1 ? users.iterator().next().getName() : Text.builder("[users]")
                 .onHover(TextActions.showText(Text.of(users.stream().map(User::getName).collect(Collectors.toList()))))
-                .build(), "reward", reward.getId(), "value", reward.getRefValue()));
+                .build(), "reward", reward.getId(), "value", reward.getValue()));
         return CommandResult.successCount(users.size());
     }
 

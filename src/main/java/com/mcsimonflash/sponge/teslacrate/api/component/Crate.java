@@ -99,7 +99,7 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
             node.getNode("effects", action.name().toLowerCase().replace("_", "-")).getChildrenMap().values().forEach(n -> {
                 String id = getId() + ":effect:" + n.getKey();
                 Effect<?, ?> effect = Serializers.getComponent(id, n, Registry.EFFECTS, TeslaCrate.get().getContainer());
-                effects.putIfAbsent(action, Lists.newArrayList()).add(effect.createReference(id, n));
+                effects.computeIfAbsent(action, k -> Lists.newArrayList()).add(effect.createReference(id, n));
             });
         }
         node.getNode("keys").getChildrenMap().values().forEach(n -> {

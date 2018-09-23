@@ -15,7 +15,7 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 public final class CommandPrize extends Prize<CommandPrize, String> {
 
-    public static final Type<CommandPrize, String> TYPE = new Type<>("Command", CommandPrize::new, TeslaCrate.get().getContainer());
+    public static final Type<CommandPrize, String> TYPE = new Type<>("Command", CommandPrize::new, n -> !n.getNode("command").isVirtual(), TeslaCrate.get().getContainer());
 
     public enum Source {
         PLAYER, SERVER
@@ -31,7 +31,7 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
     }
 
     @Override
-    protected final String getValue() {
+    public final String getValue() {
         return value;
     }
 

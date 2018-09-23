@@ -17,7 +17,7 @@ import org.spongepowered.api.world.World;
 
 public final class SoundEffect extends Effect.Locatable<SoundEffect> {
 
-    public static final Type<SoundEffect, Vector3d> TYPE = new Type<>("Sound", SoundEffect::new, TeslaCrate.get().getContainer());
+    public static final Type<SoundEffect, Vector3d> TYPE = new Type<>("Sound", SoundEffect::new, n -> !n.getNode("sound").isVirtual(), TeslaCrate.get().getContainer());
 
     private SoundType type = SoundTypes.ENTITY_SLIME_SQUISH;
     private double volume = 1.0;

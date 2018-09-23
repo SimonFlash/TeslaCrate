@@ -18,7 +18,7 @@ import java.util.List;
 
 public final class StandardReward extends Reward<StandardReward> {
 
-    public static final Type<StandardReward, Double> TYPE = new Type<>("Standard", StandardReward::new, TeslaCrate.get().getContainer());
+    public static final Type<StandardReward, Double> TYPE = new Type<>("Standard", StandardReward::new, n -> false, TeslaCrate.get().getContainer());
 
     private final List<Reference<? extends Prize, ?>> prizes = Lists.newArrayList();
 

@@ -21,7 +21,7 @@ import java.util.List;
 
 public final class PotionEffect extends Effect<PotionEffect, Integer> {
 
-    public static final Type<PotionEffect, Integer> TYPE = new Type<>("Potion", PotionEffect::new, TeslaCrate.get().getContainer());
+    public static final Type<PotionEffect, Integer> TYPE = new Type<>("Potion", PotionEffect::new, n -> !n.getNode("potion").isVirtual(), TeslaCrate.get().getContainer());
 
     private PotionEffectType type = PotionEffectTypes.SPEED;
     private int duration = 10;
@@ -34,7 +34,7 @@ public final class PotionEffect extends Effect<PotionEffect, Integer> {
     }
 
     @Override
-    protected final Integer getValue() {
+    public final Integer getValue() {
         return duration;
     }
 

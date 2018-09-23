@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 
 public final class ParticleEffect extends Effect.Locatable<ParticleEffect> {
 
-    public static final Type<ParticleEffect, Vector3d> TYPE = new Type<>("Particle", ParticleEffect::new, TeslaCrate.get().getContainer());
+    public static final Type<ParticleEffect, Vector3d> TYPE = new Type<>("Particle", ParticleEffect::new, n -> !n.getNode("particle").isVirtual(), TeslaCrate.get().getContainer());
 
     private ParticleType type = ParticleTypes.REDSTONE_DUST;
     private Color color = Color.BLACK;

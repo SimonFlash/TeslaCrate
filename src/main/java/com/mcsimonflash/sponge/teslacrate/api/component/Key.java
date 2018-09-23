@@ -14,7 +14,7 @@ public abstract class Key<T extends Key<T>> extends Component<T, Integer> {
     }
 
     @Override
-    protected Integer getValue() {
+    public Integer getValue() {
         return quantity;
     }
 

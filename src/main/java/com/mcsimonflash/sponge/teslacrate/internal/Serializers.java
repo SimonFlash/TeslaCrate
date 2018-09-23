@@ -4,7 +4,6 @@ import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Component;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
 import com.mcsimonflash.sponge.teslacrate.component.opener.InstantGuiOpener;
@@ -52,10 +51,15 @@ public enum Serializers {;
         List<Type<? extends T, ?>> types = registry.getTypes().getDistinct()
                 .stream()
                 .map(Tuple::getFirst)
-                //TODO: .filter(t -> t.matches(node))
+                .filter(t -> t.matches(node))
                 .collect(Collectors.toList());
-        return types.size() == 1 ? types.get(0) : types.stream().filter(t -> t.getContainer().equals(TeslaCrate.get().getContainer())).findFirst().orElseGet(() ->
-                registry.getType("Standard").orElseThrow(() -> new ConfigurationException(node, "TypeSense matched %s types and a Standard type does not exist.", types.size())));
+        if (types.size() == 1) {
+            return types.get(0);
+        } else if (types.isEmpty()) {
+            return registry.getType("Standard").orElseThrow(() -> new ConfigurationException(node, "TypeSense matched no types and a Standard type does not exist."));
+        } else {
+            throw new ConfigurationException(node, "TypeSense could not determine a unique type.");
+        }
     }
 
     public static <T extends Component<T, ?>> T getComponent(String id, ConfigurationNode node, Registry<T> registry, PluginContainer container) {
