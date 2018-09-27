@@ -164,12 +164,12 @@ public enum Config {;
         return Collections.unmodifiableMap(REGISTRATIONS);
     }
 
-    public static long getCooldown(UUID uuid, Crate crate) {
-        return users.getNode(uuid.toString(), "cooldowns", crate.getId()).getLong(0);
+    public static long getCooldown(UUID uuid, Key key) {
+        return users.getNode(uuid.toString(), "cooldowns", key.getId()).getLong(0);
     }
 
-    public static boolean resetCooldown(UUID uuid, Crate crate) {
-        users.getNode(uuid.toString(), "cooldowns", crate.getId()).setValue(System.currentTimeMillis());
+    public static boolean resetCooldown(UUID uuid, Key key) {
+        users.getNode(uuid.toString(), "cooldowns", key.getId()).setValue(System.currentTimeMillis());
         return users.save();
     }
 
