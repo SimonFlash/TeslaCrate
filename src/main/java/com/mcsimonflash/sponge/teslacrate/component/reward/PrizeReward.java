@@ -46,6 +46,7 @@ public final class PrizeReward extends Reward<PrizeReward> {
     @Override
     public final void give(User user) {
         prize.getComponent().give(user, prize.getValue());
+        super.give(user);
     }
 
     @Override

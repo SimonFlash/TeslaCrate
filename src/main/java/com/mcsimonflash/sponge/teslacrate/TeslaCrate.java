@@ -3,16 +3,18 @@ package com.mcsimonflash.sponge.teslacrate;
 import com.google.inject.Inject;
 import com.mcsimonflash.sponge.teslacore.tesla.Tesla;
 import com.mcsimonflash.sponge.teslacrate.command.Base;
-import com.mcsimonflash.sponge.teslacrate.command.key.List;
 import com.mcsimonflash.sponge.teslacrate.component.crate.StandardCrate;
 import com.mcsimonflash.sponge.teslacrate.component.effect.FireworkEffect;
 import com.mcsimonflash.sponge.teslacrate.component.effect.ParticleEffect;
 import com.mcsimonflash.sponge.teslacrate.component.effect.PotionEffect;
 import com.mcsimonflash.sponge.teslacrate.component.effect.SoundEffect;
+import com.mcsimonflash.sponge.teslacrate.component.key.CooldownKey;
+import com.mcsimonflash.sponge.teslacrate.component.key.MoneyKey;
 import com.mcsimonflash.sponge.teslacrate.component.key.PhysicalKey;
 import com.mcsimonflash.sponge.teslacrate.component.key.VirtualKey;
 import com.mcsimonflash.sponge.teslacrate.component.prize.CommandPrize;
 import com.mcsimonflash.sponge.teslacrate.component.prize.ItemPrize;
+import com.mcsimonflash.sponge.teslacrate.component.prize.MoneyPrize;
 import com.mcsimonflash.sponge.teslacrate.component.reward.StandardReward;
 import com.mcsimonflash.sponge.teslacrate.internal.Config;
 import com.mcsimonflash.sponge.teslacrate.internal.Listeners;
@@ -46,13 +48,17 @@ public final class TeslaCrate extends Tesla {
         Registry.EFFECTS.registerType(ParticleEffect.TYPE);
         Registry.EFFECTS.registerType(PotionEffect.TYPE);
         Registry.EFFECTS.registerType(SoundEffect.TYPE);
+        Registry.KEYS.registerType(CooldownKey.TYPE);
+        Registry.KEYS.registerType(MoneyKey.TYPE);
         Registry.KEYS.registerType(PhysicalKey.TYPE);
         Registry.KEYS.registerType(VirtualKey.TYPE);
         Registry.PRIZES.registerType(CommandPrize.TYPE);
         Registry.PRIZES.registerType(ItemPrize.TYPE);
+        Registry.PRIZES.registerType(MoneyPrize.TYPE);
         Registry.REWARDS.registerType(StandardReward.TYPE);
         getCommands().register(Base.class);
-        Sponge.getCommandManager().register(getContainer(), getCommands().getInstance(List.class).getSpec(), "keys");
+        Sponge.getCommandManager().register(getContainer(), getCommands().getInstance(com.mcsimonflash.sponge.teslacrate.command.crate.List.class).getSpec(), "crates");
+        Sponge.getCommandManager().register(getContainer(), getCommands().getInstance(com.mcsimonflash.sponge.teslacrate.command.key.List.class).getSpec(), "keys");
         Sponge.getEventManager().registerListeners(getContainer(), new Listeners());
     }
 

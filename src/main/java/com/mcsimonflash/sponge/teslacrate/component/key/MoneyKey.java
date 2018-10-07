@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.component.key;
 
+import com.google.common.primitives.Ints;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
 import com.mcsimonflash.sponge.teslacrate.api.component.Type;
@@ -33,8 +34,13 @@ public final class MoneyKey extends Key<MoneyKey> {
     }
 
     @Override
+    public Integer getValue() {
+        return money;
+    }
+
+    @Override
     public final int get(User user) {
-        return getAccount(user).map(a -> a.getBalance(currency).intValue()).orElse(0);
+        return getAccount(user).map(a -> Ints.saturatedCast(a.getBalance(currency).longValue())).orElse(0);
     }
 
     @Override

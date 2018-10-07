@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Component;
+import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
+import com.mcsimonflash.sponge.teslacrate.api.component.Key;
+import com.mcsimonflash.sponge.teslacrate.api.component.Reference;
 import com.mcsimonflash.sponge.teslalibs.inventory.Action;
 import com.mcsimonflash.sponge.teslalibs.inventory.Displayable;
 import com.mcsimonflash.sponge.teslalibs.inventory.Element;
@@ -23,6 +26,8 @@ import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Tuple;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.Comparator;
 import java.util.List;
@@ -52,7 +57,7 @@ public enum Inventory {;
             REWARDS = createMenuIcon(Registry.REWARDS, "Rewards", "Oohh, shiny!", "NmNlZjlhYTE0ZTg4NDc3M2VhYzEzNGE0ZWU4OTcyMDYzZjQ2NmRlNjc4MzYzY2Y3YjFhMjFhODViNyJ9fX0="),
             LOCATIONS = Element.of(Utils.createSkull(Utils.toText("&eLocations"), Utils.toText("&6'Tis a cube land..."), "Y2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=").build(), a -> inTask(() -> locationMenu().open(a.getPlayer()))),
             HOME = Element.of(Utils.createSkull(Utils.toText("&eHome"), Utils.toText("&6Please do not live in crate."), "ZTM0YTM2MTlkYzY2ZmM1Zjk0MGY2OWFhMzMxZTU4OGI1Mjg1ZjZlMmU5OTgxYjhmOTNiOTk5MTZjMjk0YjQ4In19fQ==").build(), a -> inTask(() -> openMenu(a.getPlayer())));
-    private static final View MENU = displayable(View.builder(), InventoryArchetypes.CHEST, Utils.toText("&eTesla&6Crate &7Menu"))
+    private static final View MENU = displayable(View.builder(), InventoryArchetypes.CHEST, Utils.toText("&eTesla&6Crate &8Menu"))
             .build(TeslaCrate.get().getContainer())
             .define(Layout.builder()
                     .dimension(InventoryDimension.of(9, 3))
@@ -90,7 +95,10 @@ public enum Inventory {;
                 .define(Layout.builder()
                         .checker(PANES.get(2), PANES.get(1))
                         .set(Element.of(center), 13)
-                        .set(Element.of(Utils.createItem(ItemTypes.SLIME_BALL, Utils.toText("&aConfirm"), Utils.toText(description)).build(), a -> inTask(() -> action.accept(a))), 10)
+                        .set(Element.of(Utils.createItem(ItemTypes.SLIME_BALL, Utils.toText("&aConfirm"), Utils.toText(description)).build(), a -> inTask(() -> {
+                            action.accept(a);
+                            a.getPlayer().closeInventory();
+                        })), 10)
                         .set(Element.of(Utils.createItem(ItemTypes.MAGMA_CREAM, Utils.toText("&cCancel"), Utils.toText("&4Do not open this crate.")).build(), a -> inTask(a.getPlayer()::closeInventory)), 16)
                         .build());
     }
@@ -123,6 +131,28 @@ public enum Inventory {;
                         .add(Keys.ITEM_LORE, Lists.newArrayList(Utils.toText("&e" + r.getId())))
                         .build(), a -> Utils.teleport(a.getPlayer(), r.getLocation())))
                 .collect(Collectors.toList()), Inventory.CLOSE);
+    }
+
+    public static View redeemMenu(Crate<?> crate, Location<World> location) {
+        return displayable(View.builder(), InventoryArchetypes.CHEST, crate.getName())
+                .build(TeslaCrate.get().getContainer())
+                .define(Layout.builder()
+                        .checker(PANES.get(2), PANES.get(1))
+                        .set(Element.of(crate.getDisplayItem()), 13)
+                        .set(Element.of(Utils.createItem(ItemTypes.SLIME_BALL, Utils.toText("&aConfirm"), crate.getDescription()).build(), a -> inTask(() -> {
+                            List<Reference<? extends Key, ?>> missing = crate.getKeys().stream().filter(r -> !r.getComponent().check(a.getPlayer(), r.getValue())).collect(Collectors.toList());
+                            if (!missing.isEmpty()) {
+                                a.getPlayer().sendMessage(TeslaCrate.getMessage(a.getPlayer(), "teslacrate.crate.missing-keys", "crate", crate.getName(), "keys", String.join(", ", missing.stream()
+                                        .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", a.getPlayer().getLocale()).args("key", Utils.toString(r.getComponent().getName()), "quantity", r.getValue()).toString())
+                                        .collect(Collectors.toList()))));
+                            } else {
+                                a.getPlayer().closeInventory();
+                                crate.getKeys().forEach(r -> r.getComponent().take(a.getPlayer() , r.getValue()));
+                                crate.open(a.getPlayer(), location);
+                            }
+                        })), 10)
+                        .set(Element.of(Utils.createItem(ItemTypes.MAGMA_CREAM, Utils.toText("&cCancel"), Utils.toText("&4Do not open this crate.")).build(), a -> inTask(a.getPlayer()::closeInventory)), 16)
+                        .build());
     }
 
     private static Element createMenuIcon(Registry<? extends Component> registry, String name, String lore, String texture) {

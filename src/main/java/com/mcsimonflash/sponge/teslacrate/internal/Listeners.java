@@ -90,11 +90,10 @@ public final class Listeners {
                     player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.preview.no-permission", "player", player.getName(), "crate", registration.getCrate().getId()));
                 }
             } else {
-                //TODO: Cooldown
-                List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> r.getComponent().get(player) < r.getValue()).collect(Collectors.toList());
+                List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> !r.getComponent().check(player, r.getValue())).collect(Collectors.toList());
                 if (!missing.isEmpty()) {
                     player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", registration.getCrate().getId(), "keys", String.join(", ", missing.stream()
-                            .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", r.getComponent().getId(), "quantity", r.getValue()).toString())
+                            .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", Utils.toString(r.getComponent().getName()), "quantity", r.getValue()).toString())
                             .collect(Collectors.toList()))));
                 } else {
                     Inventory.confirmation(registration.getCrate().getName(), "&2Open this crate.", registration.getCrate().getDisplayItem(), a -> {

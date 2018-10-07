@@ -29,6 +29,7 @@ public final class StandardReward extends Reward<StandardReward> {
     @Override
     public final void give(User user) {
         prizes.forEach(p -> p.getComponent().give(user, p.getValue()));
+        super.give(user);
     }
 
     @Override

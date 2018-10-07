@@ -27,15 +27,23 @@ public final class CooldownKey extends Key<CooldownKey> {
     }
 
     @Override
+    public Integer getValue() {
+        return cooldown;
+    }
+
+    @Override
     public final int get(User user) {
-        long cooldown = unit.toMillis(getCooldown(user));
-        long time = cooldown == 0 ? 0 : cooldown - System.currentTimeMillis() + Config.getCooldown(user.getUniqueId(), this);
-        return time > 0 ? Ints.saturatedCast(time) : 0;
+        return Ints.saturatedCast(unit.convert(System.currentTimeMillis() - Config.getCooldown(user.getUniqueId(), this), TimeUnit.MILLISECONDS));
     }
 
     @Override
     public boolean check(User user, int quantity) {
-        return get(user) < quantity;
+        try {
+            quantity = user.getOption("teslacrate.keys." + getId() + ".cooldown").map(Integer::parseInt).orElse(quantity);
+        } catch (NumberFormatException e) {
+            TeslaCrate.get().getLogger().warn("User " + user.getName() + " contains a malformed cooldown option for key " + getId() + ".");
+        }
+        return System.currentTimeMillis() - Config.getCooldown(user.getUniqueId(), this) - unit.toMillis(quantity) >= 0;
     }
 
     @Override
@@ -46,15 +54,6 @@ public final class CooldownKey extends Key<CooldownKey> {
     @Override
     public final boolean take(User user, int quantity) {
         return Config.resetCooldown(user.getUniqueId(), this);
-    }
-
-    private long getCooldown(User user) {
-        try {
-            return user.getOption("teslacrate.keys." + getId() + ".cooldown").map(Long::parseLong).orElse((long) cooldown);
-        } catch (NumberFormatException e) {
-            TeslaCrate.get().getLogger().warn("User " + user.getName() + " contains a malformed cooldown option for key " + getId() + ".");
-            return cooldown;
-        }
     }
 
     @Override

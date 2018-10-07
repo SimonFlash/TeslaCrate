@@ -76,8 +76,12 @@ public abstract class Crate<T extends Crate<T>> extends Component<T, Void> {
     }
 
     public Reference<? extends Reward, Double> selectReward(Player player) {
-        double rand = Math.random() * rewards.stream().mapToDouble(Reference::getValue).sum();
-        for (Reference<? extends Reward, Double> reward : rewards) {
+        //TODO: Optimize and ensure rewards are present
+        List<Reference<? extends Reward, Double>> filtered = rewards.stream()
+                .filter(r -> r.getComponent().check(player))
+                .collect(Collectors.toList());
+        double rand = Math.random() * filtered.stream().mapToDouble(Reference::getValue).sum();
+        for (Reference<? extends Reward, Double> reward : filtered) {
             if ((rand -= reward.getValue()) <= 0) {
                 return reward;
             }

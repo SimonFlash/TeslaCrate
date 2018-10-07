@@ -6,6 +6,7 @@ import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Component;
 import com.mcsimonflash.sponge.teslacrate.api.component.Crate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
+import com.mcsimonflash.sponge.teslacrate.api.component.Reward;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigHolder;
 import com.mcsimonflash.sponge.teslalibs.configuration.ConfigurationException;
 import com.mcsimonflash.sponge.teslalibs.configuration.NodeUtils;
@@ -162,6 +163,15 @@ public enum Config {;
 
     public static Map<Location<World>, Registration> getAllRegistrations() {
         return Collections.unmodifiableMap(REGISTRATIONS);
+    }
+
+    public static int getRewardCount(UUID uuid, Reward reward) {
+        return users.getNode(uuid.toString(), "rewards", reward.getId()).getInt(0);
+    }
+
+    public static boolean setRewardCount(UUID uuid, Reward reward, int count) {
+        users.getNode(uuid.toString(), "rewards", reward.getId()).setValue(count);
+        return users.save();
     }
 
     public static long getCooldown(UUID uuid, Key key) {
