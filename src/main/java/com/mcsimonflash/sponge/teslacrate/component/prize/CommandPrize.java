@@ -64,7 +64,7 @@ public final class CommandPrize extends Prize<CommandPrize, String> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(String value) {
-        return Utils.createItem(ItemTypes.FILLED_MAP, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.FILLED_MAP, getName(), getDescription()).build().createSnapshot();
     }
 
 }

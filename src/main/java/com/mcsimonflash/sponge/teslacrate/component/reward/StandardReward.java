@@ -44,7 +44,7 @@ public final class StandardReward extends Reward<StandardReward> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Double value) {
-        return Utils.createItem(ItemTypes.WRITTEN_BOOK, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.WRITTEN_BOOK, getName(), getDescription()).build().createSnapshot();
     }
 
 }

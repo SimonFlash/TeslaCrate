@@ -46,7 +46,7 @@ public final class SoundEffect extends Effect.Locatable<SoundEffect> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Vector3d offset) {
-        return Utils.createItem(ItemTypes.RECORD_13, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.RECORD_13, getName(), getDescription()).build().createSnapshot();
     }
 
 }

@@ -12,7 +12,7 @@ import org.spongepowered.api.command.args.CommandContext;
 
 @Aliases("crate")
 @Permission("teslacrate.command.crate.base")
-@Children(Open.class)
+@Children({List.class, Open.class})
 public final class Crate extends Command {
 
     @Inject

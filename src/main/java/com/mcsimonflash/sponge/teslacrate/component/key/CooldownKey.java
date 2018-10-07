@@ -69,7 +69,7 @@ public final class CooldownKey extends Key<CooldownKey> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Integer value) {
-        return Utils.createItem(ItemTypes.CLOCK, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.CLOCK, getName(), getDescription()).build().createSnapshot();
     }
 
 }

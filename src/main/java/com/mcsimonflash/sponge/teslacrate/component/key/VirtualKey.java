@@ -48,7 +48,7 @@ public final class VirtualKey extends Key<VirtualKey> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Integer value) {
-        return Utils.createItem(ItemTypes.NAME_TAG, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.NAME_TAG, getName(), getDescription()).build().createSnapshot();
     }
 
 }

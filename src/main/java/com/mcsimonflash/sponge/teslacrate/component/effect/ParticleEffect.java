@@ -81,7 +81,7 @@ public final class ParticleEffect extends Effect.Locatable<ParticleEffect> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Vector3d value) {
-        return Utils.createItem(ItemTypes.REDSTONE, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.REDSTONE, getName(), getDescription()).build().createSnapshot();
     }
 
 }

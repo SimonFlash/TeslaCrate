@@ -56,7 +56,7 @@ public final class PhysicalKey extends Key<PhysicalKey> {
         if (node.getNode("item").hasMapChildren()) {
             container = Serializers.itemStack(node.getNode("item")).toContainer();
         } else {
-            container = Utils.createItem(Serializers.catalogType(node.getNode("item"), ItemType.class),  getName()).build().toContainer();
+            container = Utils.createItem(Serializers.catalogType(node.getNode("item"), ItemType.class),  getName(), getDescription()).build().toContainer();
         }
         item = ItemStack.builder()
                 .fromContainer(container.set(DataQuery.of("UnsafeData", "TeslaCrate", "Key"), getId()))

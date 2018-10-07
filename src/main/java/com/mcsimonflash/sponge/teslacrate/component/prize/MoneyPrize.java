@@ -60,7 +60,7 @@ public final class MoneyPrize extends Prize<MoneyPrize, Integer> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Integer value) {
-        return Utils.createItem(ItemTypes.DOUBLE_PLANT, getName()).add(Keys.DOUBLE_PLANT_TYPE, DoublePlantTypes.SUNFLOWER).build().createSnapshot();
+        return Utils.createItem(ItemTypes.DOUBLE_PLANT, getName(), getDescription()).add(Keys.DOUBLE_PLANT_TYPE, DoublePlantTypes.SUNFLOWER).build().createSnapshot();
     }
 
 }

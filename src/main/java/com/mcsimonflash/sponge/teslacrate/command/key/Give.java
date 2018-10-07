@@ -41,8 +41,9 @@ public final class Give extends Command {
             User user = users.iterator().next();
             if (!key.give(user, quantity)) {
                 throw new CommandException(getMessage(src, "failure", users, key, quantity));
+            } else if (src != user) {
+                src.sendMessage(getMessage(src, "success", users, key, quantity));
             }
-            src.sendMessage(getMessage(src, "success", users, key, quantity));
             Sponge.getServer().getPlayer(user.getUniqueId()).ifPresent(p -> p.sendMessage(TeslaCrate.getMessage(p, "teslacrate.command.key.give.receive", "key", key.getId(), "quantity", quantity)));
             return CommandResult.success();
         } else {
@@ -53,8 +54,9 @@ public final class Give extends Command {
                     throw new CommandException(message);
                 }
                 src.sendMessage(message);
+            } else {
+                src.sendMessage(getMessage(src, "success", users, key, quantity));
             }
-            src.sendMessage(getMessage(src, "success", users, key, quantity));
             successful.stream()
                     .filter(User::isOnline)
                     .map(u -> u.getPlayer().get())

@@ -65,7 +65,7 @@ public final class FireworkEffect extends Effect.Locatable<FireworkEffect> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Vector3d value) {
-        return Utils.createItem(ItemTypes.FIREWORKS, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.FIREWORKS, getName(), getDescription()).build().createSnapshot();
     }
 
 }

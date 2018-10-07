@@ -67,7 +67,7 @@ public final class PotionEffect extends Effect<PotionEffect, Integer> {
 
     @Override
     protected final ItemStackSnapshot createDisplayItem(Integer duration) {
-        return Utils.createItem(ItemTypes.SPLASH_POTION, getName()).build().createSnapshot();
+        return Utils.createItem(ItemTypes.SPLASH_POTION, getName(), getDescription()).build().createSnapshot();
     }
 
 }

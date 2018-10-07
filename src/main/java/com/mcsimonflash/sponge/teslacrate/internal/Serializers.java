@@ -104,7 +104,7 @@ public enum Serializers {;
             }
         });
         ItemStack.Builder builder = ItemStack.builder().fromContainer(container);
-        NodeUtils.ifAttached(node.getNode("name"), n -> builder.add(Keys.DISPLAY_NAME, Utils.toText(n.getString(""))));
+        NodeUtils.ifAttached(node.getNode("name"), n -> builder.add(Keys.DISPLAY_NAME, Utils.toText("&r" + n.getString(""))));
         NodeUtils.ifAttached(node.getNode("lore"), n -> builder.add(Keys.ITEM_LORE, n.hasListChildren() ? n.getChildrenList().stream().map(l -> Utils.toText(l.getString(""))).collect(Collectors.toList()) : Lists.newArrayList(Utils.toText(n.getString("")))));
         node.getNode("keys").getChildrenMap().values().forEach(c -> {
             Key key = catalogType(c, ((String) c.getKey()).replace("-", "_"), "sponge", Key.class);
