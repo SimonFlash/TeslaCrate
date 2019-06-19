@@ -33,6 +33,7 @@ public enum Config {;
     private static final Path storage = directory.resolve("storage");
     private static ConfigHolder config, crates, effects, keys, prizes, rewards, registrations, users;
 
+    public static boolean confirmationMenu = true;
     private static final Map<Location<World>, Registration> REGISTRATIONS = Maps.newHashMap();
 
     public static void load() {
@@ -44,6 +45,7 @@ public enum Config {;
             Files.createDirectories(configuration);
             Files.createDirectories(storage);
             config = loadConfig(directory, "teslacrate.conf", true);
+            confirmationMenu = config.getNode("settings", "confirmation-menu").getBoolean(true);
             crates = loadConfig(configuration, "crates.conf", true);
             effects = loadConfig(configuration, "effects.conf", true);
             keys = loadConfig(configuration, "keys.conf", true);

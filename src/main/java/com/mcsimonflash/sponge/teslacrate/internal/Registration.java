@@ -39,7 +39,7 @@ public final class Registration {
         stopEffects();
         crate.getEffects(Effect.Action.PASSIVE).stream()
                 .filter(e -> e.getComponent() instanceof ParticleEffect)
-                .forEach(e -> effects.add(((ParticleEffect) e.getComponent()).start(location)));
+                .forEach(e -> effects.add(((ParticleEffect) e.getComponent()).start(location.add(((ParticleEffect) e.getComponent()).getValue()))));
     }
 
     public final void stopEffects() {

@@ -1,5 +1,6 @@
 package com.mcsimonflash.sponge.teslacrate.internal;
 
+import com.google.common.collect.Lists;
 import com.mcsimonflash.sponge.teslacrate.TeslaCrate;
 import com.mcsimonflash.sponge.teslacrate.api.component.Effect;
 import com.mcsimonflash.sponge.teslacrate.api.component.Key;
@@ -89,22 +90,53 @@ public final class Listeners {
                 } else {
                     player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.preview.no-permission", "player", player.getName(), "crate", registration.getCrate().getId()));
                 }
-            } else {
-                List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> !r.getComponent().check(player, r.getValue())).collect(Collectors.toList());
-                if (!missing.isEmpty()) {
-                    player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", registration.getCrate().getId(), "keys", String.join(", ", missing.stream()
-                            .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", Utils.toString(r.getComponent().getName()), "quantity", r.getValue()).toString())
-                            .collect(Collectors.toList()))));
-                } else {
+            } else if (hasKeys(registration, player)) {
+                if (Config.confirmationMenu) {
                     Inventory.confirmation(registration.getCrate().getName(), "&2Open this crate.", registration.getCrate().getDisplayItem(), a -> {
-                        registration.getCrate().getKeys().forEach(r -> r.getComponent().take(player, r.getValue()));
-                        registration.getCrate().open(player, registration.getLocation());
+                        if (hasKeys(registration, player)) {
+                            open(registration, player);
+                        } else {
+                            registration.getCrate().getEffects(Effect.Action.ON_REJECT).forEach(e -> e.getComponent().run(player, registration.getLocation(), e.getValue()));
+                        }
                     }).open(player);
-                    return;
+                } else {
+                    open(registration, player);
                 }
+                return;
             }
             registration.getCrate().getEffects(Effect.Action.ON_REJECT).forEach(e -> e.getComponent().run(player, registration.getLocation(), e.getValue()));
         }
+    }
+
+    private static boolean hasKeys(Registration registration, Player player) {
+        List<Reference<? extends Key, ?>> missing = registration.getCrate().getKeys().stream().filter(r -> !r.getComponent().check(player, r.getValue())).collect(Collectors.toList());
+        if (!missing.isEmpty()) {
+            player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.crate.missing-keys", "crate", registration.getCrate().getId(), "keys", missing.stream()
+                    .map(r -> TeslaCrate.get().getMessages().get("teslacrate.crate.missing-keys.key-format", player.getLocale()).args("key", Utils.toString(r.getComponent().getName()), "quantity", r.getValue()).toString())
+                    .collect(Collectors.joining(", "))));
+            return false;
+        }
+        return true;
+    }
+
+    private static void open(Registration registration, Player player) {
+        List<Reference<? extends Key, Integer>> given = Lists.newArrayList();
+        for (Reference<? extends Key, Integer> ref : registration.getCrate().getKeys()) {
+            if (!ref.getComponent().take(player, ref.getValue())) {
+                TeslaCrate.get().getLogger().error("Failed to take " + ref.getValue() + "x " + ref.getComponent().getId() + " key to " + player.getName() + ". Attempting to return keys already taken.");
+                player.sendMessage(TeslaCrate.getMessage(player, "teslacrate.command.key.take.failure", "user", player.getName(), "key", ref.getComponent().getId(), "quantity", ref.getValue()));
+                given.forEach(k -> {
+                    if (!ref.getComponent().give(player, ref.getValue())) {
+                        TeslaCrate.get().getLogger().error("Failed to return " + ref.getValue() + "x " + ref.getComponent().getId() + " key to " + player.getName() + ".");
+                        player.sendMessage(TeslaCrate.getMessage(player,"teslacrate.command.key.give.failure", "user", player.getName(), "key", ref.getComponent().getId(), "quantity", ref.getValue()));
+                    }
+                });
+                registration.getCrate().getEffects(Effect.Action.ON_REJECT).forEach(e -> e.getComponent().run(player, registration.getLocation(), e.getValue()));
+                return;
+            }
+            given.add(ref);
+        }
+        registration.getCrate().open(player, registration.getLocation());
     }
 
 }

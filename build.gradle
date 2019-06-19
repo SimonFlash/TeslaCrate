@@ -10,8 +10,8 @@ repositories {
 }
 
 group 'com.mcsimonflash.sponge.teslacrate'
-version '3.0.0-pr4'
-ext.teslaversion = '1.1.5'
+version '3.0.0-pr5'
+ext.teslaversion = '1.1.6'
 ext.spongeversion = '7.1.0'
 
 dependencies {
